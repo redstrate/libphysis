@@ -1,11 +1,15 @@
+extern crate core;
+
+use core::ffi;
 use std::ffi::CStr;
 use std::mem;
-use std::os::raw::c_char;
+use std::os::raw::{c_char, c_uint, c_uchar};
 use std::ptr::null_mut;
 use physis::gamedata::GameData;
+use physis::blowfish::Blowfish;
 
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
-#[no_mangle] pub extern fn gamedata_initialize(path : *const c_char) -> *mut GameData {
+#[no_mangle] pub extern "C" fn physis_gamedata_initialize(path : *const c_char) -> *mut GameData {
     unsafe {
         let mut game_data = Box::new(GameData::from_existing(CStr::from_ptr(path).to_string_lossy().as_ref()).unwrap());
 
@@ -15,9 +19,15 @@ use physis::gamedata::GameData;
     }
 }
 
+#[no_mangle] pub extern "C" fn physis_gamedata_free(game_data : *mut GameData) {
+    unsafe {
+        drop(Box::from_raw(game_data));
+    }
+}
+
 /// Extracts the raw game file from `path`, and puts it in `data` with `size` length. If the path was not found,
 /// `size` is 0 and `data` is NULL.
-#[no_mangle] pub extern fn gamedata_extract_file(game_data : &GameData, path : *const c_char, size : *mut u32, data : &mut *mut u8) {
+#[no_mangle] pub extern "C" fn physis_gamedata_extract_file(game_data : &GameData, path : *const c_char, size : *mut u32, data : &mut *mut u8) {
     unsafe {
         let mut d = game_data.extract(CStr::from_ptr(path).to_string_lossy().as_ref()).unwrap();
 
@@ -29,9 +39,63 @@ use physis::gamedata::GameData;
 }
 
 /// Checks if the file at `path` exists.
-#[no_mangle] pub extern fn gamedata_exists(game_data : &GameData, path : *const c_char) -> bool {
+#[no_mangle] pub extern "C" fn physis_gamedata_exists(game_data : &GameData, path : *const c_char) -> bool {
     unsafe {
         game_data.exists(CStr::from_ptr(path).to_string_lossy().as_ref())
     }
 }
 
+#[no_mangle] pub extern "C" fn physis_blowfish_initialize(key : *mut u8, key_size : c_uint) -> *mut Blowfish {
+    unsafe {
+        let data = Vec::from_raw_parts(key, key_size as usize, key_size as usize);
+        let blowfish = Box::new(Blowfish::new(&data).into());
+
+        Box::leak(blowfish)
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_blowfish_free(blowfish : *mut Blowfish) {
+    unsafe {
+        drop(Box::from_raw(blowfish));
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_blowfish_encrypt(blowfish : &Blowfish, in_data : *mut u8, in_data_size : c_uint, out_data : &mut *mut u8, out_data_size : *mut u32) -> bool {
+    unsafe {
+        let in_data = Vec::from_raw_parts(in_data, in_data_size as usize, in_data_size as usize);
+
+        let result = blowfish.encrypt(&*in_data);
+
+        match result {
+            Some(mut out_data_vec) => {
+                *out_data = out_data_vec.as_mut_ptr();
+                *out_data_size = out_data_vec.len() as u32;
+
+                std::mem::forget(out_data_vec);
+
+                true
+            }
+            None => false
+        }
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_blowfish_decrypt(blowfish : &Blowfish, in_data : *mut u8, in_data_size : c_uint, out_data : &mut *mut u8, out_data_size : *mut u32) -> bool {
+    unsafe {
+        let in_data = Vec::from_raw_parts(in_data, in_data_size as usize, in_data_size as usize);
+
+        let result = blowfish.decrypt(&*in_data);
+
+        match result {
+            Some(mut out_data_vec) => {
+                *out_data = out_data_vec.as_mut_ptr();
+                *out_data_size = out_data_vec.len() as u32;
+
+                std::mem::forget(out_data_vec);
+
+                true
+            }
+            None => false
+        }
+    }
+}
