@@ -1,0 +1,15 @@
+[package]
+name = "libphysis"
+version = "0.1.0"
+edition = "2021"
+description = "C bindings for physis"
+
+[lib]
+name = "physis"
+crate-type = ["staticlib", "lib"] # Creates static lib
+
+[build-dependencies]
+cbindgen = "0.20.0"
+
+[dependencies]
+physis = { git = "https://git.sr.ht/~redstrate/physis" }
