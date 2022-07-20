@@ -9,6 +9,8 @@ fn main() {
 
     cbindgen::Builder::new()
         .with_crate(crate_dir.as_str())
+        .with_parse_deps(true)
+        .with_parse_include(&["physis"])
         .with_language(Language::C)
         .generate()
         .expect("Unable to generate C bindings")
@@ -16,6 +18,8 @@ fn main() {
 
     cbindgen::Builder::new()
         .with_crate(crate_dir.as_str())
+        .with_parse_deps(true)
+        .with_parse_include(&["physis"])
         .with_language(Language::Cxx)
         .generate()
         .expect("Unable to generate C++ bindings")
