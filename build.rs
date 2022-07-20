@@ -12,12 +12,12 @@ fn main() {
         .with_language(Language::C)
         .generate()
         .expect("Unable to generate C bindings")
-        .write_to_file("target/public/bindings.h");
+        .write_to_file("target/public/physis.h");
 
     cbindgen::Builder::new()
         .with_crate(crate_dir.as_str())
         .with_language(Language::Cxx)
         .generate()
         .expect("Unable to generate C++ bindings")
-        .write_to_file("target/public/bindings.hpp");
+        .write_to_file("target/public/physis.hpp");
 }
