@@ -7,6 +7,7 @@ use std::os::raw::{c_char, c_uint, c_uchar};
 use std::ptr::null_mut;
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
+use physis::patch::process_patch;
 
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
 #[no_mangle] pub extern "C" fn physis_gamedata_initialize(path : *const c_char) -> *mut GameData {
@@ -93,5 +94,11 @@ use physis::blowfish::Blowfish;
             true
         }
         None => false
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_patch_process(data_path : *const c_char, path : *const c_char) {
+    unsafe {
+        process_patch(CStr::from_ptr(data_path).to_str().unwrap(), CStr::from_ptr(path).to_str().unwrap())
     }
 }
