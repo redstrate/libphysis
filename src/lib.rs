@@ -58,6 +58,12 @@ use physis::patch::process_patch;
     }
 }
 
+#[no_mangle] pub extern "C" fn physis_gamedata_free_sheet_header(exh: *mut EXH) {
+    unsafe {
+        drop(Box::from_raw(exh));
+    }
+}
+
 #[repr(C)]
 pub enum physis_ColumnData {
     String(*const c_char),
@@ -80,7 +86,7 @@ pub struct physis_ExcelRow {
 
 #[repr(C)]
 pub struct physis_EXD {
-    ptr : *mut EXD,
+    p_ptr : *mut EXD,
     column_count: c_uint,
 
     row_data : *mut physis_ExcelRow,
@@ -127,7 +133,7 @@ pub struct physis_EXD {
         }
 
         let exd = physis_EXD {
-            ptr: Box::leak(exd),
+            p_ptr: Box::leak(exd),
             column_count: exh.column_definitions.len() as c_uint,
             row_data: c_rows.as_mut_ptr(),
             row_count: c_rows.len() as c_uint
@@ -139,6 +145,11 @@ pub struct physis_EXD {
     }
 }
 
+#[no_mangle] pub extern "C" fn physis_gamedata_free_sheet(exd : physis_EXD)  {
+    unsafe {
+        drop(Box::from_raw(exd.p_ptr));
+    }
+}
 
 #[no_mangle] pub extern "C" fn physis_blowfish_initialize(key : *mut u8, key_size : c_uint) -> *mut Blowfish {
     let data = unsafe { slice::from_raw_parts(key, key_size as usize) };
