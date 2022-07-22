@@ -81,7 +81,7 @@ pub enum physis_ColumnData {
 
 #[repr(C)]
 pub struct physis_ExcelRow {
-    column_data: *const physis_ColumnData
+    column_data: *mut physis_ColumnData
 }
 
 #[repr(C)]
@@ -126,7 +126,7 @@ pub struct physis_EXD {
             }
 
             c_rows.push(physis_ExcelRow {
-                column_data: c_col_data.as_ptr()
+                column_data: c_col_data.as_mut_ptr()
             });
 
             mem::forget(c_col_data);
@@ -147,6 +147,26 @@ pub struct physis_EXD {
 
 #[no_mangle] pub extern "C" fn physis_gamedata_free_sheet(exd : physis_EXD)  {
     unsafe {
+        let data = Vec::from_raw_parts(exd.row_data, exd.row_count as usize, exd.row_count as usize);
+
+        for i in 0..exd.row_count {
+            let col_data = Vec::from_raw_parts(data[i as usize].column_data, exd.column_count as usize, exd.column_count as usize);
+
+            for col in &col_data {
+                match col {
+                    physis_ColumnData::String(s) => {
+                        let str = CString::from_raw(*s as *mut i8);
+                        drop(str);
+                    }
+                    _ => {}
+                }
+            }
+
+            drop(col_data);
+        }
+
+        drop(data);
+
         drop(Box::from_raw(exd.p_ptr));
     }
 }
