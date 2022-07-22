@@ -99,7 +99,12 @@ pub struct physis_EXD {
             for col_data in &row.data {
                 match col_data {
                     ColumnData::String(s) => {
-                        c_col_data.push(physis_ColumnData::String(CString::new(s.as_bytes()).unwrap().as_ptr()))
+                        let s = CString::new(s.as_bytes()).unwrap();
+                        let ptr = s.as_ptr();
+
+                        mem::forget(s);
+
+                        c_col_data.push(physis_ColumnData::String(ptr))
                     }
                     ColumnData::Bool(b) => { c_col_data.push(physis_ColumnData::Bool(*b)) }
                     ColumnData::Int8(i) => { c_col_data.push(physis_ColumnData::Int8(*i)) }
