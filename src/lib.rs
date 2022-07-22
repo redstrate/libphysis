@@ -1,7 +1,7 @@
 extern crate core;
 
 use core::ffi;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::{mem, slice};
 use std::os::raw::{c_char, c_uint, c_uchar};
 use std::ptr::null_mut;
@@ -59,8 +59,23 @@ use physis::patch::process_patch;
 }
 
 #[repr(C)]
+pub enum physis_ColumnData {
+    String(*const c_char),
+    Bool(bool),
+    Int8(i8),
+    UInt8(u8),
+    Int16(i16),
+    UInt16(u16),
+    Int32(i32),
+    UInt32(u32),
+    Float32(f32),
+    Int64(i64),
+    UInt64(u64)
+}
+
+#[repr(C)]
 pub struct physis_ExcelRow {
-    column_data: *const ColumnData
+    column_data: *const physis_ColumnData
 }
 
 #[repr(C)]
@@ -79,8 +94,30 @@ pub struct physis_EXD {
         let mut c_rows : Vec<physis_ExcelRow> = Vec::new();
 
         for mut row in &exd.rows {
+            let mut c_col_data : Vec<physis_ColumnData> = Vec::new();
+
+            for col_data in &row.data {
+                match col_data {
+                    ColumnData::String(s) => {
+                        c_col_data.push(physis_ColumnData::String(CString::new(s.as_bytes()).unwrap().as_ptr()))
+                    }
+                    ColumnData::Bool(b) => { c_col_data.push(physis_ColumnData::Bool(*b)) }
+                    ColumnData::Int8(i) => { c_col_data.push(physis_ColumnData::Int8(*i)) }
+                    ColumnData::UInt8(i) => { c_col_data.push(physis_ColumnData::UInt8(*i)) }
+                    ColumnData::Int16(i) => { c_col_data.push(physis_ColumnData::Int16(*i)) }
+                    ColumnData::UInt16(i) => { c_col_data.push(physis_ColumnData::UInt16(*i)) }
+                    ColumnData::Int32(i) => { c_col_data.push(physis_ColumnData::Int32(*i)) }
+                    ColumnData::UInt32(i) => { c_col_data.push(physis_ColumnData::UInt32(*i)) }
+                    ColumnData::Float32(i) => { c_col_data.push(physis_ColumnData::Float32(*i)) }
+                    ColumnData::Int64(i) => { c_col_data.push(physis_ColumnData::Int64(*i)) }
+                    ColumnData::UInt64(i) => { c_col_data.push(physis_ColumnData::UInt64(*i)) }
+                }
+            }
+
+            std::mem::forget(&c_col_data);
+
             c_rows.push(physis_ExcelRow {
-                column_data: row.data.as_ptr()
+                column_data: c_col_data.as_ptr()
             });
         }
 
