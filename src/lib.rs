@@ -114,21 +114,23 @@ pub struct physis_EXD {
                 }
             }
 
-            std::mem::forget(&c_col_data);
-
             c_rows.push(physis_ExcelRow {
                 column_data: c_col_data.as_ptr()
             });
+
+            mem::forget(c_col_data);
         }
 
-        std::mem::forget(&c_rows);
-
-        physis_EXD {
+        let exd = physis_EXD {
             ptr: Box::leak(exd),
             column_count: exh.column_definitions.len() as c_uint,
             row_data: c_rows.as_mut_ptr(),
             row_count: c_rows.len() as c_uint
-        }
+        };
+
+        mem::forget(c_rows);
+
+        exd
     }
 }
 
