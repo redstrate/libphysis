@@ -7,6 +7,9 @@ use std::os::raw::{c_char, c_uint, c_uchar};
 use std::ptr::null_mut;
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
+use physis::common::Language;
+use physis::exh::EXH;
+use physis::exd::{ColumnData, ExcelRow, EXD};
 use physis::installer::install_game;
 use physis::patch::process_patch;
 
@@ -46,6 +49,52 @@ use physis::patch::process_patch;
         game_data.exists(CStr::from_ptr(path).to_string_lossy().as_ref())
     }
 }
+
+#[no_mangle] pub extern "C" fn physis_gamedata_read_excel_sheet_header(game_data : &GameData, name : *const c_char) -> *mut EXH {
+    unsafe {
+        let mut exh = Box::new(game_data.read_excel_sheet_header(CStr::from_ptr(name).to_string_lossy().as_ref()).unwrap());
+
+        Box::leak(exh)
+    }
+}
+
+#[repr(C)]
+pub struct physis_ExcelRow {
+    column_data: *const ColumnData
+}
+
+#[repr(C)]
+pub struct physis_EXD {
+    ptr : *mut EXD,
+    column_count: c_uint,
+
+    row_data : *mut physis_ExcelRow,
+    row_count : c_uint
+}
+
+#[no_mangle] pub extern "C" fn physis_gamedata_read_excel_sheet(game_data : &GameData, name : *const c_char, exh : &EXH, language : Language, page : c_uint) -> physis_EXD {
+    unsafe {
+        let mut exd = Box::new(game_data.read_excel_sheet(CStr::from_ptr(name).to_string_lossy().as_ref(), exh, language, page as usize).unwrap());
+
+        let mut c_rows : Vec<physis_ExcelRow> = Vec::new();
+
+        for mut row in &exd.rows {
+            c_rows.push(physis_ExcelRow {
+                column_data: row.data.as_ptr()
+            });
+        }
+
+        std::mem::forget(&c_rows);
+
+        physis_EXD {
+            ptr: Box::leak(exd),
+            column_count: exh.column_definitions.len() as c_uint,
+            row_data: c_rows.as_mut_ptr(),
+            row_count: c_rows.len() as c_uint
+        }
+    }
+}
+
 
 #[no_mangle] pub extern "C" fn physis_blowfish_initialize(key : *mut u8, key_size : c_uint) -> *mut Blowfish {
     let data = unsafe { slice::from_raw_parts(key, key_size as usize) };
