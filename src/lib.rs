@@ -11,6 +11,7 @@ use physis::common::Language;
 use physis::exh::EXH;
 use physis::exd::{ColumnData, ExcelRow, EXD};
 use physis::installer::install_game;
+use physis::model::{MDL, Vertex};
 use physis::patch::process_patch;
 
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
@@ -232,4 +233,61 @@ pub struct physis_EXD {
     unsafe {
         install_game(CStr::from_ptr(installer_path).to_str().unwrap(), CStr::from_ptr(game_directory).to_str().unwrap());
     }
+}
+
+#[repr(C)]
+pub struct physis_Part {
+    num_vertices : u32,
+    vertices : *const Vertex
+}
+
+#[repr(C)]
+pub struct physis_LOD {
+    num_parts : u32,
+    parts : *const physis_Part
+}
+
+#[repr(C)]
+pub struct physis_MDL {
+    num_lod : u32,
+    lods : *const physis_LOD
+}
+
+#[no_mangle] pub extern "C" fn physis_mdl_parse(size : u32, data : *mut u8) -> physis_MDL {
+    let data = unsafe { slice::from_raw_parts(data, size as usize) };
+
+    let mdl = MDL::from_existing(&data.to_vec()).unwrap();
+
+    let mut c_lods : Vec<physis_LOD> = Vec::new();
+
+    for lod in mdl.lods {
+        let mut c_parts : Vec<physis_Part> = Vec::new();
+
+        for part in lod.parts {
+            let mut c_vertices : Vec<Vertex> = part.vertices;
+
+            c_parts.push(physis_Part {
+                num_vertices: c_vertices.len() as u32,
+                vertices: c_vertices.as_mut_ptr()
+            });
+
+            mem::forget(c_vertices);
+        }
+
+        c_lods.push(physis_LOD {
+            num_parts: c_parts.len() as u32,
+            parts: c_parts.as_mut_ptr()
+        });
+
+        mem::forget(c_parts);
+    }
+
+    let mdl = physis_MDL {
+        num_lod: c_lods.len() as u32,
+        lods: c_lods.as_mut_ptr()
+    };
+
+    mem::forget(c_lods);
+
+    mdl
 }
