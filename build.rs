@@ -21,6 +21,7 @@ fn main() {
         .with_parse_deps(true)
         .with_parse_include(&["physis"])
         .with_language(Language::Cxx)
+        .with_pragma_once(true)
         .generate()
         .expect("Unable to generate C++ bindings")
         .write_to_file("target/public/physis.hpp");
