@@ -3,16 +3,19 @@ extern crate core;
 use core::ffi;
 use std::ffi::{CStr, CString};
 use std::{mem, slice};
+use std::fs::read;
 use std::os::raw::{c_char, c_uint, c_uchar};
 use std::ptr::null_mut;
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
 use physis::common::Language;
+use physis::equipment::{build_equipment_path, get_slot_from_id, Slot};
 use physis::exh::EXH;
 use physis::exd::{ColumnData, ExcelRow, EXD};
 use physis::installer::install_game;
 use physis::model::{MDL, Vertex};
 use physis::patch::process_patch;
+use physis::race::{Gender, Race, Subrace};
 
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
 #[no_mangle] pub extern "C" fn physis_gamedata_initialize(path : *const c_char) -> *mut GameData {
@@ -33,14 +36,18 @@ use physis::patch::process_patch;
 
 /// Extracts the raw game file from `path`, and puts it in `data` with `size` length. If the path was not found,
 /// `size` is 0 and `data` is NULL.
-#[no_mangle] pub extern "C" fn physis_gamedata_extract_file(game_data : &GameData, path : *const c_char, size : *mut u32, data : &mut *mut u8) {
+#[no_mangle] pub extern "C" fn physis_gamedata_extract_file(game_data : &GameData, path : *const c_char) -> physis_Buffer {
     unsafe {
         let mut d = game_data.extract(CStr::from_ptr(path).to_string_lossy().as_ref()).unwrap();
 
-        *data = d.as_mut_ptr();
-        *size = d.len() as u32;
+        let b = physis_Buffer {
+            size: d.len() as u32,
+            data: d.as_mut_ptr()
+        };
 
         std::mem::forget(d);
+
+        b
     }
 }
 
@@ -253,6 +260,13 @@ pub struct physis_MDL {
     lods : *const physis_LOD
 }
 
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_Buffer {
+    size : u32,
+    data: *mut u8
+}
+
 #[no_mangle] pub extern "C" fn physis_mdl_parse(size : u32, data : *mut u8) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(data, size as usize) };
 
@@ -290,4 +304,27 @@ pub struct physis_MDL {
     mem::forget(c_lods);
 
     mdl
+}
+
+#[no_mangle] pub extern "C" fn physis_read_file(path : *const c_char) -> physis_Buffer {
+    let mut f = unsafe { read(CStr::from_ptr(path).to_string_lossy().as_ref()).unwrap() };
+    let buf = physis_Buffer {
+        size: f.len() as u32,
+        data: f.as_mut_ptr()
+    };
+
+    mem::forget(buf);
+
+    buf
+}
+
+#[no_mangle] pub extern "C" fn physis_build_equipment_path(model_id : i32, race : Race, subrace : Subrace, gender : Gender, slot: Slot) -> *const c_char {
+    CString::new(build_equipment_path(model_id, race, subrace, gender, slot)).unwrap().into_raw()
+}
+
+#[no_mangle] pub extern "C" fn physis_slot_from_id(slot_id : i32) -> Slot {
+    match get_slot_from_id(slot_id) {
+        None => Slot::Head, // FIXME: this is currently used to cover-up the few missing slots. PLEASE DO NOT SHIP
+        Some(x) => x
+    }
 }
