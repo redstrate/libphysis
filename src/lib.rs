@@ -245,7 +245,10 @@ pub struct physis_EXD {
 #[repr(C)]
 pub struct physis_Part {
     num_vertices : u32,
-    vertices : *const Vertex
+    vertices : *const Vertex,
+
+    num_indices : u32,
+    indices : *const u16
 }
 
 #[repr(C)]
@@ -279,13 +282,17 @@ pub struct physis_Buffer {
 
         for part in lod.parts {
             let mut c_vertices : Vec<Vertex> = part.vertices;
+            let mut c_indices : Vec<u16> = part.indices;
 
             c_parts.push(physis_Part {
                 num_vertices: c_vertices.len() as u32,
-                vertices: c_vertices.as_mut_ptr()
+                vertices: c_vertices.as_mut_ptr(),
+                num_indices: c_indices.len() as u32,
+                indices: c_indices.as_mut_ptr()
             });
 
             mem::forget(c_vertices);
+            mem::forget(c_indices);
         }
 
         c_lods.push(physis_LOD {
