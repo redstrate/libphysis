@@ -324,10 +324,8 @@ pub struct physis_EXD {
     bootdata.apply_patch(&ffi_from_c_string(path)).is_ok()
 }
 
-#[no_mangle] pub extern "C" fn physis_install_game(installer_path : *const c_char, game_directory : *const c_char) {
-    unsafe {
-        install_game(&ffi_from_c_string(installer_path), &ffi_from_c_string(game_directory));
-    }
+#[no_mangle] pub extern "C" fn physis_install_game(installer_path : *const c_char, game_directory : *const c_char) -> bool {
+    install_game(&ffi_from_c_string(installer_path), &ffi_from_c_string(game_directory)).is_ok()
 }
 
 #[repr(C)]
