@@ -1,29 +1,55 @@
 extern crate core;
 
-use core::ffi;
 use std::ffi::{CStr, CString};
 use std::{mem, slice};
 use std::fs::read;
-use std::os::raw::{c_char, c_uint, c_uchar};
-use std::ptr::{null, null_mut};
+use std::os::raw::{c_char, c_uint};
+use std::ptr::null_mut;
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
 use physis::common::Language;
 use physis::equipment::{build_equipment_path, get_slot_from_id, Slot};
 use physis::exh::EXH;
-use physis::exd::{ColumnData, ExcelRow, EXD};
+use physis::exd::{ColumnData, EXD};
 use physis::installer::install_game;
 use physis::model::{MDL, Vertex};
 use physis::race::{Gender, Race, Subrace};
-
 use physis::repository::RepositoryType;
+
+fn ffi_from_c_string(ptr : *const c_char) -> String {
+    unsafe {
+        CStr::from_ptr(ptr as *mut i8).to_str().unwrap().to_string()
+    }
+}
+
+fn ffi_to_c_string(s : &String) -> *const c_char {
+    let s = CString::new(s.as_bytes()).unwrap();
+
+    s.into_raw()
+}
+
+fn ffi_to_vec<T>(ptr : *mut T, count : u32) -> Vec<T> {
+    unsafe {
+        Vec::from_raw_parts(ptr, count as usize, count as usize)
+    }
+}
+
+fn ffi_free_string(ptr : *const c_char) {
+    unsafe {
+        let str = CString::from_raw(ptr as *mut i8);
+        drop(str);
+    }
+}
+
 /// Initializes a new BootData structure. Path must be a valid boot path, or else it will return NULL.
 #[no_mangle] pub extern "C" fn physis_bootdata_initialize(path : *const c_char) -> *mut BootData {
-    unsafe {
-        let mut boot_data = Box::new(BootData::from_existing(CStr::from_ptr(path).to_string_lossy().as_ref()).unwrap());
+    if let Some(boot_data) = BootData::from_existing(&ffi_from_c_string(path)) {
+        let boxed = Box::new(boot_data);
 
-        Box::leak(boot_data)
+        Box::leak(boxed)
+    } else {
+        null_mut()
     }
 }
 
@@ -35,12 +61,14 @@ use physis::repository::RepositoryType;
 
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
 #[no_mangle] pub extern "C" fn physis_gamedata_initialize(path : *const c_char) -> *mut GameData {
-    unsafe {
-        let mut game_data = Box::new(GameData::from_existing(CStr::from_ptr(path).to_string_lossy().as_ref()).unwrap());
-
+    if let Some(mut game_data) = GameData::from_existing(&ffi_from_c_string(path)) {
         game_data.reload_repositories();
 
-        Box::leak(game_data)
+        let boxed = Box::new(game_data);
+
+        Box::leak(boxed)
+    } else {
+        null_mut()
     }
 }
 
@@ -60,27 +88,8 @@ pub struct physis_Repository {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_Repositories {
-    repositories_count : u32,
-    repositories : *mut physis_Repository
-}
-
-fn ffi_to_c_string(s : &String) -> *const c_char {
-    let s = CString::new(s.as_bytes()).unwrap();
-
-    s.into_raw()
-}
-
-fn ffi_to_vec<T>(ptr : *mut T, count : u32) -> Vec<T> {
-    unsafe {
-        Vec::from_raw_parts(ptr, count as usize, count as usize)
-    }
-}
-
-fn ffi_free_string(ptr : *const c_char) {
-    unsafe {
-        let str = CString::from_raw(*ptr as *mut i8);
-        drop(str);
-    }
+    repositories_count: u32,
+    repositories: *mut physis_Repository
 }
 
 #[no_mangle] pub extern "C" fn physis_gamedata_get_repositories(game_data : &GameData) -> physis_Repositories {
@@ -138,20 +147,16 @@ fn ffi_free_string(ptr : *const c_char) {
 
 /// Checks if the file at `path` exists.
 #[no_mangle] pub extern "C" fn physis_gamedata_exists(game_data : &GameData, path : *const c_char) -> bool {
-    unsafe {
-        game_data.exists(CStr::from_ptr(path).to_string_lossy().as_ref())
-    }
+    game_data.exists(&ffi_from_c_string(path))
 }
 
 #[no_mangle] pub extern "C" fn physis_gamedata_read_excel_sheet_header(game_data : &GameData, name : *const c_char) -> *mut EXH {
-    unsafe {
-        if let Some(header) = game_data.read_excel_sheet_header(CStr::from_ptr(name).to_string_lossy().as_ref()) {
-            let mut exh = Box::new(header);
+    if let Some(header) = game_data.read_excel_sheet_header(&ffi_from_c_string(name)) {
+        let exh = Box::new(header);
 
-            Box::leak(exh)
-        } else {
-            null_mut()
-        }
+        Box::leak(exh)
+    } else {
+        null_mut()
     }
 }
 
@@ -191,55 +196,48 @@ pub struct physis_EXD {
 }
 
 #[no_mangle] pub extern "C" fn physis_gamedata_read_excel_sheet(game_data : &GameData, name : *const c_char, exh : &EXH, language : Language, page : c_uint) -> physis_EXD {
-    unsafe {
-        let mut exd = Box::new(game_data.read_excel_sheet(CStr::from_ptr(name).to_string_lossy().as_ref(), exh, language, page as usize).unwrap());
+    let exd = Box::new(game_data.read_excel_sheet(&ffi_from_c_string(name), exh, language, page as usize).unwrap());
 
-        let mut c_rows : Vec<physis_ExcelRow> = Vec::new();
+    let mut c_rows : Vec<physis_ExcelRow> = Vec::new();
 
-        for mut row in &exd.rows {
-            let mut c_col_data : Vec<physis_ColumnData> = Vec::new();
+    for row in &exd.rows {
+        let mut c_col_data : Vec<physis_ColumnData> = Vec::new();
 
-            for col_data in &row.data {
-                match col_data {
-                    ColumnData::String(s) => {
-                        let s = CString::new(s.as_bytes()).unwrap();
-                        let ptr = s.as_ptr();
-
-                        mem::forget(s);
-
-                        c_col_data.push(physis_ColumnData::String(ptr))
-                    }
-                    ColumnData::Bool(b) => { c_col_data.push(physis_ColumnData::Bool(*b)) }
-                    ColumnData::Int8(i) => { c_col_data.push(physis_ColumnData::Int8(*i)) }
-                    ColumnData::UInt8(i) => { c_col_data.push(physis_ColumnData::UInt8(*i)) }
-                    ColumnData::Int16(i) => { c_col_data.push(physis_ColumnData::Int16(*i)) }
-                    ColumnData::UInt16(i) => { c_col_data.push(physis_ColumnData::UInt16(*i)) }
-                    ColumnData::Int32(i) => { c_col_data.push(physis_ColumnData::Int32(*i)) }
-                    ColumnData::UInt32(i) => { c_col_data.push(physis_ColumnData::UInt32(*i)) }
-                    ColumnData::Float32(i) => { c_col_data.push(physis_ColumnData::Float32(*i)) }
-                    ColumnData::Int64(i) => { c_col_data.push(physis_ColumnData::Int64(*i)) }
-                    ColumnData::UInt64(i) => { c_col_data.push(physis_ColumnData::UInt64(*i)) }
+        for col_data in &row.data {
+            match col_data {
+                ColumnData::String(s) => {
+                    c_col_data.push(physis_ColumnData::String(ffi_to_c_string(s)))
                 }
+                ColumnData::Bool(b) => { c_col_data.push(physis_ColumnData::Bool(*b)) }
+                ColumnData::Int8(i) => { c_col_data.push(physis_ColumnData::Int8(*i)) }
+                ColumnData::UInt8(i) => { c_col_data.push(physis_ColumnData::UInt8(*i)) }
+                ColumnData::Int16(i) => { c_col_data.push(physis_ColumnData::Int16(*i)) }
+                ColumnData::UInt16(i) => { c_col_data.push(physis_ColumnData::UInt16(*i)) }
+                ColumnData::Int32(i) => { c_col_data.push(physis_ColumnData::Int32(*i)) }
+                ColumnData::UInt32(i) => { c_col_data.push(physis_ColumnData::UInt32(*i)) }
+                ColumnData::Float32(i) => { c_col_data.push(physis_ColumnData::Float32(*i)) }
+                ColumnData::Int64(i) => { c_col_data.push(physis_ColumnData::Int64(*i)) }
+                ColumnData::UInt64(i) => { c_col_data.push(physis_ColumnData::UInt64(*i)) }
             }
-
-            c_rows.push(physis_ExcelRow {
-                column_data: c_col_data.as_mut_ptr()
-            });
-
-            mem::forget(c_col_data);
         }
 
-        let exd = physis_EXD {
-            p_ptr: Box::leak(exd),
-            column_count: exh.column_definitions.len() as c_uint,
-            row_data: c_rows.as_mut_ptr(),
-            row_count: c_rows.len() as c_uint
-        };
+        c_rows.push(physis_ExcelRow {
+            column_data: c_col_data.as_mut_ptr()
+        });
 
-        mem::forget(c_rows);
-
-        exd
+        mem::forget(c_col_data);
     }
+
+    let exd = physis_EXD {
+        p_ptr: Box::leak(exd),
+        column_count: exh.column_definitions.len() as c_uint,
+        row_data: c_rows.as_mut_ptr(),
+        row_count: c_rows.len() as c_uint
+    };
+
+    mem::forget(c_rows);
+
+    exd
 }
 
 #[no_mangle] pub extern "C" fn physis_gamedata_free_sheet(exd : physis_EXD)  {
@@ -252,8 +250,7 @@ pub struct physis_EXD {
             for col in &col_data {
                 match col {
                     physis_ColumnData::String(s) => {
-                        let str = CString::from_raw(*s as *mut i8);
-                        drop(str);
+                        ffi_free_string(*s);
                     }
                     _ => {}
                 }
@@ -320,20 +317,16 @@ pub struct physis_EXD {
 }
 
 #[no_mangle] pub extern "C" fn physis_gamedata_apply_patch(gamedata : &GameData, path : *const c_char) -> bool {
-    unsafe {
-        gamedata.apply_patch(CStr::from_ptr(path).to_str().unwrap()).is_ok()
-    }
+    gamedata.apply_patch(&ffi_from_c_string(path)).is_ok()
 }
 
 #[no_mangle] pub extern "C" fn physis_bootdata_apply_patch(bootdata : &BootData, path : *const c_char) -> bool {
-    unsafe {
-        bootdata.apply_patch(CStr::from_ptr(path).to_str().unwrap()).is_ok()
-    }
+    bootdata.apply_patch(&ffi_from_c_string(path)).is_ok()
 }
 
 #[no_mangle] pub extern "C" fn physis_install_game(installer_path : *const c_char, game_directory : *const c_char) {
     unsafe {
-        install_game(CStr::from_ptr(installer_path).to_str().unwrap(), CStr::from_ptr(game_directory).to_str().unwrap());
+        install_game(&ffi_from_c_string(installer_path), &ffi_from_c_string(game_directory));
     }
 }
 
@@ -421,7 +414,7 @@ pub struct physis_Buffer {
 }
 
 #[no_mangle] pub extern "C" fn physis_build_equipment_path(model_id : i32, race : Race, subrace : Subrace, gender : Gender, slot: Slot) -> *const c_char {
-    CString::new(build_equipment_path(model_id, race, subrace, gender, slot)).unwrap().into_raw()
+    ffi_to_c_string(&build_equipment_path(model_id, race, subrace, gender, slot))
 }
 
 #[no_mangle] pub extern "C" fn physis_slot_from_id(slot_id : i32) -> Slot {

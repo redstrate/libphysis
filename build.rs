@@ -1,7 +1,6 @@
 extern crate cbindgen;
 
 use std::env;
-use cbindgen::DocumentationStyle::C99;
 use cbindgen::Language;
 
 fn main() {
