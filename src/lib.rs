@@ -144,9 +144,13 @@ fn ffi_free_string(ptr : *const c_char) {
 
 #[no_mangle] pub extern "C" fn physis_gamedata_read_excel_sheet_header(game_data : &GameData, name : *const c_char) -> *mut EXH {
     unsafe {
-        let mut exh = Box::new(game_data.read_excel_sheet_header(CStr::from_ptr(name).to_string_lossy().as_ref()).unwrap());
+        if let Some(header) = game_data.read_excel_sheet_header(CStr::from_ptr(name).to_string_lossy().as_ref()) {
+            let mut exh = Box::new(header);
 
-        Box::leak(exh)
+            Box::leak(exh)
+        } else {
+            null_mut()
+        }
     }
 }
 
