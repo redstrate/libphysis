@@ -104,6 +104,10 @@ fn ffi_free_string(ptr : *const c_char) {
     repositories
 }
 
+#[no_mangle] pub extern "C" fn physis_bootdata_get_version(boot_data : &BootData) -> *const c_char {
+    ffi_to_c_string(&boot_data.version)
+}
+
 #[no_mangle] pub extern "C" fn physis_gamedata_free_repositories(repositories : physis_Repositories) {
     let data = ffi_to_vec(repositories.repositories, repositories.repositories_count);
 
