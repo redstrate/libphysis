@@ -110,7 +110,7 @@ fn ffi_free_string(ptr : *const c_char) {
 #[no_mangle] pub extern "C" fn physis_gamedata_free_repositories(repositories : physis_Repositories) {
     let data = ffi_to_vec(repositories.repositories, repositories.repositories_count);
 
-    for repository in data {
+    for repository in &data {
         ffi_free_string(repository.version);
         ffi_free_string(repository.name);
     }
