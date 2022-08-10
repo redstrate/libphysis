@@ -102,7 +102,7 @@ fn ffi_free_string(ptr : *const c_char) {
         repositories: c_repositories.as_mut_ptr()
     };
 
-    mem::forget(repositories);
+    mem::forget(c_repositories);
 
     repositories
 }
