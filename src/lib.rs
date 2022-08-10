@@ -8,6 +8,7 @@ use std::os::raw::{c_char, c_uint, c_uchar};
 use std::ptr::null_mut;
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
+use physis::bootdata::BootData;
 use physis::common::Language;
 use physis::equipment::{build_equipment_path, get_slot_from_id, Slot};
 use physis::exh::EXH;
@@ -16,6 +17,22 @@ use physis::installer::install_game;
 use physis::model::{MDL, Vertex};
 use physis::patch::process_patch;
 use physis::race::{Gender, Race, Subrace};
+
+use physis::repository::RepositoryType;
+/// Initializes a new BootData structure. Path must be a valid boot path, or else it will return NULL.
+#[no_mangle] pub extern "C" fn physis_bootdata_initialize(path : *const c_char) -> *mut BootData {
+    unsafe {
+        let mut boot_data = Box::new(BootData::from_existing(CStr::from_ptr(path).to_string_lossy().as_ref()).unwrap());
+
+        Box::leak(boot_data)
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_bootdata_free(boot_data : *mut BootData) {
+    unsafe {
+        drop(Box::from_raw(boot_data));
+    }
+}
 
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
 #[no_mangle] pub extern "C" fn physis_gamedata_initialize(path : *const c_char) -> *mut GameData {
@@ -230,9 +247,15 @@ pub struct physis_EXD {
     }
 }
 
-#[no_mangle] pub extern "C" fn physis_patch_process(data_path : *const c_char, path : *const c_char) {
+#[no_mangle] pub extern "C" fn physis_gamedata_apply_patch(gamedata : &GameData, path : *const c_char) -> bool {
     unsafe {
-        process_patch(CStr::from_ptr(data_path).to_str().unwrap(), CStr::from_ptr(path).to_str().unwrap())
+        gamedata.apply_patch(CStr::from_ptr(path).to_str().unwrap()).is_ok()
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_bootdata_apply_patch(bootdata : &BootData, path : *const c_char) -> bool {
+    unsafe {
+        bootdata.apply_patch(CStr::from_ptr(path).to_str().unwrap()).is_ok()
     }
 }
 
