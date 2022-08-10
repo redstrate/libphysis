@@ -144,6 +144,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "glam"
+version = "0.21.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "518faa5064866338b013ff9b2350dc318e14cc4fcd6cb8206d7e7c9886c98815"
+
+[[package]]
 name = "half"
 version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -293,12 +299,14 @@ dependencies = [
  "binrw",
  "bitfield-struct",
  "crc",
+ "glam",
  "half",
  "hard-xml",
  "libz-sys",
  "paste",
  "serde",
  "serde_json",
+ "sha1_smol",
 ]
 
 [[package]]
@@ -379,6 +387,12 @@ dependencies = [
  "ryu",
  "serde",
 ]
+
+[[package]]
+name = "sha1_smol"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae1a47186c03a32177042e55dbc5fd5aee900b8e0069a8d70fba96a9375cd012"
 
 [[package]]
 name = "strsim"

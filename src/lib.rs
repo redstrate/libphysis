@@ -4,7 +4,7 @@ use std::ffi::{CStr, CString};
 use std::{mem, slice};
 use std::fs::read;
 use std::os::raw::{c_char, c_uint};
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
@@ -16,6 +16,7 @@ use physis::installer::install_game;
 use physis::model::{MDL, Vertex};
 use physis::race::{Gender, Race, Subrace};
 use physis::repository::RepositoryType;
+use physis::skeleton::{Bone, Skeleton};
 
 fn ffi_from_c_string(ptr : *const c_char) -> String {
     unsafe {
@@ -346,7 +347,9 @@ pub struct physis_LOD {
 #[repr(C)]
 pub struct physis_MDL {
     num_lod : u32,
-    lods : *const physis_LOD
+    lods : *const physis_LOD,
+    num_affected_bones : u32,
+    affected_bone_names: *mut *const c_char
 }
 
 #[repr(C)]
@@ -389,24 +392,33 @@ pub struct physis_Buffer {
         mem::forget(c_parts);
     }
 
+    let mut c_bone_names = vec![];
+
+    for bone_name in mdl.affected_bone_names {
+        c_bone_names.push(ffi_to_c_string(&bone_name));
+    }
+
     let mdl = physis_MDL {
         num_lod: c_lods.len() as u32,
-        lods: c_lods.as_mut_ptr()
+        lods: c_lods.as_mut_ptr(),
+        num_affected_bones : c_bone_names.len() as u32,
+        affected_bone_names: c_bone_names.as_mut_ptr()
     };
 
+    mem::forget(c_bone_names);
     mem::forget(c_lods);
 
     mdl
 }
 
 #[no_mangle] pub extern "C" fn physis_read_file(path : *const c_char) -> physis_Buffer {
-    let mut f = unsafe { read(CStr::from_ptr(path).to_string_lossy().as_ref()).unwrap() };
+    let mut f = read(ffi_from_c_string(path)).unwrap();
     let buf = physis_Buffer {
         size: f.len() as u32,
         data: f.as_mut_ptr()
     };
 
-    mem::forget(buf);
+    mem::forget(f);
 
     buf
 }
@@ -421,3 +433,84 @@ pub struct physis_Buffer {
         Some(x) => x
     }
 }
+
+#[repr(C)]
+pub struct physis_Bone {
+    pub index: u32,
+    pub name: *const c_char,
+    pub parent_bone: *mut physis_Bone,
+    pub parent_index: u32,
+
+    pub position: [f32; 3],
+    pub rotation: [f32; 4],
+    pub scale: [f32; 3]
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_Skeleton {
+    num_bones : u32,
+    bones: *mut physis_Bone,
+    root_bone: *mut physis_Bone
+}
+
+fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
+    let mut c_bones = vec![];
+
+    for (i, bone) in skeleton.bones.iter().enumerate() {
+        c_bones.push(physis_Bone {
+            index: i as u32,
+            name: ffi_to_c_string(&bone.name),
+            parent_bone: null_mut(),
+            parent_index: bone.parent_index as u32,
+            position: bone.position,
+            rotation: bone.rotation,
+            scale: bone.scale
+        })
+    }
+
+    for (i, bone) in skeleton.bones.iter().enumerate() {
+        if bone.parent_index != -1 {
+            c_bones[i].parent_bone = &mut c_bones[bone.parent_index as usize] as *mut physis_Bone;
+        }
+    }
+
+    let skel = physis_Skeleton {
+        num_bones: c_bones.len() as u32,
+        bones: c_bones.as_mut_ptr(),
+        root_bone: &mut c_bones[0] as *mut physis_Bone
+    };
+
+    mem::forget(c_bones);
+
+    skel
+}
+
+#[no_mangle] pub extern "C" fn physis_skeleton_from_packfile(buffer : physis_Buffer) -> physis_Skeleton {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(mut skeleton) = Skeleton::from_packfile(&data.to_vec()) {
+        convert_skeleton(&skeleton)
+    } else {
+        physis_Skeleton {
+            num_bones: 0,
+            bones: null_mut(),
+            root_bone: null_mut()
+        }
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_skeleton_from_skel(buffer : physis_Buffer) -> physis_Skeleton {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(mut skeleton) = Skeleton::from_skel(&data.to_vec()) {
+        convert_skeleton(&skeleton)
+    } else {
+        physis_Skeleton {
+            num_bones: 0,
+            bones: null_mut(),
+            root_bone: null_mut()
+        }
+    }
+}
+
