@@ -66,11 +66,8 @@ pub struct physis_Repositories {
 
 fn ffi_to_c_string(s : &String) -> *const c_char {
     let s = CString::new(s.as_bytes()).unwrap();
-    let ptr = s.as_ptr();
 
-    mem::forget(s);
-
-    ptr
+    s.into_raw()
 }
 
 fn ffi_to_vec<T>(ptr : *mut T, count : u32) -> Vec<T> {
