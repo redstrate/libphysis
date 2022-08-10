@@ -5,7 +5,7 @@ use std::ffi::{CStr, CString};
 use std::{mem, slice};
 use std::fs::read;
 use std::os::raw::{c_char, c_uint, c_uchar};
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
@@ -15,7 +15,6 @@ use physis::exh::EXH;
 use physis::exd::{ColumnData, ExcelRow, EXD};
 use physis::installer::install_game;
 use physis::model::{MDL, Vertex};
-use physis::patch::process_patch;
 use physis::race::{Gender, Race, Subrace};
 
 use physis::repository::RepositoryType;
@@ -51,6 +50,74 @@ use physis::repository::RepositoryType;
     }
 }
 
+#[repr(C)]
+pub struct physis_Repository {
+    name : *const c_char,
+    repository_type : RepositoryType,
+    version : *const c_char
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_Repositories {
+    repositories_count : u32,
+    repositories : *mut physis_Repository
+}
+
+fn ffi_to_c_string(s : &String) -> *const c_char {
+    let s = CString::new(s.as_bytes()).unwrap();
+    let ptr = s.as_ptr();
+
+    mem::forget(s);
+
+    ptr
+}
+
+fn ffi_to_vec<T>(ptr : *mut T, count : u32) -> Vec<T> {
+    unsafe {
+        Vec::from_raw_parts(ptr, count as usize, count as usize)
+    }
+}
+
+fn ffi_free_string(ptr : *const c_char) {
+    unsafe {
+        let str = CString::from_raw(*ptr as *mut i8);
+        drop(str);
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_gamedata_get_repositories(game_data : &GameData) -> physis_Repositories {
+    let mut c_repositories : Vec<physis_Repository> = Vec::new();
+
+    for repository in &game_data.repositories {
+        c_repositories.push(physis_Repository {
+            name: ffi_to_c_string(&repository.name),
+            repository_type: repository.repo_type,
+            version: ffi_to_c_string(&repository.version)
+        });
+    }
+
+    let repositories = physis_Repositories {
+        repositories_count: c_repositories.len() as u32,
+        repositories: c_repositories.as_mut_ptr()
+    };
+
+    mem::forget(repositories);
+
+    repositories
+}
+
+#[no_mangle] pub extern "C" fn physis_gamedata_free_repositories(repositories : physis_Repositories) {
+    let data = ffi_to_vec(repositories.repositories, repositories.repositories_count);
+
+    for repository in data {
+        ffi_free_string(repository.version);
+        ffi_free_string(repository.name);
+    }
+
+    drop(data)
+}
+
 /// Extracts the raw game file from `path`, and puts it in `data` with `size` length. If the path was not found,
 /// `size` is 0 and `data` is NULL.
 #[no_mangle] pub extern "C" fn physis_gamedata_extract_file(game_data : &GameData, path : *const c_char) -> physis_Buffer {
@@ -62,7 +129,7 @@ use physis::repository::RepositoryType;
             data: d.as_mut_ptr()
         };
 
-        std::mem::forget(d);
+        mem::forget(d);
 
         b
     }
