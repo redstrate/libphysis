@@ -9,14 +9,16 @@ use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
 use physis::common::Language;
-use physis::equipment::{build_equipment_path, get_slot_from_id, Slot};
+use physis::equipment::{build_equipment_path, get_slot_abbreviation, get_slot_from_id, Slot};
 use physis::exh::EXH;
 use physis::exd::{ColumnData, EXD};
 use physis::installer::install_game;
 use physis::model::{MDL, Vertex};
+use physis::mtrl::Material;
 use physis::race::{Gender, Race, Subrace};
 use physis::repository::RepositoryType;
 use physis::skeleton::{Bone, Skeleton};
+use physis::tex::Texture;
 
 fn ffi_from_c_string(ptr : *const c_char) -> String {
     unsafe {
@@ -514,3 +516,73 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
     }
 }
 
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_Texture {
+    width: u32,
+    height: u32,
+    rgba_size: u32,
+    rgba: *mut u8
+}
+
+#[no_mangle] pub extern "C" fn physis_texture_parse(buffer : physis_Buffer) -> physis_Texture {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(mut texture) = Texture::from_existing(&data.to_vec()) {
+        let tex = physis_Texture {
+            width: texture.width,
+            height: texture.height,
+            rgba_size: texture.rgba.len() as u32,
+            rgba: texture.rgba.as_mut_ptr()
+        };
+
+        mem::forget(texture.rgba);
+
+        tex
+    } else {
+        physis_Texture {
+            width: 0,
+            height: 0,
+            rgba_size: 0,
+            rgba: null_mut()
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_Material {
+    num_textures: u32,
+    textures: *mut *const c_char
+}
+
+#[no_mangle] pub extern "C" fn physis_material_parse(buffer : physis_Buffer) -> physis_Material {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(mut material) = Material::from_existing(&data.to_vec()) {
+        let mut c_strings = vec![];
+
+        for tex in &material.texture_paths {
+            c_strings.push(ffi_to_c_string(tex));
+        }
+
+        let mat = physis_Material {
+            num_textures: c_strings.len() as u32,
+            textures: c_strings.as_mut_ptr()
+        };
+
+        mem::forget(c_strings);
+
+        mat
+    } else {
+        physis_Material {
+            num_textures: 0,
+            textures: null_mut()
+        }
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_get_slot_name(slot: Slot) -> *const c_char {
+    // TODO: no need to dynamically allocate a new string
+    ffi_to_c_string(&get_slot_abbreviation(slot).to_string())
+}
