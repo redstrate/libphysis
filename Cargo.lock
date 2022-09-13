@@ -301,6 +301,8 @@ checksum = "9423e2b32f7a043629287a536f21951e8c6a82482d0acb1eeebfc90bc2225b22"
 [[package]]
 name = "physis"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "49eacc46fbe7abc9a0a0110a33f08055886b98ffcc6be270ed55df17ed4cdcbc"
 dependencies = [
  "binrw",
  "bitfield-struct",
