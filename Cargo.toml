@@ -9,7 +9,7 @@ name = "physis"
 crate-type = ["staticlib", "cdylib"]
 
 [build-dependencies]
-cbindgen = "0.20.0"
+cbindgen = "0.24.3"
 
 [dependencies]
 physis = "0.1.0"
