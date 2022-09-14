@@ -4,7 +4,7 @@ use std::ffi::{CStr, CString};
 use std::{mem, slice};
 use std::fs::read;
 use std::os::raw::{c_char, c_uint};
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
@@ -17,7 +17,7 @@ use physis::model::{MDL, Vertex};
 use physis::mtrl::Material;
 use physis::race::{Gender, Race, Subrace};
 use physis::repository::RepositoryType;
-use physis::skeleton::{Bone, Skeleton};
+use physis::skeleton::Skeleton;
 use physis::tex::Texture;
 
 fn ffi_from_c_string(ptr : *const c_char) -> String {
@@ -491,7 +491,7 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
 #[no_mangle] pub extern "C" fn physis_skeleton_from_packfile(buffer : physis_Buffer) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(mut skeleton) = Skeleton::from_packfile(&data.to_vec()) {
+    if let Some(skeleton) = Skeleton::from_packfile(&data.to_vec()) {
         convert_skeleton(&skeleton)
     } else {
         physis_Skeleton {
@@ -505,7 +505,7 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
 #[no_mangle] pub extern "C" fn physis_skeleton_from_skel(buffer : physis_Buffer) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(mut skeleton) = Skeleton::from_skel(&data.to_vec()) {
+    if let Some(skeleton) = Skeleton::from_skel(&data.to_vec()) {
         convert_skeleton(&skeleton)
     } else {
         physis_Skeleton {
@@ -559,7 +559,7 @@ pub struct physis_Material {
 #[no_mangle] pub extern "C" fn physis_material_parse(buffer : physis_Buffer) -> physis_Material {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(mut material) = Material::from_existing(&data.to_vec()) {
+    if let Some(material) = Material::from_existing(&data.to_vec()) {
         let mut c_strings = vec![];
 
         for tex in &material.texture_paths {
