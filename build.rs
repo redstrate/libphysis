@@ -4,8 +4,6 @@ use std::env;
 use cbindgen::Language;
 
 fn main() {
-    system_deps::Config::new().probe().unwrap();
-
     let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
     cbindgen::Builder::new()

@@ -10,10 +10,6 @@ crate-type = ["staticlib", "cdylib"]
 
 [build-dependencies]
 cbindgen = "0.24.3"
-system-deps = "2.0"
 
 [dependencies]
-physis = "0.1.1"
-
-[package.metadata.system-deps]
-libunshield = "1.4"
+physis = "0.1.2"
