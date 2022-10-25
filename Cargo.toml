@@ -12,4 +12,4 @@ crate-type = ["staticlib", "cdylib"]
 cbindgen = "0.24.3"
 
 [dependencies]
-physis = "0.1.2"
+physis = "0.1.3"
