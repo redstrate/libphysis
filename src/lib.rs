@@ -27,9 +27,16 @@ fn ffi_from_c_string(ptr : *const c_char) -> String {
 }
 
 fn ffi_to_c_string(s : &String) -> *const c_char {
-    let s = CString::new(s.as_bytes()).unwrap();
+    let s = CString::new(s.as_bytes());
 
-    s.into_raw()
+    match s {
+        Ok(x) => {
+            x.into_raw()
+        }
+        Err(_) => {
+            null()
+        }
+    }
 }
 
 fn ffi_to_vec<T>(ptr : *mut T, count : u32) -> Vec<T> {
@@ -99,10 +106,19 @@ pub struct physis_Repositories {
     let mut c_repositories : Vec<physis_Repository> = Vec::new();
 
     for repository in &game_data.repositories {
+        let ver = match &repository.version {
+            Some(x) => {
+                ffi_to_c_string(x)
+            }
+            None => {
+                null()
+            }
+        };
+
         c_repositories.push(physis_Repository {
             name: ffi_to_c_string(&repository.name),
             repository_type: repository.repo_type,
-            version: ffi_to_c_string(&repository.version)
+            version: ver
         });
     }
 
