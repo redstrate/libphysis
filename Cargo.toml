@@ -3,6 +3,7 @@ name = "libphysis"
 version = "0.1.2"
 edition = "2021"
 description = "C bindings for physis"
+publish = false
 
 [lib]
 name = "physis"
