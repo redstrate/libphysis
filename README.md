@@ -1,6 +1,8 @@
 # libphysis
 
-This is the C bindings for [physis](https://git.sr.ht/~redstrate/physis), a data framework for FFXIV.
+[![builds.sr.ht status](https://builds.sr.ht/~redstrate/libphysis.svg)](https://builds.sr.ht/~redstrate/libphysis?)
+
+libphysis are C bindings for [physis](https://git.sr.ht/~redstrate/physis), a framework for interacting with FFXIV game data.
 
 ## Usage
 
