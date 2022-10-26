@@ -4,7 +4,7 @@ use std::ffi::{CStr, CString};
 use std::{mem, slice};
 use std::fs::read;
 use std::os::raw::{c_char, c_uint};
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
