@@ -163,16 +163,21 @@ pub struct physis_Repositories {
 /// `size` is 0 and `data` is NULL.
 #[no_mangle] pub extern "C" fn physis_gamedata_extract_file(game_data : &GameData, path : *const c_char) -> physis_Buffer {
     unsafe {
-        let mut d = game_data.extract(CStr::from_ptr(path).to_string_lossy().as_ref()).unwrap();
+        if let Some(mut d) = game_data.extract(CStr::from_ptr(path).to_string_lossy().as_ref()) {
+            let b = physis_Buffer {
+                size: d.len() as u32,
+                data: d.as_mut_ptr()
+            };
 
-        let b = physis_Buffer {
-            size: d.len() as u32,
-            data: d.as_mut_ptr()
-        };
+            mem::forget(d);
 
-        mem::forget(d);
-
-        b
+            b
+        } else {
+            physis_Buffer {
+                size: 0,
+                data: null_mut()
+            }
+        }
     }
 }
 
