@@ -371,7 +371,9 @@ pub struct physis_Part {
     vertices : *const Vertex,
 
     num_indices : u32,
-    indices : *const u16
+    indices : *const u16,
+
+    material_index : u16
 }
 
 #[repr(C)]
@@ -385,7 +387,9 @@ pub struct physis_MDL {
     num_lod : u32,
     lods : *const physis_LOD,
     num_affected_bones : u32,
-    affected_bone_names: *mut *const c_char
+    affected_bone_names: *mut *const c_char,
+    num_material_names : u32,
+    material_names: *mut *const c_char
 }
 
 #[repr(C)]
@@ -413,7 +417,8 @@ pub struct physis_Buffer {
                 num_vertices: c_vertices.len() as u32,
                 vertices: c_vertices.as_mut_ptr(),
                 num_indices: c_indices.len() as u32,
-                indices: c_indices.as_mut_ptr()
+                indices: c_indices.as_mut_ptr(),
+                material_index: part.material_index
             });
 
             mem::forget(c_vertices);
@@ -434,14 +439,23 @@ pub struct physis_Buffer {
         c_bone_names.push(ffi_to_c_string(&bone_name));
     }
 
+    let mut c_material_names = vec![];
+
+    for bone_name in mdl.material_names {
+        c_material_names.push(ffi_to_c_string(&bone_name));
+    }
+
     let mdl = physis_MDL {
         num_lod: c_lods.len() as u32,
         lods: c_lods.as_mut_ptr(),
         num_affected_bones : c_bone_names.len() as u32,
-        affected_bone_names: c_bone_names.as_mut_ptr()
+        affected_bone_names: c_bone_names.as_mut_ptr(),
+        num_material_names : c_material_names.len() as u32,
+        material_names: c_material_names.as_mut_ptr()
     };
 
     mem::forget(c_bone_names);
+    mem::forget(c_material_names);
     mem::forget(c_lods);
 
     mdl
