@@ -15,7 +15,7 @@ use physis::exd::{ColumnData, EXD};
 use physis::installer::install_game;
 use physis::model::{MDL, Vertex};
 use physis::mtrl::Material;
-use physis::race::{Gender, Race, Subrace};
+use physis::race::{Gender, get_race_id, Race, Subrace};
 use physis::repository::RepositoryType;
 use physis::skeleton::Skeleton;
 use physis::sqpack::calculate_hash;
@@ -465,6 +465,10 @@ pub struct physis_Buffer {
 
 #[no_mangle] pub extern "C" fn physis_build_equipment_path(model_id : i32, race : Race, subrace : Subrace, gender : Gender, slot: Slot) -> *const c_char {
     ffi_to_c_string(&build_equipment_path(model_id, race, subrace, gender, slot))
+}
+
+#[no_mangle] pub extern "C" fn physis_get_race_code(race : Race, subrace: Subrace, gender: Gender) -> i32 {
+    get_race_id(race, subrace, gender).unwrap()
 }
 
 #[no_mangle] pub extern "C" fn physis_slot_from_id(slot_id : i32) -> Slot {
