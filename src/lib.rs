@@ -18,6 +18,7 @@ use physis::mtrl::Material;
 use physis::race::{Gender, Race, Subrace};
 use physis::repository::RepositoryType;
 use physis::skeleton::Skeleton;
+use physis::sqpack::calculate_hash;
 use physis::tex::Texture;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
@@ -456,6 +457,10 @@ pub struct physis_Buffer {
     mem::forget(f);
 
     buf
+}
+
+#[no_mangle] pub extern "C" fn physis_calculate_hash(path : *const c_char) -> u64 {
+    calculate_hash(&ffi_from_c_string(path))
 }
 
 #[no_mangle] pub extern "C" fn physis_build_equipment_path(model_id : i32, race : Race, subrace : Subrace, gender : Gender, slot: Slot) -> *const c_char {
