@@ -19,6 +19,9 @@ use physis::race::{Gender, Race, Subrace};
 use physis::repository::RepositoryType;
 use physis::skeleton::Skeleton;
 use physis::tex::Texture;
+use tracing::{info, Level};
+use tracing_subscriber::FmtSubscriber;
+
 
 fn ffi_from_c_string(ptr : *const c_char) -> String {
     unsafe {
@@ -67,6 +70,15 @@ fn ffi_free_string(ptr : *const c_char) {
     unsafe {
         drop(Box::from_raw(boot_data));
     }
+}
+
+#[no_mangle] pub extern "C" fn physis_initialize_logging() {
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("setting default subscriber failed");
 }
 
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
