@@ -145,6 +145,30 @@ pub struct physis_Repositories {
     repositories
 }
 
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_SheetNames {
+    name_count: u32,
+    names: *mut *const c_char
+}
+
+#[no_mangle] pub extern "C" fn physis_gamedata_get_all_sheet_names(game_data : &GameData) -> physis_SheetNames {
+    let mut c_repo_names = vec![];
+
+    for name in game_data.get_all_sheet_names().unwrap() {
+        c_repo_names.push(ffi_to_c_string(&name));
+    }
+
+    let repositories = physis_SheetNames {
+        name_count: c_repo_names.len() as u32,
+        names: c_repo_names.as_mut_ptr()
+    };
+
+    mem::forget(c_repo_names);
+
+    repositories
+}
+
 #[no_mangle] pub extern "C" fn physis_bootdata_get_version(boot_data : &BootData) -> *const c_char {
     ffi_to_c_string(&boot_data.version)
 }
