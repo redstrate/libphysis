@@ -339,6 +339,10 @@ pub struct physis_EXD {
     }
 }
 
+#[no_mangle] pub unsafe extern "C" fn physis_gamedata_get_exd_filename(name : *const c_char, exh : &physis_EXH, language : Language, page : c_uint) -> *const c_char {
+    ffi_to_c_string(&EXD::calculate_filename(&*ffi_from_c_string(name), language, &(*exh.p_ptr).pages[page as usize]))
+}
+
 #[no_mangle] pub extern "C" fn physis_gamedata_free_sheet(exd : physis_EXD)  {
     unsafe {
         let data = Vec::from_raw_parts(exd.row_data, exd.row_count as usize, exd.row_count as usize);
