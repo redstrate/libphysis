@@ -3,6 +3,7 @@ extern crate core;
 use std::ffi::{CStr, CString};
 use std::{mem, slice};
 use std::fs::read;
+use std::ops::Deref;
 use std::os::raw::{c_char, c_uint};
 use std::ptr::{null, null_mut};
 use physis::gamedata::GameData;
@@ -284,49 +285,58 @@ pub struct physis_EXD {
     row_count : c_uint
 }
 
-#[no_mangle] pub extern "C" fn physis_gamedata_read_excel_sheet(game_data : &GameData, name : *const c_char, exh : &EXH, language : Language, page : c_uint) -> physis_EXD {
-    let exd = Box::new(game_data.read_excel_sheet(&ffi_from_c_string(name), exh, language, page as usize).unwrap());
+#[no_mangle] pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(game_data : &GameData, name : *const c_char, exh : &physis_EXH, language : Language, page : c_uint) -> physis_EXD {
+    if let Some(exd) = game_data.read_excel_sheet(&ffi_from_c_string(name), &*exh.p_ptr, language, page as usize) {
+        let exd = Box::new(exd);
 
-    let mut c_rows : Vec<physis_ExcelRow> = Vec::new();
+        let mut c_rows: Vec<physis_ExcelRow> = Vec::new();
 
-    for row in &exd.rows {
-        let mut c_col_data : Vec<physis_ColumnData> = Vec::new();
+        for row in &exd.rows {
+            let mut c_col_data: Vec<physis_ColumnData> = Vec::new();
 
-        for col_data in &row.data {
-            match col_data {
-                ColumnData::String(s) => {
-                    c_col_data.push(physis_ColumnData::String(ffi_to_c_string(s)))
+            for col_data in &row.data {
+                match col_data {
+                    ColumnData::String(s) => {
+                        c_col_data.push(physis_ColumnData::String(ffi_to_c_string(s)))
+                    }
+                    ColumnData::Bool(b) => { c_col_data.push(physis_ColumnData::Bool(*b)) }
+                    ColumnData::Int8(i) => { c_col_data.push(physis_ColumnData::Int8(*i)) }
+                    ColumnData::UInt8(i) => { c_col_data.push(physis_ColumnData::UInt8(*i)) }
+                    ColumnData::Int16(i) => { c_col_data.push(physis_ColumnData::Int16(*i)) }
+                    ColumnData::UInt16(i) => { c_col_data.push(physis_ColumnData::UInt16(*i)) }
+                    ColumnData::Int32(i) => { c_col_data.push(physis_ColumnData::Int32(*i)) }
+                    ColumnData::UInt32(i) => { c_col_data.push(physis_ColumnData::UInt32(*i)) }
+                    ColumnData::Float32(i) => { c_col_data.push(physis_ColumnData::Float32(*i)) }
+                    ColumnData::Int64(i) => { c_col_data.push(physis_ColumnData::Int64(*i)) }
+                    ColumnData::UInt64(i) => { c_col_data.push(physis_ColumnData::UInt64(*i)) }
                 }
-                ColumnData::Bool(b) => { c_col_data.push(physis_ColumnData::Bool(*b)) }
-                ColumnData::Int8(i) => { c_col_data.push(physis_ColumnData::Int8(*i)) }
-                ColumnData::UInt8(i) => { c_col_data.push(physis_ColumnData::UInt8(*i)) }
-                ColumnData::Int16(i) => { c_col_data.push(physis_ColumnData::Int16(*i)) }
-                ColumnData::UInt16(i) => { c_col_data.push(physis_ColumnData::UInt16(*i)) }
-                ColumnData::Int32(i) => { c_col_data.push(physis_ColumnData::Int32(*i)) }
-                ColumnData::UInt32(i) => { c_col_data.push(physis_ColumnData::UInt32(*i)) }
-                ColumnData::Float32(i) => { c_col_data.push(physis_ColumnData::Float32(*i)) }
-                ColumnData::Int64(i) => { c_col_data.push(physis_ColumnData::Int64(*i)) }
-                ColumnData::UInt64(i) => { c_col_data.push(physis_ColumnData::UInt64(*i)) }
             }
+
+            c_rows.push(physis_ExcelRow {
+                column_data: c_col_data.as_mut_ptr()
+            });
+
+            mem::forget(c_col_data);
         }
 
-        c_rows.push(physis_ExcelRow {
-            column_data: c_col_data.as_mut_ptr()
-        });
+        let exd = physis_EXD {
+            p_ptr: Box::leak(exd),
+            column_count: (*exh.p_ptr).column_definitions.len() as c_uint,
+            row_data: c_rows.as_mut_ptr(),
+            row_count: c_rows.len() as c_uint
+        };
 
-        mem::forget(c_col_data);
+        mem::forget(c_rows);
+
+        exd
+    } else {
+        physis_EXD {
+            p_ptr: null_mut(),
+            column_count: 0,
+            row_data: null_mut(),
+            row_count: 0
+        }
     }
-
-    let exd = physis_EXD {
-        p_ptr: Box::leak(exd),
-        column_count: exh.column_definitions.len() as c_uint,
-        row_data: c_rows.as_mut_ptr(),
-        row_count: c_rows.len() as c_uint
-    };
-
-    mem::forget(c_rows);
-
-    exd
 }
 
 #[no_mangle] pub extern "C" fn physis_gamedata_free_sheet(exd : physis_EXD)  {
