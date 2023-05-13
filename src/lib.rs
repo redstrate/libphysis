@@ -223,8 +223,13 @@ pub struct physis_EXH {
     row_count: u32
 }
 
-#[no_mangle] pub extern "C" fn physis_gamedata_read_excel_sheet_header(game_data : &GameData, name : *const c_char) -> physis_EXH {
-    let exh = Box::new(game_data.read_excel_sheet_header(&ffi_from_c_string(name)).unwrap());
+#[no_mangle] pub extern "C" fn physis_gamedata_read_excel_sheet_header(game_data : &GameData, name : *const c_char) -> *mut physis_EXH {
+    let exh = game_data.read_excel_sheet_header(&ffi_from_c_string(name));
+    if exh.is_none() {
+        return null_mut();
+    }
+
+    let exh = Box::new(exh.unwrap());
 
     let mut c_languages : Vec<Language> = vec![];
 
@@ -247,13 +252,13 @@ pub struct physis_EXH {
 
     mem::forget(c_languages);
 
-    repositories
+    Box::leak(Box::new(repositories))
 }
 
-#[no_mangle] pub extern "C" fn physis_gamedata_free_sheet_header(exh: *mut EXH) {
-    unsafe {
+#[no_mangle] pub extern "C" fn physis_gamedata_free_sheet_header(exh: *mut physis_EXH) {
+    /*unsafe {
         drop(Box::from_raw(exh));
-    }
+    }*/
 }
 
 #[repr(C)]
