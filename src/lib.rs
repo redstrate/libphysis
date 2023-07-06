@@ -9,6 +9,7 @@ use std::ptr::{null, null_mut};
 use physis::gamedata::GameData;
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
+use physis::cmp::{CMP, RacialScalingParameters};
 use physis::common::Language;
 use physis::equipment::{build_equipment_path, get_slot_abbreviation, get_slot_from_id, Slot};
 use physis::exh::EXH;
@@ -712,4 +713,30 @@ pub struct physis_Material {
 #[no_mangle] pub extern "C" fn physis_get_slot_name(slot: Slot) -> *const c_char {
     // TODO: no need to dynamically allocate a new string
     ffi_to_c_string(&get_slot_abbreviation(slot).to_string())
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_CMP {
+    p_ptr: *mut CMP
+}
+
+#[no_mangle] pub extern "C" fn physis_cmp_parse(buffer : physis_Buffer) -> physis_CMP {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(mut cmp) = CMP::from_existing(&data.to_vec()) {
+        let cmp = physis_CMP {
+            p_ptr: Box::leak(Box::new(cmp))
+        };
+
+        cmp
+    } else {
+        physis_CMP {
+            p_ptr: null_mut()
+        }
+    }
+}
+
+#[no_mangle] pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(cmp : physis_CMP, race : Race, subrace: Subrace) -> RacialScalingParameters {
+    return (*cmp.p_ptr).parameters[0];
 }
