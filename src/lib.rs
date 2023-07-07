@@ -14,7 +14,6 @@ use physis::common::Language;
 use physis::equipment::{build_equipment_path, get_slot_abbreviation, get_slot_from_id, Slot};
 use physis::exh::EXH;
 use physis::exd::{ColumnData, EXD};
-use physis::installer::install_game;
 use physis::model::{MDL, Vertex};
 use physis::mtrl::Material;
 use physis::race::{Gender, get_race_id, Race, Subrace};
@@ -24,6 +23,9 @@ use physis::sqpack::calculate_hash;
 use physis::tex::Texture;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
+
+#[cfg(feature = "game_install")]
+use physis::installer::install_game;
 
 
 fn ffi_from_c_string(ptr : *const c_char) -> String {
@@ -433,6 +435,7 @@ pub struct physis_EXD {
     bootdata.apply_patch(&ffi_from_c_string(path)).is_ok()
 }
 
+#[cfg(feature = "game_install")]
 #[no_mangle] pub extern "C" fn physis_install_game(installer_path : *const c_char, game_directory : *const c_char) -> bool {
     install_game(&ffi_from_c_string(installer_path), &ffi_from_c_string(game_directory)).is_ok()
 }
