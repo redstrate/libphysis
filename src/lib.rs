@@ -1,32 +1,31 @@
 extern crate core;
 
-use std::ffi::{CStr, CString};
 use std::{mem, slice};
+use std::ffi::{CStr, CString};
 use std::fs::read;
-use std::ops::Deref;
+use std::ops::{Deref, Sub};
 use std::os::raw::{c_char, c_uint};
 use std::ptr::{null, null_mut};
-use physis::gamedata::GameData;
+
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
 use physis::cmp::{CMP, RacialScalingParameters};
 use physis::common::Language;
 use physis::equipment::{build_equipment_path, get_slot_abbreviation, get_slot_from_id, Slot};
-use physis::exh::EXH;
 use physis::exd::{ColumnData, EXD};
+use physis::exh::EXH;
+use physis::gamedata::GameData;
+#[cfg(feature = "game_install")]
+use physis::installer::install_game;
 use physis::model::{MDL, Vertex};
 use physis::mtrl::Material;
-use physis::race::{Gender, get_race_id, Race, Subrace};
+use physis::race::{Gender, get_race_id, get_supported_subraces, Race, Subrace};
 use physis::repository::RepositoryType;
 use physis::skeleton::Skeleton;
 use physis::sqpack::calculate_hash;
 use physis::tex::Texture;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
-
-#[cfg(feature = "game_install")]
-use physis::installer::install_game;
-
 
 fn ffi_from_c_string(ptr : *const c_char) -> String {
     unsafe {
@@ -552,15 +551,30 @@ pub struct physis_Buffer {
     calculate_hash(&ffi_from_c_string(path))
 }
 
-#[no_mangle] pub extern "C" fn physis_build_equipment_path(model_id : i32, race : Race, subrace : Subrace, gender : Gender, slot: Slot) -> *const c_char {
+#[no_mangle]
+pub extern "C" fn physis_build_equipment_path(model_id: i32, race: Race, subrace: Subrace, gender: Gender, slot: Slot) -> *const c_char {
     ffi_to_c_string(&build_equipment_path(model_id, race, subrace, gender, slot))
 }
 
-#[no_mangle] pub extern "C" fn physis_get_race_code(race : Race, subrace: Subrace, gender: Gender) -> i32 {
+#[no_mangle]
+pub extern "C" fn physis_get_race_code(race: Race, subrace: Subrace, gender: Gender) -> i32 {
     get_race_id(race, subrace, gender).unwrap()
 }
 
-#[no_mangle] pub extern "C" fn physis_slot_from_id(slot_id : i32) -> Slot {
+#[repr(C)]
+pub struct physis_SupportedSubraces {
+    subraces: [Subrace; 2],
+}
+
+#[no_mangle]
+pub extern "C" fn physis_get_supported_subraces(race: Race) -> physis_SupportedSubraces {
+    physis_SupportedSubraces {
+        subraces: get_supported_subraces(race)
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn physis_slot_from_id(slot_id: i32) -> Slot {
     match get_slot_from_id(slot_id) {
         None => Slot::Head, // FIXME: this is currently used to cover-up the few missing slots. PLEASE DO NOT SHIP
         Some(x) => x
@@ -740,6 +754,29 @@ pub struct physis_CMP {
     }
 }
 
-#[no_mangle] pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(cmp : physis_CMP, race : Race, subrace: Subrace) -> RacialScalingParameters {
-    return (*cmp.p_ptr).parameters[0];
+// adapted from https://github.com/xivdev/Penumbra/blob/master/Penumbra/Meta/Files/CmpFile.cs#L50
+fn get_rsp_index(subrace: Subrace) -> i32 {
+    match subrace {
+        Subrace::Midlander => 0,
+        Subrace::Highlander => 1,
+        Subrace::Wildwood => 10,
+        Subrace::Duskwight => 11,
+        Subrace::Plainsfolk => 20,
+        Subrace::Dunesfolk => 21,
+        Subrace::Seeker => 30,
+        Subrace::Keeper => 31,
+        Subrace::SeaWolf => 40,
+        Subrace::Hellsguard => 41,
+        Subrace::Raen => 50,
+        Subrace::Xaela => 51,
+        Subrace::Hellion => 60,
+        Subrace::Lost => 61,
+        Subrace::Rava => 70,
+        Subrace::Veena => 71
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(cmp: physis_CMP, race: Race, subrace: Subrace) -> RacialScalingParameters {
+    return (*cmp.p_ptr).parameters[get_rsp_index(subrace) as usize];
 }
