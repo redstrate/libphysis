@@ -26,6 +26,7 @@ use physis::sqpack::calculate_hash;
 use physis::tex::Texture;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
+use physis::chardat::CharDat;
 
 fn ffi_from_c_string(ptr : *const c_char) -> String {
     unsafe {
@@ -784,4 +785,10 @@ fn get_rsp_index(subrace: Subrace) -> i32 {
 #[no_mangle]
 pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(cmp: physis_CMP, race: Race, subrace: Subrace) -> RacialScalingParameters {
     return (*cmp.p_ptr).parameters[get_rsp_index(subrace) as usize];
+}
+
+#[no_mangle] pub extern "C" fn physis_chardat_parse(buffer : physis_Buffer) -> CharDat {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    CharDat::from_existing(&data.to_vec()).unwrap()
 }
