@@ -11,7 +11,7 @@ use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
 use physis::cmp::{CMP, RacialScalingParameters};
 use physis::common::Language;
-use physis::equipment::{build_equipment_path, get_slot_abbreviation, get_slot_from_id, Slot};
+use physis::equipment::{build_character_path, build_equipment_path, CharacterCategory, get_slot_abbreviation, get_slot_from_id, Slot};
 use physis::exd::{ColumnData, EXD};
 use physis::exh::EXH;
 use physis::gamedata::GameData;
@@ -554,6 +554,11 @@ pub struct physis_Buffer {
 #[no_mangle]
 pub extern "C" fn physis_build_equipment_path(model_id: i32, race: Race, subrace: Subrace, gender: Gender, slot: Slot) -> *const c_char {
     ffi_to_c_string(&build_equipment_path(model_id, race, subrace, gender, slot))
+}
+
+#[no_mangle]
+pub extern "C" fn physis_build_character_path(category: CharacterCategory, body_ver: i32, race: Race, subrace: Subrace, gender: Gender) -> *const c_char {
+    ffi_to_c_string(&build_character_path(category, body_ver, race, subrace, gender))
 }
 
 #[no_mangle]
