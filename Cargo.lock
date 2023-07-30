@@ -388,7 +388,7 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 [[package]]
 name = "physis"
 version = "0.1.3"
-source = "git+https://git.sr.ht/~redstrate/physis#59fc7d9786e6716c16bc3a612419bad8bc1e40d6"
+source = "git+https://git.sr.ht/~redstrate/physis#b180cf5aac7a89a93383da62e2185f5ce70fef5b"
 dependencies = [
  "binrw",
  "bitfield-struct",
