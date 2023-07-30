@@ -59,6 +59,14 @@ fn ffi_free_string(ptr : *const c_char) {
     }
 }
 
+#[no_mangle] pub extern "C" fn physis_get_physis_version() -> *const c_char {
+    ffi_to_c_string(&physis::PHYSIS_VERSION.to_string())
+}
+
+#[no_mangle] pub extern "C" fn physis_get_libphysis_version() -> *const c_char {
+    ffi_to_c_string(&env!("CARGO_PKG_VERSION").to_string())
+}
+
 /// Initializes a new BootData structure. Path must be a valid boot path, or else it will return NULL.
 #[no_mangle] pub extern "C" fn physis_bootdata_initialize(path : *const c_char) -> *mut BootData {
     if let Some(boot_data) = BootData::from_existing(&ffi_from_c_string(path)) {
