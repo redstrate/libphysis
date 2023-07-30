@@ -3,7 +3,6 @@ extern crate core;
 use std::{mem, slice};
 use std::ffi::{CStr, CString};
 use std::fs::read;
-use std::ops::{Deref, Sub};
 use std::os::raw::{c_char, c_uint};
 use std::ptr::{null, null_mut};
 
@@ -24,7 +23,7 @@ use physis::repository::RepositoryType;
 use physis::skeleton::Skeleton;
 use physis::sqpack::calculate_hash;
 use physis::tex::Texture;
-use tracing::{info, Level};
+use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 use physis::chardat::CharDat;
 
@@ -258,7 +257,7 @@ pub struct physis_EXH {
     Box::leak(Box::new(repositories))
 }
 
-#[no_mangle] pub extern "C" fn physis_gamedata_free_sheet_header(exh: *mut physis_EXH) {
+#[no_mangle] pub extern "C" fn physis_gamedata_free_sheet_header(_: *mut physis_EXH) {
     /*unsafe {
         drop(Box::from_raw(exh));
     }*/
@@ -747,7 +746,7 @@ pub struct physis_CMP {
 #[no_mangle] pub extern "C" fn physis_cmp_parse(buffer : physis_Buffer) -> physis_CMP {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(mut cmp) = CMP::from_existing(&data.to_vec()) {
+    if let Some(cmp) = CMP::from_existing(&data.to_vec()) {
         let cmp = physis_CMP {
             p_ptr: Box::leak(Box::new(cmp))
         };
@@ -783,7 +782,7 @@ fn get_rsp_index(subrace: Subrace) -> i32 {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(cmp: physis_CMP, race: Race, subrace: Subrace) -> RacialScalingParameters {
+pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(cmp: physis_CMP, _: Race, subrace: Subrace) -> RacialScalingParameters {
     return (*cmp.p_ptr).parameters[get_rsp_index(subrace) as usize];
 }
 
