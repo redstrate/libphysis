@@ -3,6 +3,7 @@ packages:
   - rust
   - cargo-deny
   - unshield
+  - reuse
 sources:
   - https://git.sr.ht/~redstrate/libphysis
 tasks:
