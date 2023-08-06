@@ -6,6 +6,9 @@ packages:
 sources:
   - https://git.sr.ht/~redstrate/libphysis
 tasks:
+  - reuse: |
+      cd libphysis
+      reuse lint
   - check: |
       cd libphysis
       cargo check

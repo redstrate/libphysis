@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 extern crate core;
 
 use std::{mem, slice};
@@ -8,6 +11,7 @@ use std::ptr::{null, null_mut};
 
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
+use physis::chardat::CharDat;
 use physis::cmp::{CMP, RacialScalingParameters};
 use physis::common::Language;
 use physis::equipment::{build_character_path, build_equipment_path, CharacterCategory, get_slot_abbreviation, get_slot_from_id, Slot};
@@ -25,7 +29,6 @@ use physis::sqpack::calculate_hash;
 use physis::tex::Texture;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-use physis::chardat::CharDat;
 
 fn ffi_from_c_string(ptr : *const c_char) -> String {
     unsafe {
