@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Astra
+Upstream-Name: libphysis
 Upstream-Contact: Joshua Goins <josh@redstrate.com>
-Source: https://git.sr.ht/~redstrate/physis
+Source: https://git.sr.ht/~redstrate/libphysis
 
 Files: README.md .build.yml deny.toml Cargo.toml Cargo.lock
 Copyright: Joshua Goins <josh@redstrate.com>
