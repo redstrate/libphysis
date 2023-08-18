@@ -103,7 +103,7 @@ version = "1.0.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c6b2562119bf28c3439f7f02db99faf0aa1a8cdfe5772a2ee155d32227239f0"
 dependencies = [
-    "libc",
+ "libc",
 ]
 
 [[package]]
@@ -393,15 +393,15 @@ name = "physis"
 version = "0.1.3"
 source = "git+https://git.sr.ht/~redstrate/physis#1eaeee32dfb79cd629df931e9002a3ebdae368bf"
 dependencies = [
-    "binrw",
-    "bitfield-struct",
-    "bitflags 1.3.2",
-    "glam",
-    "half",
-    "hard-xml",
-    "libz-sys",
-    "paste",
-    "serde",
+ "binrw",
+ "bitfield-struct",
+ "bitflags 1.3.2",
+ "glam",
+ "half",
+ "hard-xml",
+ "libz-sys",
+ "paste",
+ "serde",
  "serde_json",
  "system-deps",
  "texpresso",
@@ -453,11 +453,11 @@ version = "0.38.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "172891ebdceb05aa0005f533a6cbfca599ddd7d966f6f5d4d9b2e70478e70399"
 dependencies = [
-    "bitflags 2.3.3",
-    "errno",
-    "libc",
-    "linux-raw-sys",
-    "windows-sys",
+ "bitflags 2.3.3",
+ "errno",
+ "libc",
+ "linux-raw-sys",
+ "windows-sys",
 ]
 
 [[package]]
@@ -472,7 +472,7 @@ version = "1.0.182"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bdb30a74471f5b7a1fa299f40b4bf1be93af61116df95465b2b5fc419331e430"
 dependencies = [
-    "serde_derive",
+ "serde_derive",
 ]
 
 [[package]]
@@ -481,9 +481,9 @@ version = "1.0.182"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f4c2c6ea4bc09b5c419012eafcdb0fcef1d9119d626c8f3a0708a5b92d38a70"
 dependencies = [
-    "proc-macro2",
-    "quote",
-    "syn 2.0.28",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.28",
 ]
 
 [[package]]
@@ -544,9 +544,9 @@ version = "2.0.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04361975b3f5e348b2189d8dc55bc942f278b2d482a6a0365de5bdd62d351567"
 dependencies = [
-    "proc-macro2",
-    "quote",
-    "unicode-ident",
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -676,9 +676,9 @@ version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f4f31f56159e98206da9efd823404b79b6ef3143b4a7ab76e67b1751b25a4ab"
 dependencies = [
-    "proc-macro2",
-    "quote",
-    "syn 2.0.28",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.28",
 ]
 
 [[package]]
@@ -843,7 +843,7 @@ version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "acaaa1190073b2b101e15083c38ee8ec891b5e05cbee516521e94ec008f61e64"
 dependencies = [
-    "memchr",
+ "memchr",
 ]
 
 [[package]]
