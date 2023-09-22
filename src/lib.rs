@@ -11,7 +11,7 @@ use std::ptr::{null, null_mut};
 
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
-use physis::chardat::CharDat;
+use physis::chardat::CharacterData;
 use physis::cmp::{CMP, RacialScalingParameters};
 use physis::common::Language;
 use physis::equipment::{build_character_path, build_equipment_path, CharacterCategory, get_slot_abbreviation, get_slot_from_id, Slot};
@@ -797,8 +797,8 @@ pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(cmp: physis_CM
     return (*cmp.p_ptr).parameters[get_rsp_index(subrace) as usize];
 }
 
-#[no_mangle] pub extern "C" fn physis_chardat_parse(buffer : physis_Buffer) -> CharDat {
+#[no_mangle] pub extern "C" fn physis_chardat_parse(buffer : physis_Buffer) -> CharacterData {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    CharDat::from_existing(&data.to_vec()).unwrap()
+    CharacterData::from_existing(&data.to_vec()).unwrap()
 }
