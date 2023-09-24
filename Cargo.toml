@@ -16,6 +16,8 @@ lto = true
 cbindgen = "0.24.3"
 
 [features]
+default = ["visual_data"]
+
 game_install = ["physis/game_install"]
 visual_data = ["physis/visual_data"]
 
