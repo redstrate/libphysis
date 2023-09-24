@@ -1,6 +1,6 @@
 [package]
 name = "libphysis"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 description = "C bindings for physis"
 publish = false
@@ -17,6 +17,6 @@ game_install = ["physis/game_install"]
 visual_data = ["physis/visual_data"]
 
 [dependencies]
-physis = { git = "https://git.sr.ht/~redstrate/physis" }
+physis = { git = "https://git.sr.ht/~redstrate/physis", default-features = false }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"

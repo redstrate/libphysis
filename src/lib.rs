@@ -20,12 +20,16 @@ use physis::exh::EXH;
 use physis::gamedata::GameData;
 #[cfg(feature = "game_install")]
 use physis::installer::install_game;
+#[cfg(feature = "visual_data")]
 use physis::model::{MDL, Vertex};
+#[cfg(feature = "visual_data")]
 use physis::mtrl::Material;
 use physis::race::{Gender, get_race_id, get_supported_subraces, Race, Subrace};
 use physis::repository::RepositoryType;
+#[cfg(feature = "visual_data")]
 use physis::skeleton::Skeleton;
 use physis::sqpack::calculate_hash;
+#[cfg(feature = "visual_data")]
 use physis::tex::Texture;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -451,6 +455,7 @@ pub struct physis_EXD {
 }
 
 #[repr(C)]
+#[cfg(feature = "visual_data")]
 pub struct physis_Part {
     num_vertices : u32,
     vertices : *const Vertex,
@@ -462,12 +467,14 @@ pub struct physis_Part {
 }
 
 #[repr(C)]
+#[cfg(feature = "visual_data")]
 pub struct physis_LOD {
     num_parts : u32,
     parts : *const physis_Part
 }
 
 #[repr(C)]
+#[cfg(feature = "visual_data")]
 pub struct physis_MDL {
     num_lod : u32,
     lods : *const physis_LOD,
@@ -484,6 +491,7 @@ pub struct physis_Buffer {
     data: *mut u8
 }
 
+#[cfg(feature = "visual_data")]
 #[no_mangle] pub extern "C" fn physis_mdl_parse(size : u32, data : *mut u8) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(data, size as usize) };
 
@@ -628,6 +636,7 @@ pub extern "C" fn physis_slot_from_id(slot_id: i32) -> Slot {
 }
 
 #[repr(C)]
+#[cfg(feature = "visual_data")]
 pub struct physis_Bone {
     pub index: u32,
     pub name: *const c_char,
@@ -641,12 +650,14 @@ pub struct physis_Bone {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
 pub struct physis_Skeleton {
     num_bones : u32,
     bones: *mut physis_Bone,
     root_bone: *mut physis_Bone
 }
 
+#[cfg(feature = "visual_data")]
 fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
     let mut c_bones = vec![];
 
@@ -679,6 +690,7 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
     skel
 }
 
+#[cfg(feature = "visual_data")]
 #[no_mangle] pub extern "C" fn physis_skeleton_from_packfile(buffer : physis_Buffer) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -693,6 +705,7 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
     }
 }
 
+#[cfg(feature = "visual_data")]
 #[no_mangle] pub extern "C" fn physis_skeleton_from_skel(buffer : physis_Buffer) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -709,6 +722,7 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
 pub struct physis_Texture {
     width: u32,
     height: u32,
@@ -716,6 +730,7 @@ pub struct physis_Texture {
     rgba: *mut u8
 }
 
+#[cfg(feature = "visual_data")]
 #[no_mangle] pub extern "C" fn physis_texture_parse(buffer : physis_Buffer) -> physis_Texture {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -742,11 +757,13 @@ pub struct physis_Texture {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
 pub struct physis_Material {
     num_textures: u32,
     textures: *mut *const c_char
 }
 
+#[cfg(feature = "visual_data")]
 #[no_mangle] pub extern "C" fn physis_material_parse(buffer : physis_Buffer) -> physis_Material {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
