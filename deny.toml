@@ -17,7 +17,7 @@ default = "deny"
 confidence-threshold = 0.8
 
 [bans]
-multiple-versions = "deny"
+multiple-versions = "warn"
 wildcards = "warn"
 highlight = "all"
 
@@ -25,3 +25,4 @@ highlight = "all"
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = ["https://git.sr.ht/~redstrate/physis"]
