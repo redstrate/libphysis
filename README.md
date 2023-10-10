@@ -10,6 +10,10 @@ Simply run `cargo build`, and Cargo will generate the bindings as well pull in p
 
 The headers and the libraries live under your new `target` directory.
 
+### Logger
+
+A logger suitable for connecting to Qt is provided in `logger/`. Simply add_subdirectory to it, and link to the physis-logger target. Then include the header `physis_logger.h` and call the `setup_physis_logging()` function!
+
 ## License
 
 ![GPLv3](https://www.gnu.org/graphics/gplv3-127x51.png)
