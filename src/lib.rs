@@ -36,6 +36,7 @@ use tracing_subscriber::FmtSubscriber;
 use tracing_subscriber::Layer;
 use tracing_subscriber::prelude::*;
 use std::fmt::Write;
+use physis::cfg::ConfigFile;
 
 type LogCallback = unsafe extern "C" fn(QtMsgType, *const c_char, *const c_char, i32);
 
@@ -928,4 +929,47 @@ pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(cmp: physis_CM
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
     CharacterData::from_existing(&data.to_vec()).unwrap()
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ConfigFile {
+    p_ptr: *mut ConfigFile
+}
+
+#[no_mangle] pub extern "C" fn physis_cfg_parse(buffer : physis_Buffer) -> physis_ConfigFile {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(cfg) = ConfigFile::from_existing(&data.to_vec()) {
+        let cfg_struct = physis_ConfigFile {
+            p_ptr: Box::leak(Box::new(cfg))
+        };
+
+        cfg_struct
+    } else {
+        physis_ConfigFile {
+            p_ptr: null_mut()
+        }
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_cfg_set_value(cfg : physis_ConfigFile, key: *const c_char, value: *const c_char) {
+    unsafe {
+        (*cfg.p_ptr).set_value(&ffi_from_c_string(key), &ffi_from_c_string(value));
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_cfg_write(cfg : physis_ConfigFile) -> physis_Buffer {
+    unsafe {
+        let mut buffer = (*cfg.p_ptr).write_to_buffer().unwrap();
+
+        let leak_buffer = physis_Buffer {
+            size: buffer.len() as u32,
+            data: buffer.as_mut_ptr()
+        };
+
+        mem::forget(buffer);
+
+        leak_buffer
+    }
 }
