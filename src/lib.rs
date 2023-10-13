@@ -40,6 +40,8 @@ use physis::cfg::ConfigFile;
 use physis::exl::EXL;
 use physis::index::IndexFile;
 use physis::sqpack::calculate_partial_hash;
+use physis::shpk::ShaderPackage;
+use physis::pbd::PreBoneDeformer;
 
 type LogCallback = unsafe extern "C" fn(QtMsgType, *const c_char, *const c_char, i32);
 
@@ -777,25 +779,10 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
 }
 
 #[cfg(feature = "visual_data")]
-#[no_mangle] pub extern "C" fn physis_skeleton_from_packfile(buffer : physis_Buffer) -> physis_Skeleton {
+#[no_mangle] pub extern "C" fn physis_parse_skeleton(buffer : physis_Buffer) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(skeleton) = Skeleton::from_packfile(&data.to_vec()) {
-        convert_skeleton(&skeleton)
-    } else {
-        physis_Skeleton {
-            num_bones: 0,
-            bones: null_mut(),
-            root_bone: null_mut()
-        }
-    }
-}
-
-#[cfg(feature = "visual_data")]
-#[no_mangle] pub extern "C" fn physis_skeleton_from_skel(buffer : physis_Buffer) -> physis_Skeleton {
-    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
-
-    if let Some(skeleton) = Skeleton::from_skel(&data.to_vec()) {
+    if let Some(skeleton) = Skeleton::from_existing(&data.to_vec()) {
         convert_skeleton(&skeleton)
     } else {
         physis_Skeleton {
@@ -1022,7 +1009,6 @@ pub struct physis_IndexEntries {
     calculate_partial_hash(&ffi_from_c_string(name))
 }
 
-
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_EXL {
@@ -1061,6 +1047,139 @@ pub struct physis_EXL {
             entry_count: 0,
             entry_keys: null_mut(),
             entry_values: null_mut()
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_Shader {
+    len: i32,
+    bytecode: *mut u8
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_SHPK {
+    num_vertex_shaders: i32,
+    vertex_shaders: *mut physis_Shader,
+    num_pixel_shaders: i32,
+    pixel_shaders: *mut physis_Shader
+}
+
+#[no_mangle] pub extern "C" fn physis_parse_shpk(buffer : physis_Buffer) -> physis_SHPK {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(shpk) = ShaderPackage::from_existing(&data.to_vec()) {
+        let mut c_vertex_shaders = vec![];
+        let mut c_fragment_shaders = vec![];
+
+        for mut shader in shpk.vertex_shaders {
+            let mut bytecode = shader.bytecode.clone();
+
+            let shader = physis_Shader {
+                len: bytecode.len() as i32,
+                bytecode: bytecode.as_mut_ptr()
+            };
+
+            c_vertex_shaders.push(shader);
+
+            mem::forget(bytecode);
+        }
+
+        for mut shader in shpk.pixel_shaders {
+            let mut bytecode = shader.bytecode.clone();
+
+            let shader = physis_Shader {
+                len: bytecode.len() as i32,
+                bytecode: bytecode.as_mut_ptr()
+            };
+
+            c_fragment_shaders.push(shader);
+
+            mem::forget(bytecode);
+        }
+
+        let mat = physis_SHPK {
+            num_vertex_shaders: c_vertex_shaders.len() as i32,
+            vertex_shaders: c_vertex_shaders.as_mut_ptr(),
+            num_pixel_shaders: c_fragment_shaders.len() as i32,
+            pixel_shaders: c_fragment_shaders.as_mut_ptr()
+        };
+
+        mem::forget(c_vertex_shaders);
+        mem::forget(c_fragment_shaders);
+
+        mat
+    } else {
+        physis_SHPK {
+            num_vertex_shaders: 0,
+            vertex_shaders: null_mut(),
+            num_pixel_shaders: 0,
+            pixel_shaders: null_mut()
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_PBD {
+    p_ptr : *mut PreBoneDeformer
+}
+
+#[no_mangle] pub extern "C" fn physis_parse_pbd(buffer: physis_Buffer) -> physis_PBD {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(pbd) = PreBoneDeformer::from_existing(&data.to_vec()) {
+        physis_PBD {
+            p_ptr: Box::leak(Box::new(pbd))
+        }
+    } else {
+        physis_PBD {
+            p_ptr: null_mut()
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_PreBoneDeformBone {
+    name: *const c_char,
+    deform: [f32; 12]
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_PreBoneDeformMatrices {
+    num_bones: i32,
+    bones: *mut physis_PreBoneDeformBone
+}
+
+#[no_mangle] pub extern "C" fn physis_pbd_get_deform_matrix(pbd: physis_PBD, from_body_id: u16, to_body_id: u16) -> physis_PreBoneDeformMatrices {
+    unsafe {
+        if let Some(prebd) = (*pbd.p_ptr).get_deform_matrices(from_body_id, to_body_id) {
+            let mut c_bones = vec![];
+
+            for bone in &prebd.bones {
+                c_bones.push(physis_PreBoneDeformBone {
+                    name: ffi_to_c_string(&bone.name),
+                    deform: bone.deform
+                });
+            }
+
+            let mat = physis_PreBoneDeformMatrices {
+                num_bones: c_bones.len() as i32,
+                bones: c_bones.as_mut_ptr()
+            };
+
+            mem::forget(c_bones);
+
+            mat
+        } else {
+            physis_PreBoneDeformMatrices {
+                num_bones: 0,
+                bones: null_mut()
+            }
         }
     }
 }
