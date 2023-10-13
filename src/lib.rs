@@ -17,7 +17,7 @@ use physis::common::Language;
 use physis::equipment::{build_character_path, build_ear_material_path, build_equipment_path, build_face_material_path, build_gear_material_path, build_hair_material_path, build_skin_material_path, build_tail_material_path, CharacterCategory, get_slot_abbreviation, get_slot_from_id, Slot};
 use physis::exd::{ColumnData, EXD};
 use physis::exh::EXH;
-use physis::gamedata::{GameData, MemoryBuffer};
+use physis::gamedata::GameData;
 #[cfg(feature = "game_install")]
 use physis::installer::install_game;
 #[cfg(feature = "visual_data")]
@@ -256,7 +256,7 @@ pub struct physis_SheetNames {
     names: *mut *const c_char
 }
 
-#[no_mangle] pub extern "C" fn physis_gamedata_get_all_sheet_names(game_data : &GameData) -> physis_SheetNames {
+#[no_mangle] pub extern "C" fn physis_gamedata_get_all_sheet_names(game_data : &mut GameData) -> physis_SheetNames {
     let mut c_repo_names = vec![];
 
     for name in game_data.get_all_sheet_names().unwrap() {
@@ -290,7 +290,7 @@ pub struct physis_SheetNames {
 
 /// Extracts the raw game file from `path`, and puts it in `data` with `size` length. If the path was not found,
 /// `size` is 0 and `data` is NULL.
-#[no_mangle] pub extern "C" fn physis_gamedata_extract_file(game_data : &GameData, path : *const c_char) -> physis_Buffer {
+#[no_mangle] pub extern "C" fn physis_gamedata_extract_file(game_data : &mut GameData, path : *const c_char) -> physis_Buffer {
     unsafe {
         if let Some(mut d) = game_data.extract(CStr::from_ptr(path).to_string_lossy().as_ref()) {
             let b = physis_Buffer {
@@ -311,7 +311,7 @@ pub struct physis_SheetNames {
 }
 
 /// Checks if the file at `path` exists.
-#[no_mangle] pub extern "C" fn physis_gamedata_exists(game_data : &GameData, path : *const c_char) -> bool {
+#[no_mangle] pub extern "C" fn physis_gamedata_exists(game_data : &mut GameData, path : *const c_char) -> bool {
     game_data.exists(&ffi_from_c_string(path))
 }
 
@@ -395,7 +395,7 @@ pub struct physis_EXD {
     row_count : c_uint
 }
 
-#[no_mangle] pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(game_data : &GameData, name : *const c_char, exh : &physis_EXH, language : Language, page : c_uint) -> physis_EXD {
+#[no_mangle] pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(game_data : &mut GameData, name : *const c_char, exh : &physis_EXH, language : Language, page : c_uint) -> physis_EXD {
     if let Some(exd) = game_data.read_excel_sheet(&ffi_from_c_string(name), &*exh.p_ptr, language, page as usize) {
         let exd = Box::new(exd);
 
@@ -580,8 +580,8 @@ pub struct physis_Buffer {
 }
 
 #[cfg(feature = "visual_data")]
-#[no_mangle] pub extern "C" fn physis_mdl_parse(size : u32, data : *mut u8) -> physis_MDL {
-    let data = unsafe { slice::from_raw_parts(data, size as usize) };
+#[no_mangle] pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
     let mdl = MDL::from_existing(&data.to_vec()).unwrap();
 
@@ -983,7 +983,7 @@ pub struct physis_IndexEntries {
 
         for entry in &idx_file.entries {
             c_file_entries.push(entry.hash as u32);
-            c_dir_entries.push(((entry.hash >> 32) as u32));
+            c_dir_entries.push((entry.hash >> 32) as u32);
         }
 
         let mat = physis_IndexEntries {
@@ -1074,7 +1074,7 @@ pub struct physis_SHPK {
         let mut c_vertex_shaders = vec![];
         let mut c_fragment_shaders = vec![];
 
-        for mut shader in shpk.vertex_shaders {
+        for shader in shpk.vertex_shaders {
             let mut bytecode = shader.bytecode.clone();
 
             let shader = physis_Shader {
@@ -1087,7 +1087,7 @@ pub struct physis_SHPK {
             mem::forget(bytecode);
         }
 
-        for mut shader in shpk.pixel_shaders {
+        for shader in shpk.pixel_shaders {
             let mut bytecode = shader.bytecode.clone();
 
             let shader = physis_Shader {
