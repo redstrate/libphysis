@@ -17,7 +17,7 @@ use physis::common::Language;
 use physis::equipment::{build_character_path, build_ear_material_path, build_equipment_path, build_face_material_path, build_gear_material_path, build_hair_material_path, build_skin_material_path, build_tail_material_path, CharacterCategory, get_slot_abbreviation, get_slot_from_id, Slot};
 use physis::exd::{ColumnData, EXD};
 use physis::exh::EXH;
-use physis::gamedata::GameData;
+use physis::gamedata::{GameData, MemoryBuffer};
 #[cfg(feature = "game_install")]
 use physis::installer::install_game;
 #[cfg(feature = "visual_data")]
@@ -37,6 +37,7 @@ use tracing_subscriber::Layer;
 use tracing_subscriber::prelude::*;
 use std::fmt::Write;
 use physis::cfg::ConfigFile;
+use physis::exl::EXL;
 use physis::index::IndexFile;
 use physis::sqpack::calculate_partial_hash;
 
@@ -323,8 +324,10 @@ pub struct physis_EXH {
     row_count: u32
 }
 
-#[no_mangle] pub extern "C" fn physis_gamedata_read_excel_sheet_header(game_data : &GameData, name : *const c_char) -> *mut physis_EXH {
-    let exh = game_data.read_excel_sheet_header(&ffi_from_c_string(name));
+#[no_mangle] pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut physis_EXH {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    let exh = EXH::from_existing(&data.to_vec());
     if exh.is_none() {
         return null_mut();
     }
