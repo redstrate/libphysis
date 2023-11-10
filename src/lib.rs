@@ -40,7 +40,9 @@ use physis::cfg::ConfigFile;
 use physis::exl::EXL;
 use physis::index::IndexFile;
 use physis::sqpack::calculate_partial_hash;
+#[cfg(feature = "visual_data")]
 use physis::shpk::ShaderPackage;
+#[cfg(feature = "visual_data")]
 use physis::pbd::PreBoneDeformer;
 
 type LogCallback = unsafe extern "C" fn(QtMsgType, *const c_char, *const c_char, i32);
@@ -1053,6 +1055,7 @@ pub struct physis_EXL {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
 pub struct physis_Shader {
     len: i32,
     bytecode: *mut u8
@@ -1060,6 +1063,7 @@ pub struct physis_Shader {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
 pub struct physis_SHPK {
     num_vertex_shaders: i32,
     vertex_shaders: *mut physis_Shader,
@@ -1067,6 +1071,7 @@ pub struct physis_SHPK {
     pixel_shaders: *mut physis_Shader
 }
 
+#[cfg(feature = "visual_data")]
 #[no_mangle] pub extern "C" fn physis_parse_shpk(buffer : physis_Buffer) -> physis_SHPK {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -1123,10 +1128,12 @@ pub struct physis_SHPK {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
 pub struct physis_PBD {
     p_ptr : *mut PreBoneDeformer
 }
 
+#[cfg(feature = "visual_data")]
 #[no_mangle] pub extern "C" fn physis_parse_pbd(buffer: physis_Buffer) -> physis_PBD {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -1143,6 +1150,7 @@ pub struct physis_PBD {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
 pub struct physis_PreBoneDeformBone {
     name: *const c_char,
     deform: [f32; 12]
@@ -1150,11 +1158,13 @@ pub struct physis_PreBoneDeformBone {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
 pub struct physis_PreBoneDeformMatrices {
     num_bones: i32,
     bones: *mut physis_PreBoneDeformBone
 }
 
+#[cfg(feature = "visual_data")]
 #[no_mangle] pub extern "C" fn physis_pbd_get_deform_matrix(pbd: physis_PBD, from_body_id: u16, to_body_id: u16) -> physis_PreBoneDeformMatrices {
     unsafe {
         if let Some(prebd) = (*pbd.p_ptr).get_deform_matrices(from_body_id, to_body_id) {
