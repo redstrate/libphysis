@@ -566,6 +566,7 @@ pub struct physis_LOD {
 #[repr(C)]
 #[cfg(feature = "visual_data")]
 pub struct physis_MDL {
+    p_ptr: *mut MDL,
     num_lod : u32,
     lods : *const physis_LOD,
     num_affected_bones : u32,
@@ -585,16 +586,49 @@ pub struct physis_Buffer {
 #[no_mangle] pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    let mdl = MDL::from_existing(&data.to_vec()).unwrap();
+    let mdl = Box::new(MDL::from_existing(&data.to_vec()).unwrap());
 
+    let mut c_lods : Vec<physis_LOD> = physis_mdl_update_vertices(&mdl);
+
+    let mut c_bone_names = vec![];
+
+    for bone_name in &mdl.affected_bone_names {
+        c_bone_names.push(ffi_to_c_string(&bone_name));
+    }
+
+    let mut c_material_names = vec![];
+
+    for bone_name in &mdl.material_names {
+        c_material_names.push(ffi_to_c_string(&bone_name));
+    }
+
+    let mdl = physis_MDL {
+        p_ptr: Box::leak(mdl),
+        num_lod: c_lods.len() as u32,
+        lods: c_lods.as_mut_ptr(),
+        num_affected_bones : c_bone_names.len() as u32,
+        affected_bone_names: c_bone_names.as_mut_ptr(),
+        num_material_names : c_material_names.len() as u32,
+        material_names: c_material_names.as_mut_ptr()
+    };
+
+    mem::forget(c_bone_names);
+    mem::forget(c_material_names);
+    mem::forget(c_lods);
+
+    mdl
+}
+
+#[cfg(feature = "visual_data")]
+fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
     let mut c_lods : Vec<physis_LOD> = Vec::new();
 
-    for lod in mdl.lods {
+    for lod in &mdl.lods {
         let mut c_parts : Vec<physis_Part> = Vec::new();
 
-        for part in lod.parts {
-            let mut c_vertices : Vec<Vertex> = part.vertices;
-            let mut c_indices : Vec<u16> = part.indices;
+        for part in &lod.parts {
+            let mut c_vertices : Vec<Vertex> = part.vertices.clone();
+            let mut c_indices : Vec<u16> = part.indices.clone();
 
             c_parts.push(physis_Part {
                 num_vertices: c_vertices.len() as u32,
@@ -616,32 +650,21 @@ pub struct physis_Buffer {
         mem::forget(c_parts);
     }
 
-    let mut c_bone_names = vec![];
+    c_lods
+}
 
-    for bone_name in mdl.affected_bone_names {
-        c_bone_names.push(ffi_to_c_string(&bone_name));
+#[cfg(feature = "visual_data")]
+#[no_mangle] pub extern "C" fn physis_mdl_replace_vertices(mdl: *mut physis_MDL, lod_index: u32, part_index: u32, num_vertices: u32, vertices_ptr: *const Vertex, num_indices: u32, indices_ptr: *const u16) {
+    unsafe {
+        (*(*mdl).p_ptr).replace_vertices(lod_index as usize, part_index as usize, &*std::ptr::slice_from_raw_parts(vertices_ptr, num_vertices as usize), &*std::ptr::slice_from_raw_parts(indices_ptr, num_indices as usize));
+
+        // We need to update the C version of these LODs as well
+        let mut new_lods = physis_mdl_update_vertices((*mdl).p_ptr.as_ref().unwrap());
+
+        (*mdl).lods = new_lods.as_mut_ptr();
+
+        mem::forget(new_lods);
     }
-
-    let mut c_material_names = vec![];
-
-    for bone_name in mdl.material_names {
-        c_material_names.push(ffi_to_c_string(&bone_name));
-    }
-
-    let mdl = physis_MDL {
-        num_lod: c_lods.len() as u32,
-        lods: c_lods.as_mut_ptr(),
-        num_affected_bones : c_bone_names.len() as u32,
-        affected_bone_names: c_bone_names.as_mut_ptr(),
-        num_material_names : c_material_names.len() as u32,
-        material_names: c_material_names.as_mut_ptr()
-    };
-
-    mem::forget(c_bone_names);
-    mem::forget(c_material_names);
-    mem::forget(c_lods);
-
-    mdl
 }
 
 #[no_mangle] pub extern "C" fn physis_read_file(path : *const c_char) -> physis_Buffer {
