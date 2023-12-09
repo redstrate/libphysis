@@ -620,6 +620,22 @@ pub struct physis_Buffer {
 }
 
 #[cfg(feature = "visual_data")]
+#[no_mangle] pub extern "C" fn physis_mdl_write(mdl: &physis_MDL) -> physis_Buffer {
+    unsafe {
+        let mut buffer = (*mdl.p_ptr).write_to_buffer().unwrap();
+
+        let leak_buffer = physis_Buffer {
+            size: buffer.len() as u32,
+            data: buffer.as_mut_ptr()
+        };
+
+        mem::forget(buffer);
+
+        leak_buffer
+    }
+}
+
+#[cfg(feature = "visual_data")]
 fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
     let mut c_lods : Vec<physis_LOD> = Vec::new();
 
