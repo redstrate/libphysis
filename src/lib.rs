@@ -39,6 +39,7 @@ use std::fmt::Write;
 use physis::cfg::ConfigFile;
 use physis::exl::EXL;
 use physis::index::IndexFile;
+use physis::model::SubMesh;
 use physis::sqpack::calculate_partial_hash;
 #[cfg(feature = "visual_data")]
 use physis::shpk::ShaderPackage;
@@ -553,7 +554,10 @@ pub struct physis_Part {
     num_indices : u32,
     indices : *const u16,
 
-    material_index : u16
+    material_index : u16,
+
+    num_submeshes : u32,
+    submeshes : *const SubMesh,
 }
 
 #[repr(C)]
@@ -645,17 +649,21 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
         for part in &lod.parts {
             let mut c_vertices : Vec<Vertex> = part.vertices.clone();
             let mut c_indices : Vec<u16> = part.indices.clone();
+            let mut c_submeshes : Vec<SubMesh> = part.submeshes.clone();
 
             c_parts.push(physis_Part {
                 num_vertices: c_vertices.len() as u32,
                 vertices: c_vertices.as_mut_ptr(),
                 num_indices: c_indices.len() as u32,
                 indices: c_indices.as_mut_ptr(),
-                material_index: part.material_index
+                material_index: part.material_index,
+                num_submeshes: c_submeshes.len() as u32,
+                submeshes: c_submeshes.as_mut_ptr()
             });
 
             mem::forget(c_vertices);
             mem::forget(c_indices);
+            mem::forget(c_submeshes);
         }
 
         c_lods.push(physis_LOD {
@@ -670,9 +678,17 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
 }
 
 #[cfg(feature = "visual_data")]
-#[no_mangle] pub extern "C" fn physis_mdl_replace_vertices(mdl: *mut physis_MDL, lod_index: u32, part_index: u32, num_vertices: u32, vertices_ptr: *const Vertex, num_indices: u32, indices_ptr: *const u16) {
+#[no_mangle] pub extern "C" fn physis_mdl_replace_vertices(mdl: *mut physis_MDL,
+                                                           lod_index: u32,
+                                                           part_index: u32,
+                                                           num_vertices: u32,
+                                                           vertices_ptr: *const Vertex,
+                                                           num_indices: u32,
+                                                           indices_ptr: *const u16,
+                                                           num_submeshes: u32,
+                                                           submeshes_ptr: *const SubMesh) {
     unsafe {
-        (*(*mdl).p_ptr).replace_vertices(lod_index as usize, part_index as usize, &*std::ptr::slice_from_raw_parts(vertices_ptr, num_vertices as usize), &*std::ptr::slice_from_raw_parts(indices_ptr, num_indices as usize));
+        (*(*mdl).p_ptr).replace_vertices(lod_index as usize, part_index as usize, &*std::ptr::slice_from_raw_parts(vertices_ptr, num_vertices as usize), &*std::ptr::slice_from_raw_parts(indices_ptr, num_indices as usize), &*std::ptr::slice_from_raw_parts(submeshes_ptr, num_submeshes as usize));
 
         // We need to update the C version of these LODs as well
         let mut new_lods = physis_mdl_update_vertices((*mdl).p_ptr.as_ref().unwrap());
