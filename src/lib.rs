@@ -39,6 +39,7 @@ use std::fmt::Write;
 use physis::cfg::ConfigFile;
 use physis::exl::EXL;
 use physis::index::IndexFile;
+#[cfg(feature = "visual_data")]
 use physis::model::SubMesh;
 use physis::sqpack::calculate_partial_hash;
 #[cfg(feature = "visual_data")]
