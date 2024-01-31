@@ -212,7 +212,7 @@ checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
 
 [[package]]
 name = "libphysis"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "cbindgen",
  "physis",
@@ -301,9 +301,9 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
 name = "physis"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef25747eabb8ef22c80a2e0cbb003d1f071352b1cf3fb29fdbedcd80b5490dee"
+checksum = "6bbded7785f4ec30abc79e74c3b816d00b693cce59d3e6252d48a2da218d42c6"
 dependencies = [
  "binrw",
  "bitflags 1.3.2",

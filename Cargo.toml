@@ -1,6 +1,6 @@
 [package]
 name = "libphysis"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Joshua Goins <josh@redstrate.com>"]
 edition = "2021"
 description = "C bindings for physis"
@@ -27,6 +27,6 @@ game_install = ["physis/game_install"]
 visual_data = ["physis/visual_data"]
 
 [dependencies]
-physis = { version = "0.2.0", default-features = false }
+physis = { version = "0.2.1", default-features = false }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
