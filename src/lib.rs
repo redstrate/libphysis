@@ -46,6 +46,8 @@ use physis::sqpack::calculate_partial_hash;
 use physis::shpk::ShaderPackage;
 #[cfg(feature = "visual_data")]
 use physis::pbd::PreBoneDeformer;
+#[cfg(feature = "visual_data")]
+use physis::tera::Terrain;
 
 type LogCallback = unsafe extern "C" fn(QtMsgType, *const c_char, *const c_char, i32);
 
@@ -1245,6 +1247,55 @@ pub struct physis_PreBoneDeformMatrices {
             physis_PreBoneDeformMatrices {
                 num_bones: 0,
                 bones: null_mut()
+            }
+        }
+    }
+}
+
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
+pub struct physis_PlateModel {
+    position: [f32; 2],
+    filename: *const c_char
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+#[cfg(feature = "visual_data")]
+pub struct physis_Terrain {
+    num_plates: i32,
+    plates: *mut crate::physis_PlateModel
+}
+
+#[cfg(feature = "visual_data")]
+#[no_mangle] pub extern "C" fn physis_parse_tera(buffer: physis_Buffer) -> physis_Terrain {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    unsafe {
+        if let Some(tera) = Terrain::from_existing(data) {
+            let mut c_plates = vec![];
+
+            for plate in &tera.plates {
+                c_plates.push(crate::physis_PlateModel {
+                    position: plate.position.into(),
+                    filename: ffi_to_c_string(&plate.filename)
+                });
+            }
+
+            let mat = crate::physis_Terrain {
+                num_plates: c_plates.len() as i32,
+                plates: c_plates.as_mut_ptr()
+            };
+
+            mem::forget(c_plates);
+
+            mat
+        } else {
+            crate::physis_Terrain {
+                num_plates: 0,
+                plates: null_mut()
             }
         }
     }
