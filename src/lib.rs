@@ -28,7 +28,6 @@ use physis::race::{Gender, get_race_id, get_supported_subraces, Race, Subrace};
 use physis::repository::RepositoryType;
 #[cfg(feature = "visual_data")]
 use physis::skeleton::Skeleton;
-use physis::sqpack::calculate_hash;
 #[cfg(feature = "visual_data")]
 use physis::tex::Texture;
 use tracing::Level;
@@ -41,7 +40,6 @@ use physis::exl::EXL;
 use physis::index::IndexFile;
 #[cfg(feature = "visual_data")]
 use physis::model::SubMesh;
-use physis::sqpack::calculate_partial_hash;
 #[cfg(feature = "visual_data")]
 use physis::shpk::ShaderPackage;
 #[cfg(feature = "visual_data")]
@@ -715,7 +713,7 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
 }
 
 #[no_mangle] pub extern "C" fn physis_calculate_hash(path : *const c_char) -> u64 {
-    calculate_hash(&ffi_from_c_string(path))
+    IndexFile::calculate_hash(&ffi_from_c_string(path))
 }
 
 #[no_mangle]
@@ -1066,7 +1064,7 @@ pub struct physis_IndexEntries {
 }
 
 #[no_mangle] pub extern "C" fn physis_generate_partial_hash(name: *const c_char) -> u32 {
-    calculate_partial_hash(&ffi_from_c_string(name))
+    IndexFile::calculate_partial_hash(&ffi_from_c_string(name))
 }
 
 #[repr(C)]
