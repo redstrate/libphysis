@@ -8,6 +8,7 @@ use std::ffi::{CStr, CString};
 use std::fs::read;
 use std::os::raw::{c_char, c_uint};
 use std::ptr::{null, null_mut};
+use physis::common::Platform;
 
 use physis::blowfish::Blowfish;
 use physis::bootdata::BootData;
@@ -192,9 +193,7 @@ fn ffi_free_string(ptr : *const c_char) {
 
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
 #[no_mangle] pub extern "C" fn physis_gamedata_initialize(path : *const c_char) -> *mut GameData {
-    if let Some(mut game_data) = GameData::from_existing(&ffi_from_c_string(path)) {
-        game_data.reload_repositories();
-
+    if let Some(mut game_data) = GameData::from_existing(Platform::Win32, &ffi_from_c_string(path)) {
         let boxed = Box::new(game_data);
 
         Box::leak(boxed)
@@ -591,7 +590,19 @@ pub struct physis_Buffer {
 #[no_mangle] pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    let mdl = Box::new(MDL::from_existing(&data.to_vec()).unwrap());
+    let Some(mdl_d) = MDL::from_existing(&data.to_vec()) else {
+        return physis_MDL {
+            p_ptr: null_mut(),
+            num_lod: 0,
+            lods: null_mut(),
+            num_affected_bones : 0,
+            affected_bone_names: null_mut(),
+            num_material_names : 0,
+            material_names: null_mut()
+        };
+    };
+
+    let mdl = Box::new(mdl_d);
 
     let mut c_lods : Vec<physis_LOD> = physis_mdl_update_vertices(&mdl);
 
