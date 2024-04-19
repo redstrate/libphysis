@@ -47,6 +47,7 @@ use physis::shpk::ShaderPackage;
 use physis::pbd::PreBoneDeformer;
 #[cfg(feature = "visual_data")]
 use physis::tera::Terrain;
+use physis::dic::Dictionary;
 
 type LogCallback = unsafe extern "C" fn(QtMsgType, *const c_char, *const c_char, i32);
 
@@ -1305,6 +1306,41 @@ pub struct physis_Terrain {
             crate::physis_Terrain {
                 num_plates: 0,
                 plates: null_mut()
+            }
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_Dictionary {
+    num_words: i32,
+    words: *const *const c_char
+}
+
+#[no_mangle] pub extern "C" fn physis_parse_dictionary(buffer: physis_Buffer) -> physis_Dictionary {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    unsafe {
+        if let Some(dic) = Dictionary::from_existing(data) {
+            let mut c_words = vec![];
+
+            for word in &dic.words {
+                c_words.push(ffi_to_c_string(&word));
+            }
+
+            let mat = crate::physis_Dictionary {
+                num_words: c_words.len() as i32,
+                words: c_words.as_ptr()
+            };
+
+            mem::forget(c_words);
+
+            mat
+        } else {
+            crate::physis_Dictionary {
+                num_words: 0,
+                words: null()
             }
         }
     }
