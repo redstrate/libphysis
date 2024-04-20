@@ -1,5 +1,6 @@
 use physis::exd::EXD;
 use std::os::raw::{c_char, c_uint};
+use std::ptr::null_mut;
 
 #[repr(C)]
 pub enum physis_ColumnData {
@@ -28,4 +29,15 @@ pub struct physis_EXD {
 
     pub row_data: *mut physis_ExcelRow,
     pub row_count: c_uint,
+}
+
+impl Default for physis_EXD {
+    fn default() -> Self {
+        Self {
+            p_ptr: null_mut(),
+            column_count: 0,
+            row_data: null_mut(),
+            row_count: 0,
+        }
+    }
 }

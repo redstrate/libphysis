@@ -11,7 +11,11 @@ pub extern "C" fn physis_bootdata_get_version(boot_data: &BootData) -> *const c_
 /// Initializes a new BootData structure. Path must be a valid boot path, or else it will return NULL.
 #[no_mangle]
 pub extern "C" fn physis_bootdata_initialize(path: *const c_char) -> *mut BootData {
-    if let Some(boot_data) = BootData::from_existing(&ffi_from_c_string(path)) {
+    let Some(r_path) = ffi_from_c_string(path) else {
+        return null_mut()
+    };
+    
+    if let Some(boot_data) = BootData::from_existing(&r_path) {
         let boxed = Box::new(boot_data);
 
         Box::leak(boxed)
@@ -29,5 +33,9 @@ pub extern "C" fn physis_bootdata_free(boot_data: *mut BootData) {
 
 #[no_mangle]
 pub extern "C" fn physis_bootdata_apply_patch(bootdata: &BootData, path: *const c_char) -> bool {
-    bootdata.apply_patch(&ffi_from_c_string(path)).is_ok()
+    if let Some(r_path) = ffi_from_c_string(path) {
+        bootdata.apply_patch(&r_path).is_ok()
+    } else {
+        false
+    }
 }

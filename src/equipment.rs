@@ -6,6 +6,7 @@ use physis::equipment::{
 };
 use physis::race::{Gender, Race, Subrace};
 use std::os::raw::c_char;
+use std::ptr::null;
 
 #[no_mangle]
 pub extern "C" fn physis_slot_from_id(slot_id: i32) -> Slot {
@@ -51,10 +52,14 @@ pub extern "C" fn physis_build_skin_material_path(
     body_code: i32,
     material_name: *const c_char,
 ) -> *const c_char {
+    let Some(r_material_name) = ffi_from_c_string(material_name) else {
+        return null()
+    };
+
     ffi_to_c_string(&build_skin_material_path(
         race_code,
         body_code,
-        &*ffi_from_c_string(material_name),
+        &*r_material_name,
     ))
 }
 
@@ -64,10 +69,14 @@ pub extern "C" fn physis_build_gear_material_path(
     gear_version: i32,
     material_name: *const c_char,
 ) -> *const c_char {
+    let Some(r_material_name) = ffi_from_c_string(material_name) else {
+        return null()
+    };
+
     ffi_to_c_string(&build_gear_material_path(
         gear_id,
         gear_version,
-        &*ffi_from_c_string(material_name),
+        &*r_material_name,
     ))
 }
 
@@ -77,10 +86,14 @@ pub extern "C" fn physis_build_face_material_path(
     face_code: i32,
     material_name: *const c_char,
 ) -> *const c_char {
+    let Some(r_material_name) = ffi_from_c_string(material_name) else {
+        return null()
+    };
+
     ffi_to_c_string(&build_face_material_path(
         race_code,
         face_code,
-        &*ffi_from_c_string(material_name),
+        &*r_material_name,
     ))
 }
 
@@ -90,10 +103,14 @@ pub extern "C" fn physis_build_hair_material_path(
     hair_code: i32,
     material_name: *const c_char,
 ) -> *const c_char {
+    let Some(r_material_name) = ffi_from_c_string(material_name) else {
+        return null()
+    };
+
     ffi_to_c_string(&build_hair_material_path(
         race_code,
         hair_code,
-        &*ffi_from_c_string(material_name),
+        &*r_material_name,
     ))
 }
 
@@ -103,10 +120,14 @@ pub extern "C" fn physis_build_ear_material_path(
     ear_code: i32,
     material_name: *const c_char,
 ) -> *const c_char {
+    let Some(r_material_name) = ffi_from_c_string(material_name) else {
+        return null()
+    };
+
     ffi_to_c_string(&build_ear_material_path(
         race_code,
         ear_code,
-        &*ffi_from_c_string(material_name),
+        &*r_material_name,
     ))
 }
 
@@ -116,9 +137,13 @@ pub extern "C" fn physis_build_tail_material_path(
     tail_code: i32,
     material_name: *const c_char,
 ) -> *const c_char {
+    let Some(r_material_name) = ffi_from_c_string(material_name) else {
+        return null()
+    };
+
     ffi_to_c_string(&build_tail_material_path(
         race_code,
         tail_code,
-        &*ffi_from_c_string(material_name),
+        &*r_material_name,
     ))
 }

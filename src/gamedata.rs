@@ -13,7 +13,11 @@ use std::ptr::{null, null_mut};
 /// Checks if the file at `path` exists.
 #[no_mangle]
 pub extern "C" fn physis_gamedata_exists(game_data: &mut GameData, path: *const c_char) -> bool {
-    game_data.exists(&ffi_from_c_string(path))
+    if let Some(r_path) = ffi_from_c_string(path) {
+        game_data.exists(&r_path)
+    }  else {
+        false
+    }
 }
 
 #[no_mangle]
@@ -64,7 +68,11 @@ pub extern "C" fn physis_gamedata_free_sheet_header(_: *mut physis_EXH) {
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
 #[no_mangle]
 pub extern "C" fn physis_gamedata_initialize(path: *const c_char) -> *mut GameData {
-    if let Some(game_data) = GameData::from_existing(Platform::Win32, &ffi_from_c_string(path)) {
+    let Some(r_path) = ffi_from_c_string(path) else {
+        return null_mut()
+    };
+
+    if let Some(game_data) = GameData::from_existing(Platform::Win32, &r_path) {
         let boxed = Box::new(game_data);
 
         Box::leak(boxed)
@@ -129,8 +137,12 @@ pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(
     language: Language,
     page: c_uint,
 ) -> physis_EXD {
+    let Some (r_name) = ffi_from_c_string(name) else {
+        return physis_EXD::default()
+    };
+
     if let Some(exd) = game_data.read_excel_sheet(
-        &ffi_from_c_string(name),
+        &r_name,
         &*exh.p_ptr,
         language,
         page as usize,
@@ -194,8 +206,12 @@ pub unsafe extern "C" fn physis_gamedata_get_exd_filename(
     language: Language,
     page: c_uint,
 ) -> *const c_char {
+    let Some(r_name) = ffi_from_c_string(name) else {
+        return null();
+    };
+    
     ffi_to_c_string(&EXD::calculate_filename(
-        &*ffi_from_c_string(name),
+        &*r_name,
         language,
         &(*exh.p_ptr).pages[page as usize],
     ))
@@ -234,7 +250,11 @@ pub extern "C" fn physis_gamedata_free_sheet(exd: physis_EXD) {
 
 #[no_mangle]
 pub extern "C" fn physis_gamedata_apply_patch(gamedata: &GameData, path: *const c_char) -> bool {
-    gamedata.apply_patch(&ffi_from_c_string(path)).is_ok()
+    if let Some(r_path) = ffi_from_c_string(path) {
+        gamedata.apply_patch(&r_path).is_ok()
+    } else {
+        false
+    }
 }
 
 #[repr(C)]

@@ -5,12 +5,20 @@ use std::ffi::{CStr, CString};
 use std::fs::read;
 use std::mem;
 use std::os::raw::c_char;
-use std::ptr::null;
+use std::ptr::{null, null_mut};
 
-fn ffi_from_c_string(ptr: *const c_char) -> String {
-    unsafe { CStr::from_ptr(ptr as *mut i8).to_str().unwrap().to_string() }
+/// Convert from a C string to a proper Rust string
+fn ffi_from_c_string(ptr: *const c_char) -> Option<String> {
+    unsafe {
+        if let Ok(str) = CStr::from_ptr(ptr as *mut i8).to_str() {
+            Some(str.to_string())
+        } else {
+            None
+        }
+    }
 }
 
+/// Convert from a Rust string to a C string
 fn ffi_to_c_string(s: &String) -> *const c_char {
     let s = CString::new(s.as_bytes());
 
@@ -20,10 +28,12 @@ fn ffi_to_c_string(s: &String) -> *const c_char {
     }
 }
 
+/// Convert from a C vector (which is just a pointer and a length) to a Rust Vec
 fn ffi_to_vec<T>(ptr: *mut T, count: u32) -> Vec<T> {
     unsafe { Vec::from_raw_parts(ptr, count as usize, count as usize) }
 }
 
+/// Free a C string
 fn ffi_free_string(ptr: *const c_char) {
     unsafe {
         let str = CString::from_raw(ptr as *mut i8);
@@ -48,9 +58,25 @@ pub struct physis_Buffer {
     data: *mut u8,
 }
 
+impl Default for physis_Buffer {
+    fn default() -> Self {
+        Self {
+            size: 0,
+            data: null_mut()
+        }
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn physis_read_file(path: *const c_char) -> physis_Buffer {
-    let mut f = read(ffi_from_c_string(path)).unwrap();
+    let Some(r_path) = ffi_from_c_string(path) else {
+        return physis_Buffer::default()
+    };
+
+    let Ok(mut f) = read(r_path) else {
+        return physis_Buffer::default();
+    };
+
     let buf = physis_Buffer {
         size: f.len() as u32,
         data: f.as_mut_ptr(),

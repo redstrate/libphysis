@@ -31,8 +31,16 @@ pub extern "C" fn physis_cfg_set_value(
     key: *const c_char,
     value: *const c_char,
 ) {
+    let Some(r_key) = ffi_from_c_string(key) else {
+        return
+    };
+
+    let Some(r_value) = ffi_from_c_string(value) else {
+        return
+    };
+    
     unsafe {
-        (*cfg.p_ptr).set_value(&ffi_from_c_string(key), &ffi_from_c_string(value));
+        (*cfg.p_ptr).set_value(&r_key, &r_value);
     }
 }
 
