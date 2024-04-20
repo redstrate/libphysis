@@ -30,7 +30,7 @@ impl Default for physis_EXL {
 pub extern "C" fn physis_gamedata_read_excel_list(buffer: physis_Buffer) -> physis_EXL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(exl) = EXL::from_existing(&data.to_vec()) {
+    if let Some(exl) = EXL::from_existing(data) {
         let mut c_keys = vec![];
         let mut c_values = vec![];
 

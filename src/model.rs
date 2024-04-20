@@ -59,7 +59,7 @@ impl Default for physis_MDL {
 pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    let Some(mdl_d) = MDL::from_existing(&data.to_vec()) else {
+    let Some(mdl_d) = MDL::from_existing(data) else {
         return physis_MDL::default()
     };
 
@@ -70,13 +70,13 @@ pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     let mut c_bone_names = vec![];
 
     for bone_name in &mdl.affected_bone_names {
-        c_bone_names.push(ffi_to_c_string(&bone_name));
+        c_bone_names.push(ffi_to_c_string(bone_name));
     }
 
     let mut c_material_names = vec![];
 
     for bone_name in &mdl.material_names {
-        c_material_names.push(ffi_to_c_string(&bone_name));
+        c_material_names.push(ffi_to_c_string(bone_name));
     }
 
     let mdl = physis_MDL {

@@ -28,7 +28,7 @@ pub extern "C" fn physis_parse_dictionary(buffer: physis_Buffer) -> physis_Dicti
         let mut c_words = vec![];
 
         for word in &dic.words {
-            c_words.push(ffi_to_c_string(&word));
+            c_words.push(ffi_to_c_string(word));
         }
 
         let mat = physis_Dictionary {

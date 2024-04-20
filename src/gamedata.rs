@@ -203,7 +203,7 @@ pub unsafe extern "C" fn physis_gamedata_get_exd_filename(
     };
     
     ffi_to_c_string(&EXD::calculate_filename(
-        &*r_name,
+        &r_name,
         language,
         &(*exh.p_ptr).pages[page as usize],
     ))
@@ -223,11 +223,8 @@ pub extern "C" fn physis_gamedata_free_sheet(exd: physis_EXD) {
             );
 
             for col in &col_data {
-                match col {
-                    physis_ColumnData::String(s) => {
-                        ffi_free_string(*s);
-                    }
-                    _ => {}
+                if let physis_ColumnData::String(s) = col {
+                    ffi_free_string(*s);
                 }
             }
 

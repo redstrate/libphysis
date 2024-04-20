@@ -74,7 +74,7 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
 pub extern "C" fn physis_parse_skeleton(buffer: physis_Buffer) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(skeleton) = Skeleton::from_existing(&data.to_vec()) {
+    if let Some(skeleton) = Skeleton::from_existing(data) {
         convert_skeleton(&skeleton)
     } else {
         physis_Skeleton::default()

@@ -26,7 +26,7 @@ impl Default for physis_Material {
 pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Material {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(material) = Material::from_existing(&data.to_vec()) {
+    if let Some(material) = Material::from_existing(data) {
         let mut c_strings = vec![];
 
         for tex in &material.texture_paths {

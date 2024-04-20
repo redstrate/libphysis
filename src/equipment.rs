@@ -59,7 +59,7 @@ pub extern "C" fn physis_build_skin_material_path(
     ffi_to_c_string(&build_skin_material_path(
         race_code,
         body_code,
-        &*r_material_name,
+        &r_material_name,
     ))
 }
 
@@ -76,7 +76,7 @@ pub extern "C" fn physis_build_gear_material_path(
     ffi_to_c_string(&build_gear_material_path(
         gear_id,
         gear_version,
-        &*r_material_name,
+        &r_material_name,
     ))
 }
 
@@ -93,7 +93,7 @@ pub extern "C" fn physis_build_face_material_path(
     ffi_to_c_string(&build_face_material_path(
         race_code,
         face_code,
-        &*r_material_name,
+        &r_material_name,
     ))
 }
 
@@ -110,7 +110,7 @@ pub extern "C" fn physis_build_hair_material_path(
     ffi_to_c_string(&build_hair_material_path(
         race_code,
         hair_code,
-        &*r_material_name,
+        &r_material_name,
     ))
 }
 
@@ -127,7 +127,7 @@ pub extern "C" fn physis_build_ear_material_path(
     ffi_to_c_string(&build_ear_material_path(
         race_code,
         ear_code,
-        &*r_material_name,
+        &r_material_name,
     ))
 }
 
@@ -144,6 +144,6 @@ pub extern "C" fn physis_build_tail_material_path(
     ffi_to_c_string(&build_tail_material_path(
         race_code,
         tail_code,
-        &*r_material_name,
+        &r_material_name,
     ))
 }

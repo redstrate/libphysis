@@ -22,7 +22,7 @@ impl Default for physis_CMP {
 pub extern "C" fn physis_cmp_parse(buffer: physis_Buffer) -> physis_CMP {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(cmp) = CMP::from_existing(&data.to_vec()) {
+    if let Some(cmp) = CMP::from_existing(data) {
         let cmp = physis_CMP {
             p_ptr: Box::leak(Box::new(cmp)),
         };
@@ -61,5 +61,5 @@ pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(
     _: Race,
     subrace: Subrace,
 ) -> RacialScalingParameters {
-    return (*cmp.p_ptr).parameters[get_rsp_index(subrace) as usize];
+    (*cmp.p_ptr).parameters[get_rsp_index(subrace) as usize]
 }

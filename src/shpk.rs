@@ -37,7 +37,7 @@ impl Default for physis_SHPK {
 pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(shpk) = ShaderPackage::from_existing(&data.to_vec()) {
+    if let Some(shpk) = ShaderPackage::from_existing(data) {
         let mut c_vertex_shaders = vec![];
         let mut c_fragment_shaders = vec![];
 

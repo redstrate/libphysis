@@ -29,7 +29,7 @@ impl Default for physis_Texture {
 pub extern "C" fn physis_texture_parse(buffer: physis_Buffer) -> physis_Texture {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(mut texture) = Texture::from_existing(&data.to_vec()) {
+    if let Some(mut texture) = Texture::from_existing(data) {
         let tex = physis_Texture {
             width: texture.width,
             height: texture.height,

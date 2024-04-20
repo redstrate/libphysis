@@ -24,7 +24,7 @@ impl Default for physis_PBD {
 pub extern "C" fn physis_parse_pbd(buffer: physis_Buffer) -> physis_PBD {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(pbd) = PreBoneDeformer::from_existing(&data.to_vec()) {
+    if let Some(pbd) = PreBoneDeformer::from_existing(data) {
         physis_PBD {
             p_ptr: Box::leak(Box::new(pbd)),
         }

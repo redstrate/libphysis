@@ -5,7 +5,7 @@ use std::{mem, slice};
 #[no_mangle]
 pub extern "C" fn physis_blowfish_initialize(key: *mut u8, key_size: c_uint) -> *mut Blowfish {
     let data = unsafe { slice::from_raw_parts(key, key_size as usize) };
-    Box::into_raw(Box::new(Blowfish::new(&data)))
+    Box::into_raw(Box::new(Blowfish::new(data)))
 }
 
 #[no_mangle]
@@ -25,7 +25,7 @@ pub extern "C" fn physis_blowfish_encrypt(
 ) -> bool {
     let in_data = unsafe { slice::from_raw_parts(in_data, in_data_size as usize) };
 
-    let result = blowfish.encrypt(&*in_data);
+    let result = blowfish.encrypt(in_data);
 
     match result {
         Some(mut out_data_vec) => {
@@ -52,7 +52,7 @@ pub extern "C" fn physis_blowfish_decrypt(
 ) -> bool {
     let in_data = unsafe { slice::from_raw_parts(in_data, in_data_size as usize) };
 
-    let result = blowfish.decrypt(&*in_data);
+    let result = blowfish.decrypt(in_data);
 
     match result {
         Some(mut out_data_vec) => {

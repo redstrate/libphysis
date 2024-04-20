@@ -19,7 +19,7 @@ pub struct physis_EXH {
 pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut physis_EXH {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    let exh = EXH::from_existing(&data.to_vec());
+    let exh = EXH::from_existing(data);
     if exh.is_none() {
         return null_mut();
     }
