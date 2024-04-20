@@ -1,8 +1,10 @@
-use crate::{ffi_to_c_string, physis_Buffer};
-use physis::model::{SubMesh, Vertex, MDL};
-use std::os::raw::c_char;
-use std::ptr::null_mut;
 use std::{mem, slice};
+use std::os::raw::c_char;
+use std::ptr::{null, null_mut};
+
+use physis::model::{MDL, SubMesh, Vertex};
+
+use crate::{ffi_to_c_string, physis_Buffer};
 
 #[repr(C)]
 #[cfg(feature = "visual_data")]
@@ -38,21 +40,27 @@ pub struct physis_MDL {
     material_names: *mut *const c_char,
 }
 
+impl Default for physis_MDL {
+    fn default() -> Self {
+        Self {
+            p_ptr: null_mut(),
+            num_lod: 0,
+            lods: null(),
+            num_affected_bones: 0,
+            affected_bone_names: null_mut(),
+            num_material_names: 0,
+            material_names: null_mut(),
+        }
+    }
+}
+
 #[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
     let Some(mdl_d) = MDL::from_existing(&data.to_vec()) else {
-        return physis_MDL {
-            p_ptr: null_mut(),
-            num_lod: 0,
-            lods: null_mut(),
-            num_affected_bones: 0,
-            affected_bone_names: null_mut(),
-            num_material_names: 0,
-            material_names: null_mut(),
-        };
+        return physis_MDL::default()
     };
 
     let mdl = Box::new(mdl_d);

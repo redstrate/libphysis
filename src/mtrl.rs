@@ -12,6 +12,15 @@ pub struct physis_Material {
     textures: *mut *const c_char,
 }
 
+impl Default for physis_Material {
+    fn default() -> Self {
+        Self {
+            num_textures: 0,
+            textures: null_mut(),
+        }
+    }
+}
+
 #[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Material {
@@ -33,9 +42,6 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
 
         mat
     } else {
-        physis_Material {
-            num_textures: 0,
-            textures: null_mut(),
-        }
+        physis_Material::default()
     }
 }

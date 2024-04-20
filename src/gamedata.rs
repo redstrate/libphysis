@@ -50,10 +50,7 @@ pub extern "C" fn physis_gamedata_extract_file(
 
             b
         } else {
-            physis_Buffer {
-                size: 0,
-                data: null_mut(),
-            }
+            physis_Buffer::default()
         }
     }
 }
@@ -190,12 +187,7 @@ pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(
 
         exd
     } else {
-        physis_EXD {
-            p_ptr: null_mut(),
-            column_count: 0,
-            row_data: null_mut(),
-            row_count: 0,
-        }
+        physis_EXD::default()
     }
 }
 

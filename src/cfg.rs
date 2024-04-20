@@ -10,6 +10,14 @@ pub struct physis_ConfigFile {
     p_ptr: *mut ConfigFile,
 }
 
+impl Default for physis_ConfigFile {
+    fn default() -> Self {
+        Self {
+            p_ptr: null_mut()
+        }
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn physis_cfg_parse(buffer: physis_Buffer) -> physis_ConfigFile {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
@@ -21,7 +29,7 @@ pub extern "C" fn physis_cfg_parse(buffer: physis_Buffer) -> physis_ConfigFile {
 
         cfg_struct
     } else {
-        physis_ConfigFile { p_ptr: null_mut() }
+        physis_ConfigFile::default()
     }
 }
 
@@ -38,7 +46,7 @@ pub extern "C" fn physis_cfg_set_value(
     let Some(r_value) = ffi_from_c_string(value) else {
         return
     };
-    
+
     unsafe {
         (*cfg.p_ptr).set_value(&r_key, &r_value);
     }

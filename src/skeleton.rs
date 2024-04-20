@@ -26,6 +26,16 @@ pub struct physis_Skeleton {
     root_bone: *mut physis_Bone,
 }
 
+impl Default for physis_Skeleton {
+    fn default() -> Self {
+        Self {
+            num_bones: 0,
+            bones: null_mut(),
+            root_bone: null_mut(),
+        }
+    }
+}
+
 #[cfg(feature = "visual_data")]
 fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
     let mut c_bones = vec![];
@@ -67,10 +77,6 @@ pub extern "C" fn physis_parse_skeleton(buffer: physis_Buffer) -> physis_Skeleto
     if let Some(skeleton) = Skeleton::from_existing(&data.to_vec()) {
         convert_skeleton(&skeleton)
     } else {
-        physis_Skeleton {
-            num_bones: 0,
-            bones: null_mut(),
-            root_bone: null_mut(),
-        }
+        physis_Skeleton::default()
     }
 }

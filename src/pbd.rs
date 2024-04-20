@@ -11,6 +11,14 @@ pub struct physis_PBD {
     p_ptr: *mut PreBoneDeformer,
 }
 
+impl Default for physis_PBD {
+    fn default() -> Self {
+        Self {
+            p_ptr: null_mut()
+        }
+    }
+}
+
 #[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_parse_pbd(buffer: physis_Buffer) -> physis_PBD {
@@ -21,7 +29,7 @@ pub extern "C" fn physis_parse_pbd(buffer: physis_Buffer) -> physis_PBD {
             p_ptr: Box::leak(Box::new(pbd)),
         }
     } else {
-        physis_PBD { p_ptr: null_mut() }
+        physis_PBD::default()
     }
 }
 
@@ -39,6 +47,15 @@ pub struct physis_PreBoneDeformBone {
 pub struct physis_PreBoneDeformMatrices {
     num_bones: i32,
     bones: *mut physis_PreBoneDeformBone,
+}
+
+impl Default for physis_PreBoneDeformMatrices {
+    fn default() -> Self {
+        Self {
+            num_bones: 0,
+            bones: null_mut(),
+        }
+    }
 }
 
 #[cfg(feature = "visual_data")]
@@ -68,10 +85,7 @@ pub extern "C" fn physis_pbd_get_deform_matrix(
 
             mat
         } else {
-            physis_PreBoneDeformMatrices {
-                num_bones: 0,
-                bones: null_mut(),
-            }
+            physis_PreBoneDeformMatrices::default()
         }
     }
 }

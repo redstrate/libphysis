@@ -1,8 +1,10 @@
-use crate::ffi_from_c_string;
-use physis::index::IndexFile;
 use std::mem;
 use std::os::raw::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null;
+
+use physis::index::IndexFile;
+
+use crate::ffi_from_c_string;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -50,11 +52,7 @@ pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries
 
         mat
     } else {
-        physis_IndexEntries {
-            num_entries: 0,
-            dir_entries: null_mut(),
-            filename_entries: null_mut(),
-        }
+        physis_IndexEntries::default()
     }
 }
 

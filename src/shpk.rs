@@ -21,6 +21,17 @@ pub struct physis_SHPK {
     pixel_shaders: *mut physis_Shader,
 }
 
+impl Default for physis_SHPK {
+    fn default() -> Self {
+        Self {
+            num_vertex_shaders: 0,
+            vertex_shaders: null_mut(),
+            num_pixel_shaders: 0,
+            pixel_shaders: null_mut(),
+        }
+    }
+}
+
 #[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
@@ -68,11 +79,6 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
 
         mat
     } else {
-        physis_SHPK {
-            num_vertex_shaders: 0,
-            vertex_shaders: null_mut(),
-            num_pixel_shaders: 0,
-            pixel_shaders: null_mut(),
-        }
+        physis_SHPK::default()
     }
 }

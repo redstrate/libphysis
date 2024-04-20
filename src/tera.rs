@@ -20,6 +20,15 @@ pub struct physis_Terrain {
     plates: *mut physis_PlateModel,
 }
 
+impl Default for physis_Terrain {
+    fn default() -> Self {
+        Self { 
+            num_plates: 0,
+            plates: null_mut()
+        }
+    }
+}
+
 #[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_parse_tera(buffer: physis_Buffer) -> physis_Terrain {
@@ -44,9 +53,6 @@ pub extern "C" fn physis_parse_tera(buffer: physis_Buffer) -> physis_Terrain {
 
         mat
     } else {
-        physis_Terrain {
-            num_plates: 0,
-            plates: null_mut(),
-        }
+        physis_Terrain::default()
     }
 }

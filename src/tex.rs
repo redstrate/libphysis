@@ -13,6 +13,17 @@ pub struct physis_Texture {
     rgba: *mut u8,
 }
 
+impl Default for physis_Texture {
+    fn default() -> Self {
+        Self {
+            width: 0,
+            height: 0,
+            rgba_size: 0,
+            rgba: null_mut(),
+        }
+    }
+}
+
 #[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_texture_parse(buffer: physis_Buffer) -> physis_Texture {
@@ -30,11 +41,6 @@ pub extern "C" fn physis_texture_parse(buffer: physis_Buffer) -> physis_Texture 
 
         tex
     } else {
-        physis_Texture {
-            width: 0,
-            height: 0,
-            rgba_size: 0,
-            rgba: null_mut(),
-        }
+        physis_Texture::default()
     }
 }

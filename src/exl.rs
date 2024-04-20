@@ -1,8 +1,10 @@
-use crate::{ffi_to_c_string, physis_Buffer};
-use physis::exl::EXL;
-use std::os::raw::c_char;
-use std::ptr::null_mut;
 use std::{mem, slice};
+use std::os::raw::c_char;
+use std::ptr::null;
+
+use physis::exl::EXL;
+
+use crate::{ffi_to_c_string, physis_Buffer};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -11,6 +13,17 @@ pub struct physis_EXL {
     entry_count: i32,
     entry_keys: *const *const c_char,
     entry_values: *const i32,
+}
+
+impl Default for physis_EXL {
+    fn default() -> Self {
+        Self {
+            version: 0,
+            entry_count: 0,
+            entry_keys: null(),
+            entry_values: null(),
+        }
+    }
 }
 
 #[no_mangle]
@@ -38,11 +51,6 @@ pub extern "C" fn physis_gamedata_read_excel_list(buffer: physis_Buffer) -> phys
 
         mat
     } else {
-        physis_EXL {
-            version: 0,
-            entry_count: 0,
-            entry_keys: null_mut(),
-            entry_values: null_mut(),
-        }
+        physis_EXL::default()
     }
 }

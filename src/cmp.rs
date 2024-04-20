@@ -10,6 +10,14 @@ pub struct physis_CMP {
     p_ptr: *mut CMP,
 }
 
+impl Default for physis_CMP {
+    fn default() -> Self {
+        Self {
+            p_ptr: null_mut(),
+        }
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn physis_cmp_parse(buffer: physis_Buffer) -> physis_CMP {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
@@ -21,7 +29,7 @@ pub extern "C" fn physis_cmp_parse(buffer: physis_Buffer) -> physis_CMP {
 
         cmp
     } else {
-        physis_CMP { p_ptr: null_mut() }
+        physis_CMP::default()
     }
 }
 

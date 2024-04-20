@@ -11,6 +11,15 @@ pub struct physis_Dictionary {
     words: *const *const c_char,
 }
 
+impl Default for physis_Dictionary {
+    fn default() -> Self {
+        Self {
+            num_words: 0,
+            words: null(),
+        }
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn physis_parse_dictionary(buffer: physis_Buffer) -> physis_Dictionary {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
@@ -31,9 +40,6 @@ pub extern "C" fn physis_parse_dictionary(buffer: physis_Buffer) -> physis_Dicti
 
         mat
     } else {
-        physis_Dictionary {
-            num_words: 0,
-            words: null(),
-        }
+        physis_Dictionary::default()
     }
 }
