@@ -4,6 +4,7 @@ packages:
   - cargo-deny
   - unshield
   - reuse
+  - cmake
 sources:
   - https://git.sr.ht/~redstrate/libphysis
 tasks:
