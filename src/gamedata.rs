@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::exd::{physis_ColumnData, physis_EXD, physis_ExcelRow};
 use crate::exh::physis_EXH;
 use crate::{ffi_free_string, ffi_from_c_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
@@ -15,7 +18,7 @@ use std::ptr::{null, null_mut};
 pub extern "C" fn physis_gamedata_exists(game_data: &mut GameData, path: *const c_char) -> bool {
     if let Some(r_path) = ffi_from_c_string(path) {
         game_data.exists(&r_path)
-    }  else {
+    } else {
         false
     }
 }
@@ -66,7 +69,7 @@ pub extern "C" fn physis_gamedata_free_sheet_header(_: *mut physis_EXH) {
 #[no_mangle]
 pub extern "C" fn physis_gamedata_initialize(path: *const c_char) -> *mut GameData {
     let Some(r_path) = ffi_from_c_string(path) else {
-        return null_mut()
+        return null_mut();
     };
 
     if let Some(game_data) = GameData::from_existing(Platform::Win32, &r_path) {
@@ -134,16 +137,11 @@ pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(
     language: Language,
     page: c_uint,
 ) -> physis_EXD {
-    let Some (r_name) = ffi_from_c_string(name) else {
-        return physis_EXD::default()
+    let Some(r_name) = ffi_from_c_string(name) else {
+        return physis_EXD::default();
     };
 
-    if let Some(exd) = game_data.read_excel_sheet(
-        &r_name,
-        &*exh.p_ptr,
-        language,
-        page as usize,
-    ) {
+    if let Some(exd) = game_data.read_excel_sheet(&r_name, &*exh.p_ptr, language, page as usize) {
         let exd = Box::new(exd);
 
         let mut c_rows: Vec<physis_ExcelRow> = Vec::new();
@@ -201,7 +199,7 @@ pub unsafe extern "C" fn physis_gamedata_get_exd_filename(
     let Some(r_name) = ffi_from_c_string(name) else {
         return null();
     };
-    
+
     ffi_to_c_string(&EXD::calculate_filename(
         &r_name,
         language,

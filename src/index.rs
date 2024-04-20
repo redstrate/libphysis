@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use std::mem;
 use std::os::raw::c_char;
 use std::ptr::null;
@@ -29,7 +32,7 @@ impl Default for physis_IndexEntries {
 #[no_mangle]
 pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries {
     let Some(r_path) = ffi_from_c_string(path) else {
-        return physis_IndexEntries::default()
+        return physis_IndexEntries::default();
     };
 
     if let Some(idx_file) = IndexFile::from_existing(&r_path) {
@@ -59,7 +62,7 @@ pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries
 #[no_mangle]
 pub extern "C" fn physis_generate_partial_hash(name: *const c_char) -> u32 {
     let Some(r_name) = ffi_from_c_string(name) else {
-        return 0
+        return 0;
     };
 
     IndexFile::calculate_partial_hash(&r_name)
@@ -68,7 +71,7 @@ pub extern "C" fn physis_generate_partial_hash(name: *const c_char) -> u32 {
 #[no_mangle]
 pub extern "C" fn physis_calculate_hash(path: *const c_char) -> u64 {
     let Some(r_path) = ffi_from_c_string(path) else {
-        return 0
+        return 0;
     };
 
     IndexFile::calculate_hash(&r_path)

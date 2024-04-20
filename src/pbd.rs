@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::{ffi_to_c_string, physis_Buffer};
 use physis::pbd::PreBoneDeformer;
 use std::os::raw::c_char;
@@ -13,9 +16,7 @@ pub struct physis_PBD {
 
 impl Default for physis_PBD {
     fn default() -> Self {
-        Self {
-            p_ptr: null_mut()
-        }
+        Self { p_ptr: null_mut() }
     }
 }
 

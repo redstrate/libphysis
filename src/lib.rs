@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 Joshua Goins <josh@redstrate.com>
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use std::ffi::{CStr, CString};
@@ -62,7 +62,7 @@ impl Default for physis_Buffer {
     fn default() -> Self {
         Self {
             size: 0,
-            data: null_mut()
+            data: null_mut(),
         }
     }
 }
@@ -70,7 +70,7 @@ impl Default for physis_Buffer {
 #[no_mangle]
 pub extern "C" fn physis_read_file(path: *const c_char) -> physis_Buffer {
     let Some(r_path) = ffi_from_c_string(path) else {
-        return physis_Buffer::default()
+        return physis_Buffer::default();
     };
 
     let Ok(mut f) = read(r_path) else {

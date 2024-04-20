@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::{ffi_to_c_string, physis_Buffer};
 use physis::tera::Terrain;
 use std::os::raw::c_char;
@@ -22,9 +25,9 @@ pub struct physis_Terrain {
 
 impl Default for physis_Terrain {
     fn default() -> Self {
-        Self { 
+        Self {
             num_plates: 0,
-            plates: null_mut()
+            plates: null_mut(),
         }
     }
 }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::{ffi_from_c_string, ffi_to_c_string};
 use physis::bootdata::BootData;
 use std::os::raw::c_char;
@@ -12,9 +15,9 @@ pub extern "C" fn physis_bootdata_get_version(boot_data: &BootData) -> *const c_
 #[no_mangle]
 pub extern "C" fn physis_bootdata_initialize(path: *const c_char) -> *mut BootData {
     let Some(r_path) = ffi_from_c_string(path) else {
-        return null_mut()
+        return null_mut();
     };
-    
+
     if let Some(boot_data) = BootData::from_existing(&r_path) {
         let boxed = Box::new(boot_data);
 

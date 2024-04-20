@@ -1,6 +1,9 @@
-use std::{mem, slice};
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use std::os::raw::c_char;
 use std::ptr::null;
+use std::{mem, slice};
 
 use physis::exl::EXL;
 

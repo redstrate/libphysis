@@ -1,8 +1,11 @@
-use std::{mem, slice};
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use std::os::raw::c_char;
 use std::ptr::{null, null_mut};
+use std::{mem, slice};
 
-use physis::model::{MDL, SubMesh, Vertex};
+use physis::model::{SubMesh, Vertex, MDL};
 
 use crate::{ffi_to_c_string, physis_Buffer};
 
@@ -60,7 +63,7 @@ pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
     let Some(mdl_d) = MDL::from_existing(data) else {
-        return physis_MDL::default()
+        return physis_MDL::default();
     };
 
     let mdl = Box::new(mdl_d);

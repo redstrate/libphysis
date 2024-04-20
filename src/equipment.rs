@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::{ffi_from_c_string, ffi_to_c_string};
 use physis::equipment::{
     build_character_path, build_ear_material_path, build_equipment_path, build_face_material_path,
@@ -53,7 +56,7 @@ pub extern "C" fn physis_build_skin_material_path(
     material_name: *const c_char,
 ) -> *const c_char {
     let Some(r_material_name) = ffi_from_c_string(material_name) else {
-        return null()
+        return null();
     };
 
     ffi_to_c_string(&build_skin_material_path(
@@ -70,7 +73,7 @@ pub extern "C" fn physis_build_gear_material_path(
     material_name: *const c_char,
 ) -> *const c_char {
     let Some(r_material_name) = ffi_from_c_string(material_name) else {
-        return null()
+        return null();
     };
 
     ffi_to_c_string(&build_gear_material_path(
@@ -87,7 +90,7 @@ pub extern "C" fn physis_build_face_material_path(
     material_name: *const c_char,
 ) -> *const c_char {
     let Some(r_material_name) = ffi_from_c_string(material_name) else {
-        return null()
+        return null();
     };
 
     ffi_to_c_string(&build_face_material_path(
@@ -104,7 +107,7 @@ pub extern "C" fn physis_build_hair_material_path(
     material_name: *const c_char,
 ) -> *const c_char {
     let Some(r_material_name) = ffi_from_c_string(material_name) else {
-        return null()
+        return null();
     };
 
     ffi_to_c_string(&build_hair_material_path(
@@ -121,7 +124,7 @@ pub extern "C" fn physis_build_ear_material_path(
     material_name: *const c_char,
 ) -> *const c_char {
     let Some(r_material_name) = ffi_from_c_string(material_name) else {
-        return null()
+        return null();
     };
 
     ffi_to_c_string(&build_ear_material_path(
@@ -138,7 +141,7 @@ pub extern "C" fn physis_build_tail_material_path(
     material_name: *const c_char,
 ) -> *const c_char {
     let Some(r_material_name) = ffi_from_c_string(material_name) else {
-        return null()
+        return null();
     };
 
     ffi_to_c_string(&build_tail_material_path(

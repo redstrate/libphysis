@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::physis_Buffer;
 use physis::cmp::{RacialScalingParameters, CMP};
 use physis::race::{Race, Subrace};
@@ -12,9 +15,7 @@ pub struct physis_CMP {
 
 impl Default for physis_CMP {
     fn default() -> Self {
-        Self {
-            p_ptr: null_mut(),
-        }
+        Self { p_ptr: null_mut() }
     }
 }
 

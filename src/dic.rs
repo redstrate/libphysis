@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::{ffi_to_c_string, physis_Buffer};
 use physis::dic::Dictionary;
 use std::os::raw::c_char;
