@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{ffi_to_c_string, physis_Buffer};
-use physis::shpk::{Pass, ResourceParameter, ShaderPackage};
+use crate::{ffi_from_c_string, ffi_to_c_string, physis_Buffer};
+use physis::shpk::{Key, Pass, ResourceParameter, ShaderPackage};
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
 use std::ffi::c_char;
@@ -33,6 +33,8 @@ pub struct physis_SHPK {
     vertex_shaders: *mut physis_Shader,
     num_pixel_shaders: i32,
     pixel_shaders: *mut physis_Shader,
+    num_material_keys: i32,
+    material_keys: *mut Key
 }
 
 impl Default for physis_SHPK {
@@ -43,6 +45,8 @@ impl Default for physis_SHPK {
             vertex_shaders: null_mut(),
             num_pixel_shaders: 0,
             pixel_shaders: null_mut(),
+            num_material_keys: 0,
+            material_keys: null_mut()
         }
     }
 }
@@ -112,16 +116,21 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
             mem::forget(bytecode);
         }
 
+        let mut material_keys = shpk.material_keys.clone();
+
         let mat = physis_SHPK {
             p_ptr: Box::leak(Box::new(shpk)),
             num_vertex_shaders: c_vertex_shaders.len() as i32,
             vertex_shaders: c_vertex_shaders.as_mut_ptr(),
             num_pixel_shaders: c_fragment_shaders.len() as i32,
             pixel_shaders: c_fragment_shaders.as_mut_ptr(),
+            num_material_keys: material_keys.len() as i32,
+            material_keys: material_keys.as_mut_ptr(),
         };
 
         mem::forget(c_vertex_shaders);
         mem::forget(c_fragment_shaders);
+        mem::forget(material_keys);
 
         mat
     } else {
@@ -194,4 +203,24 @@ pub struct physis_SHPKNode {
             }
         }
     }
+}
+
+#[no_mangle] pub extern "C" fn physis_shpk_build_selector_from_all_keys(system_keys: *const u32,
+                                                                        system_key_count: u32,
+                                                                        scene_keys: *const u32,
+                                                                        scene_key_count: u32,
+                                                                        material_keys: *const u32,
+                                                                        material_key_count: u32,
+                                                                        subview_keys: *const u32,
+                                                                        subview_key_count: u32) -> u32 {
+    let system_keys = unsafe { slice::from_raw_parts(system_keys, system_key_count as usize) };
+    let scene_keys = unsafe { slice::from_raw_parts(scene_keys, scene_key_count as usize) };
+    let material_keys = unsafe { slice::from_raw_parts(material_keys, material_key_count as usize) };
+    let subview_keys = unsafe { slice::from_raw_parts(subview_keys, subview_key_count as usize) };
+
+    ShaderPackage::build_selector_from_all_keys(system_keys, scene_keys, material_keys, subview_keys)
+}
+
+#[no_mangle] pub extern "C" fn physis_shpk_crc(name: *const c_char) -> u32 {
+    ShaderPackage::crc(&ffi_from_c_string(name).unwrap())
 }
