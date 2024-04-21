@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{ffi_to_c_string, physis_Buffer};
+use crate::{ffi_from_c_string, ffi_to_c_string, physis_Buffer};
 use physis::mtrl::Material;
 use std::os::raw::c_char;
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 #[cfg(feature = "visual_data")]
 pub struct physis_Material {
+    shpk_name: *const c_char,
     num_textures: u32,
     textures: *mut *const c_char,
 }
@@ -18,6 +19,7 @@ pub struct physis_Material {
 impl Default for physis_Material {
     fn default() -> Self {
         Self {
+            shpk_name: null(),
             num_textures: 0,
             textures: null_mut(),
         }
@@ -37,6 +39,7 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
         }
 
         let mat = physis_Material {
+            shpk_name: ffi_to_c_string(&material.shader_package_name),
             num_textures: c_strings.len() as u32,
             textures: c_strings.as_mut_ptr(),
         };
