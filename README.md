@@ -2,17 +2,22 @@
 
 [![builds.sr.ht status](https://builds.sr.ht/~redstrate/libphysis.svg)](https://builds.sr.ht/~redstrate/libphysis?)
 
-libphysis are C bindings for [physis](https://git.sr.ht/~redstrate/physis), a framework for interacting with FFXIV game data.
+C bindings for [Physis](https://github.com/redstrate/Physis), a library for reading and writing FFXIV data.
 
 ## Usage
 
-Simply run `cargo build`, and Cargo will generate the bindings as well pull in physis to compile into a C-compatible library.
+Simply run `cargo build`, and Cargo will generate the bindings as well pull in Physis to compile into a C-compatible library.
 
-The headers and the libraries live under your new `target` directory.
+The headers and the libraries should appear under the `target` directory.
 
 ### Logger
 
 A logger suitable for connecting to Qt is provided in `logger/`. Simply add_subdirectory to it, and link to the physis-logger target. Then include the header `physis_logger.h` and call the `setup_physis_logging()` function!
+
+## Contributing & Support
+
+The best way you can help is by [monetarily supporting me](https://redstrate.com/fund/) or by submitting patches to
+help fix bugs or add functionality. Filing issues is appreciated, but I do this in my free time so please don't expect professional support.
 
 ## License
 
