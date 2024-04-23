@@ -3,6 +3,6 @@ Upstream-Name: libphysis
 Upstream-Contact: Joshua Goins <josh@redstrate.com>
 Source: https://git.sr.ht/~redstrate/libphysis
 
-Files: README.md .build.yml deny.toml Cargo.toml Cargo.lock
+Files: README.md .build.yml deny.toml Cargo.toml Cargo.lock .github/*
 Copyright: Joshua Goins <josh@redstrate.com>
 License: CC0-1.0
