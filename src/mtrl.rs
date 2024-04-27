@@ -7,16 +7,23 @@ use std::os::raw::c_char;
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
 use physis::mtrl::ShaderKey;
+use physis::mtrl::Constant;
+use physis::mtrl::Sampler;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[cfg(feature = "visual_data")]
 pub struct physis_Material {
     shpk_name: *const c_char,
     num_textures: u32,
     textures: *mut *const c_char,
     num_shader_keys: u32,
-    shader_keys: *mut ShaderKey
+    shader_keys: *mut ShaderKey,
+    num_constants: u32,
+    constants: *mut Constant,
+    num_samplers: u32,
+    samplers: *mut Sampler,
+    num_shader_values: u32,
+    shader_values: *mut f32
 }
 
 impl Default for physis_Material {
@@ -26,12 +33,17 @@ impl Default for physis_Material {
             num_textures: 0,
             textures: null_mut(),
             num_shader_keys: 0,
-            shader_keys: null_mut()
+            shader_keys: null_mut(),
+            num_constants: 0,
+            constants: null_mut(),
+            num_samplers: 0,
+            samplers: null_mut(),
+            num_shader_values: 0,
+            shader_values: null_mut()
         }
     }
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Material {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
@@ -44,6 +56,9 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
         }
 
         let mut shader_keys = material.shader_keys.clone();
+        let mut constants = material.constants.clone();
+        let mut samplers = material.samplers.clone();
+        let mut shader_values = material.shader_values.clone();
 
         let mat = physis_Material {
             shpk_name: ffi_to_c_string(&material.shader_package_name),
@@ -51,6 +66,12 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
             textures: c_strings.as_mut_ptr(),
             num_shader_keys: shader_keys.len() as u32,
             shader_keys: shader_keys.as_mut_ptr(),
+            num_constants: constants.len() as u32,
+            constants: constants.as_mut_ptr(),
+            num_samplers: samplers.len() as u32,
+            samplers: samplers.as_mut_ptr(),
+            num_shader_values: shader_values.len() as u32,
+            shader_values: shader_values.as_mut_ptr()
         };
 
         mem::forget(c_strings);
