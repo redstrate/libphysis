@@ -6,6 +6,7 @@ use physis::mtrl::Material;
 use std::os::raw::c_char;
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
+use physis::mtrl::ShaderKey;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -14,6 +15,8 @@ pub struct physis_Material {
     shpk_name: *const c_char,
     num_textures: u32,
     textures: *mut *const c_char,
+    num_shader_keys: u32,
+    shader_keys: *mut ShaderKey
 }
 
 impl Default for physis_Material {
@@ -22,6 +25,8 @@ impl Default for physis_Material {
             shpk_name: null(),
             num_textures: 0,
             textures: null_mut(),
+            num_shader_keys: 0,
+            shader_keys: null_mut()
         }
     }
 }
@@ -38,13 +43,18 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
             c_strings.push(ffi_to_c_string(tex));
         }
 
+        let mut shader_keys = material.shader_keys.clone();
+
         let mat = physis_Material {
             shpk_name: ffi_to_c_string(&material.shader_package_name),
             num_textures: c_strings.len() as u32,
             textures: c_strings.as_mut_ptr(),
+            num_shader_keys: shader_keys.len() as u32,
+            shader_keys: shader_keys.as_mut_ptr(),
         };
 
         mem::forget(c_strings);
+        mem::forget(shader_keys);
 
         mat
     } else {
