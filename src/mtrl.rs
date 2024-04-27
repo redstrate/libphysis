@@ -21,9 +21,7 @@ pub struct physis_Material {
     num_constants: u32,
     constants: *mut Constant,
     num_samplers: u32,
-    samplers: *mut Sampler,
-    num_shader_values: u32,
-    shader_values: *mut f32
+    samplers: *mut Sampler
 }
 
 impl Default for physis_Material {
@@ -37,9 +35,7 @@ impl Default for physis_Material {
             num_constants: 0,
             constants: null_mut(),
             num_samplers: 0,
-            samplers: null_mut(),
-            num_shader_values: 0,
-            shader_values: null_mut()
+            samplers: null_mut()
         }
     }
 }
@@ -58,7 +54,6 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
         let mut shader_keys = material.shader_keys.clone();
         let mut constants = material.constants.clone();
         let mut samplers = material.samplers.clone();
-        let mut shader_values = material.shader_values.clone();
 
         let mat = physis_Material {
             shpk_name: ffi_to_c_string(&material.shader_package_name),
@@ -69,13 +64,13 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
             num_constants: constants.len() as u32,
             constants: constants.as_mut_ptr(),
             num_samplers: samplers.len() as u32,
-            samplers: samplers.as_mut_ptr(),
-            num_shader_values: shader_values.len() as u32,
-            shader_values: shader_values.as_mut_ptr()
+            samplers: samplers.as_mut_ptr()
         };
 
         mem::forget(c_strings);
         mem::forget(shader_keys);
+        mem::forget(constants);
+        mem::forget(samplers);
 
         mat
     } else {
