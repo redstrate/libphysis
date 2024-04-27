@@ -27,6 +27,6 @@ game_install = ["physis/game_install"]
 visual_data = ["physis/visual_data"]
 
 [dependencies]
-physis = { git = "https://git.sr.ht/~redstrate/physis", default-features = false }
+physis = { git = "https://github.com/redstrate/physis", default-features = false }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
