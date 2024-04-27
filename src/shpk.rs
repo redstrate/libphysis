@@ -6,6 +6,7 @@ use physis::shpk::{Key, Pass, ResourceParameter, ShaderPackage};
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
 use std::ffi::c_char;
+use physis::shpk::MaterialParameter;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -38,6 +39,10 @@ pub struct physis_SHPK {
 
     sub_view_key1_default: u32,
     sub_view_key2_default: u32,
+
+    material_parameters_size: u32,
+    num_material_parameters: u32,
+    material_parameters: *mut MaterialParameter,
 }
 
 impl Default for physis_SHPK {
@@ -51,7 +56,10 @@ impl Default for physis_SHPK {
             num_material_keys: 0,
             material_keys: null_mut(),
             sub_view_key1_default: 0,
-            sub_view_key2_default: 0
+            sub_view_key2_default: 0,
+            material_parameters_size: 0,
+            num_material_parameters: 0,
+            material_parameters: null_mut()
         }
     }
 }
@@ -122,6 +130,7 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
         }
 
         let mut material_keys = shpk.material_keys.clone();
+        let mut material_params = shpk.material_parameters.clone();
 
         let mat = physis_SHPK {
             num_vertex_shaders: c_vertex_shaders.len() as i32,
@@ -132,12 +141,16 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
             material_keys: material_keys.as_mut_ptr(),
             sub_view_key1_default: shpk.sub_view_key1_default,
             sub_view_key2_default: shpk.sub_view_key2_default,
+            material_parameters_size: shpk.material_parameters_size,
+            num_material_parameters: material_params.len() as u32,
+            material_parameters: material_params.as_mut_ptr(),
             p_ptr: Box::leak(Box::new(shpk)),
         };
 
         mem::forget(c_vertex_shaders);
         mem::forget(c_fragment_shaders);
         mem::forget(material_keys);
+        mem::forget(material_params);
 
         mat
     } else {
