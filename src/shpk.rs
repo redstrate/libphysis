@@ -34,7 +34,10 @@ pub struct physis_SHPK {
     num_pixel_shaders: i32,
     pixel_shaders: *mut physis_Shader,
     num_material_keys: i32,
-    material_keys: *mut Key
+    material_keys: *mut Key,
+
+    sub_view_key1_default: u32,
+    sub_view_key2_default: u32,
 }
 
 impl Default for physis_SHPK {
@@ -46,7 +49,9 @@ impl Default for physis_SHPK {
             num_pixel_shaders: 0,
             pixel_shaders: null_mut(),
             num_material_keys: 0,
-            material_keys: null_mut()
+            material_keys: null_mut(),
+            sub_view_key1_default: 0,
+            sub_view_key2_default: 0
         }
     }
 }
@@ -119,13 +124,15 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
         let mut material_keys = shpk.material_keys.clone();
 
         let mat = physis_SHPK {
-            p_ptr: Box::leak(Box::new(shpk)),
             num_vertex_shaders: c_vertex_shaders.len() as i32,
             vertex_shaders: c_vertex_shaders.as_mut_ptr(),
             num_pixel_shaders: c_fragment_shaders.len() as i32,
             pixel_shaders: c_fragment_shaders.as_mut_ptr(),
             num_material_keys: material_keys.len() as i32,
             material_keys: material_keys.as_mut_ptr(),
+            sub_view_key1_default: shpk.sub_view_key1_default,
+            sub_view_key2_default: shpk.sub_view_key2_default,
+            p_ptr: Box::leak(Box::new(shpk)),
         };
 
         mem::forget(c_vertex_shaders);
