@@ -10,13 +10,38 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  reuse:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
+    - uses: actions/checkout@v4
     - name: REUSE Compliance Check
       uses: fsfe/reuse-action@v3
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install \
+          libunshield-dev \
+    - name: Build
+      run: cargo build --features visual_data,game_install --verbose
+    - name: Run clippy
+      run: cargo clippy --features visual_data,game_install
+    - name: Run deny-check
+      run: |
+        cargo install --locked cargo-deny
+        cargo deny check
