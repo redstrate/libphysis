@@ -4,6 +4,12 @@
 extern crate cbindgen;
 
 use std::env;
+use std::fs;
+use std::io::BufWriter;
+use std::io::BufReader;
+use std::fs::File;
+use std::io::Write;
+use std::io::BufRead;
 
 use cbindgen::Language;
 
@@ -15,6 +21,7 @@ fn main() {
         .with_parse_deps(true)
         .with_parse_include(&["physis"])
         .with_language(Language::C)
+        .with_define("feature", "logging", "ENABLE_LOGGING")
         .generate()
         .expect("Unable to generate C bindings")
         .write_to_file("target/public/physis.h");
@@ -25,7 +32,26 @@ fn main() {
         .with_parse_include(&["physis"])
         .with_language(Language::Cxx)
         .with_pragma_once(true)
+        .with_define("feature", "logging", "ENABLE_LOGGING")
         .generate()
         .expect("Unable to generate C++ bindings")
         .write_to_file("target/public/physis.hpp");
+
+    // cbindgen always includes <ostream> and <new> even if they aren't used
+    // some downstream projects like PhysisSharp need to have a cleaner file
+    {
+        let mut file: File = File::open("target/public/physis.hpp").unwrap();
+        let mut out_file: File = File::create("target/public/physis.hpp.temp").unwrap();
+
+        let reader = BufReader::new(&file);
+        let mut writer = BufWriter::new(&out_file);
+
+        for (index, line) in reader.lines().enumerate() {
+        let line = line.as_ref().unwrap();
+            if !line.contains("#include <ostream>") && !line.contains("#include <new>") {
+                writeln!(writer, "{}", line);
+            }
+        }
+    }
+    fs::rename("target/public/physis.hpp.temp", "target/public/physis.hpp").unwrap();
 }

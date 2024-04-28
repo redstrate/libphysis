@@ -137,4 +137,5 @@ mod dic;
 
 mod index;
 
+#[cfg(feature = "logging")]
 mod logging;

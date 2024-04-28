@@ -12,7 +12,7 @@ publish = false
 
 [lib]
 name = "physis"
-crate-type = ["staticlib"]
+crate-type = ["cdylib", "staticlib"]
 
 [profile.release]
 lto = true
@@ -21,7 +21,8 @@ lto = true
 cbindgen = { version = "0.26.0", default-features = false }
 
 [features]
-default = ["visual_data"]
+default = ["visual_data", "logging"]
+logging = []
 
 game_install = ["physis/game_install"]
 visual_data = ["physis/visual_data"]
