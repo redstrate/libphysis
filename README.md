@@ -1,7 +1,5 @@
 # libphysis
 
-[![builds.sr.ht status](https://builds.sr.ht/~redstrate/libphysis.svg)](https://builds.sr.ht/~redstrate/libphysis?)
-
 C bindings for [Physis](https://github.com/redstrate/Physis), a library for reading and writing FFXIV data.
 
 ## Usage
