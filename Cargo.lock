@@ -75,9 +75,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.95"
+version = "1.0.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d32a725bc159af97c3e629873bb9f88fb8cf8a4867175f76dc987815ea07c83b"
+checksum = "065a29261d53ba54260972629f9ca6bffa69bac13cd1fed61420f7fa68b9f8bd"
 
 [[package]]
 name = "cfg-if"
@@ -256,7 +256,7 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 [[package]]
 name = "physis"
 version = "0.3.0"
-source = "git+https://github.com/redstrate/physis#f818cf5376e0cbe1eee24bd4fd679a5d7f75333a"
+source = "git+https://github.com/redstrate/physis#c4e9697faa4d33436997b17ebeb11553dd8474f8"
 dependencies = [
  "binrw",
  "bitflags 1.3.2",

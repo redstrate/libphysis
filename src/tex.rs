@@ -5,13 +5,16 @@ use crate::physis_Buffer;
 use physis::tex::Texture;
 use std::ptr::null_mut;
 use std::{mem, slice};
+use physis::tex::TextureType;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 #[cfg(feature = "visual_data")]
 pub struct physis_Texture {
+    texture_type: TextureType,
     width: u32,
     height: u32,
+    depth: u32,
     rgba_size: u32,
     rgba: *mut u8,
 }
@@ -19,8 +22,10 @@ pub struct physis_Texture {
 impl Default for physis_Texture {
     fn default() -> Self {
         Self {
+            texture_type: TextureType::TwoDimensional,
             width: 0,
             height: 0,
+            depth: 0,
             rgba_size: 0,
             rgba: null_mut(),
         }
@@ -34,8 +39,10 @@ pub extern "C" fn physis_texture_parse(buffer: physis_Buffer) -> physis_Texture 
 
     if let Some(mut texture) = Texture::from_existing(data) {
         let tex = physis_Texture {
+            texture_type: texture.texture_type,
             width: texture.width,
             height: texture.height,
+            depth: texture.depth,
             rgba_size: texture.rgba.len() as u32,
             rgba: texture.rgba.as_mut_ptr(),
         };
