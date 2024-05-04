@@ -9,6 +9,23 @@ use std::{mem, slice};
 use physis::mtrl::ShaderKey;
 use physis::mtrl::Constant;
 use physis::mtrl::Sampler;
+use physis::mtrl::ColorTableRow;
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ColorTable {
+    num_rows: u32,
+    rows: *mut ColorTableRow
+}
+
+impl Default for physis_ColorTable {
+    fn default() -> Self {
+        Self {
+            num_rows: 0,
+            rows: null_mut()
+        }
+    }
+}
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -21,7 +38,8 @@ pub struct physis_Material {
     num_constants: u32,
     constants: *mut Constant,
     num_samplers: u32,
-    samplers: *mut Sampler
+    samplers: *mut Sampler,
+    color_table: physis_ColorTable
 }
 
 impl Default for physis_Material {
@@ -35,7 +53,8 @@ impl Default for physis_Material {
             num_constants: 0,
             constants: null_mut(),
             num_samplers: 0,
-            samplers: null_mut()
+            samplers: null_mut(),
+            color_table: Default::default()
         }
     }
 }
@@ -55,6 +74,11 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
         let mut constants = material.constants.clone();
         let mut samplers = material.samplers.clone();
 
+        let mut rows = vec![];
+        if let Some(color_table) = material.color_table {
+            rows = color_table.rows.clone();
+        }
+
         let mat = physis_Material {
             shpk_name: ffi_to_c_string(&material.shader_package_name),
             num_textures: c_strings.len() as u32,
@@ -64,13 +88,18 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
             num_constants: constants.len() as u32,
             constants: constants.as_mut_ptr(),
             num_samplers: samplers.len() as u32,
-            samplers: samplers.as_mut_ptr()
+            samplers: samplers.as_mut_ptr(),
+            color_table: physis_ColorTable {
+                num_rows: rows.len() as u32,
+                rows: if rows.is_empty() { null_mut() } else { rows.as_mut_ptr() }
+            }
         };
 
         mem::forget(c_strings);
         mem::forget(shader_keys);
         mem::forget(constants);
         mem::forget(samplers);
+        mem::forget(rows);
 
         mat
     } else {
