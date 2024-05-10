@@ -40,16 +40,16 @@ fn main() {
     // cbindgen always includes <ostream> and <new> even if they aren't used
     // some downstream projects like PhysisSharp need to have a cleaner file
     {
-        let mut file: File = File::open("target/public/physis.hpp").unwrap();
-        let mut out_file: File = File::create("target/public/physis.hpp.temp").unwrap();
+        let file: File = File::open("target/public/physis.hpp").unwrap();
+        let out_file: File = File::create("target/public/physis.hpp.temp").unwrap();
 
         let reader = BufReader::new(&file);
         let mut writer = BufWriter::new(&out_file);
 
-        for (index, line) in reader.lines().enumerate() {
-        let line = line.as_ref().unwrap();
+        for line in reader.lines() {
+            let line = line.as_ref().unwrap();
             if !line.contains("#include <ostream>") && !line.contains("#include <new>") {
-                writeln!(writer, "{}", line);
+                writeln!(writer, "{}", line).expect("Failed to replace include");
             }
         }
     }

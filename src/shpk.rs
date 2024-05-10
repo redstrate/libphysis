@@ -64,10 +64,10 @@ impl Default for physis_SHPK {
     }
 }
 
-fn physis_get_shader_parameter_array(parameterArray: &Vec<ResourceParameter>) -> (i32, *mut physis_ShaderParameter) {
+fn physis_get_shader_parameter_array(parameter_array: &Vec<ResourceParameter>) -> (i32, *mut physis_ShaderParameter) {
     let mut vec = vec![];
 
-    for resource in parameterArray {
+    for resource in parameter_array {
         vec.push(physis_ShaderParameter {
             name: ffi_to_c_string(&resource.name),
             slot: resource.slot
