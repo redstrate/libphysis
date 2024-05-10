@@ -233,10 +233,10 @@ pub struct physis_SHPKNode {
                                                                         material_key_count: u32,
                                                                         subview_keys: *const u32,
                                                                         subview_key_count: u32) -> u32 {
-    let system_keys = unsafe { slice::from_raw_parts(system_keys, system_key_count as usize) };
-    let scene_keys = unsafe { slice::from_raw_parts(scene_keys, scene_key_count as usize) };
-    let material_keys = unsafe { slice::from_raw_parts(material_keys, material_key_count as usize) };
-    let subview_keys = unsafe { slice::from_raw_parts(subview_keys, subview_key_count as usize) };
+    let system_keys = if system_keys != null() { unsafe { slice::from_raw_parts(system_keys, system_key_count as usize) } } else { &[] };
+    let scene_keys = if scene_keys != null() { unsafe { slice::from_raw_parts(scene_keys, scene_key_count as usize) } } else { &[] };
+    let material_keys = if material_keys != null() { unsafe { slice::from_raw_parts(material_keys, material_key_count as usize) } } else { &[] };
+    let subview_keys = if subview_keys != null() { unsafe { slice::from_raw_parts(subview_keys, subview_key_count as usize) } } else { &[] };
 
     ShaderPackage::build_selector_from_all_keys(system_keys, scene_keys, material_keys, subview_keys)
 }
