@@ -139,3 +139,5 @@ mod index;
 
 #[cfg(feature = "logging")]
 mod logging;
+
+mod schd;
