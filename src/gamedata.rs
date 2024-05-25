@@ -59,6 +59,20 @@ pub extern "C" fn physis_gamedata_extract_file(
 }
 
 #[no_mangle]
+pub extern "C" fn physis_gamedata_find_offset(
+    game_data: &mut GameData,
+    path: *const c_char,
+) -> u32 {
+    unsafe {
+        if let Some(d) = game_data.find_offset(CStr::from_ptr(path).to_string_lossy().as_ref()) {
+            d
+        } else {
+            0
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn physis_gamedata_free_sheet_header(_: *mut physis_EXH) {
     /*unsafe {
         drop(Box::from_raw(exh));
