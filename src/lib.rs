@@ -141,3 +141,4 @@ mod index;
 mod logging;
 
 mod schd;
+mod existing_dirs;

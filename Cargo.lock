@@ -256,7 +256,7 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 [[package]]
 name = "physis"
 version = "0.3.0"
-source = "git+https://github.com/redstrate/physis#91560de96b16a93043ecdc8f63005bb435c3f47b"
+source = "git+https://github.com/redstrate/physis#b87f54f92462f481b7664473ea0551fabae76540"
 dependencies = [
  "binrw",
  "bitflags 1.3.2",
