@@ -11,7 +11,6 @@ use crate::ffi_from_c_string;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[cfg(feature = "visual_data")]
 pub struct physis_IndexEntries {
     num_entries: u32,
     dir_entries: *const u32,
@@ -28,7 +27,6 @@ impl Default for physis_IndexEntries {
     }
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries {
     let Some(r_path) = ffi_from_c_string(path) else {

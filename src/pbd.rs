@@ -9,7 +9,6 @@ use std::{mem, slice};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[cfg(feature = "visual_data")]
 pub struct physis_PBD {
     p_ptr: *mut PreBoneDeformer,
 }
@@ -20,7 +19,6 @@ impl Default for physis_PBD {
     }
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_parse_pbd(buffer: physis_Buffer) -> physis_PBD {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
@@ -36,7 +34,6 @@ pub extern "C" fn physis_parse_pbd(buffer: physis_Buffer) -> physis_PBD {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[cfg(feature = "visual_data")]
 pub struct physis_PreBoneDeformBone {
     name: *const c_char,
     deform: [f32; 12],
@@ -44,7 +41,6 @@ pub struct physis_PreBoneDeformBone {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[cfg(feature = "visual_data")]
 pub struct physis_PreBoneDeformMatrices {
     num_bones: i32,
     bones: *mut physis_PreBoneDeformBone,
@@ -59,7 +55,6 @@ impl Default for physis_PreBoneDeformMatrices {
     }
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_pbd_get_deform_matrix(
     pbd: physis_PBD,

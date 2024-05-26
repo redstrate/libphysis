@@ -7,7 +7,6 @@ use physis::installer::install_game;
 
 use crate::ffi_from_c_string;
 
-#[cfg(feature = "game_install")]
 #[no_mangle]
 pub extern "C" fn physis_install_game(
     installer_path: *const c_char,

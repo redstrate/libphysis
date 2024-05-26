@@ -9,7 +9,6 @@ use std::{mem, slice};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[cfg(feature = "visual_data")]
 pub struct physis_Texture {
     texture_type: TextureType,
     width: u32,
@@ -32,7 +31,6 @@ impl Default for physis_Texture {
     }
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_texture_parse(buffer: physis_Buffer) -> physis_Texture {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };

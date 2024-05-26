@@ -12,7 +12,6 @@ use physis::model::{SubMesh, Vertex, MDL};
 use crate::{ffi_to_c_string, physis_Buffer};
 
 #[repr(C)]
-#[cfg(feature = "visual_data")]
 pub struct physis_Part {
     num_vertices: u32,
     vertices: *const Vertex,
@@ -30,21 +29,18 @@ pub struct physis_Part {
 }
 
 #[repr(C)]
-#[cfg(feature = "visual_data")]
 pub struct physis_Shape {
     name: *const c_char,
     morphed_vertices: *const Vertex,
 }
 
 #[repr(C)]
-#[cfg(feature = "visual_data")]
 pub struct physis_LOD {
     num_parts: u32,
     parts: *const physis_Part,
 }
 
 #[repr(C)]
-#[cfg(feature = "visual_data")]
 pub struct physis_MDL {
     p_ptr: *mut MDL,
     num_lod: u32,
@@ -69,7 +65,6 @@ impl Default for physis_MDL {
     }
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
@@ -111,7 +106,6 @@ pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     mdl
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_mdl_write(mdl: &physis_MDL) -> physis_Buffer {
     unsafe {
@@ -128,7 +122,6 @@ pub extern "C" fn physis_mdl_write(mdl: &physis_MDL) -> physis_Buffer {
     }
 }
 
-#[cfg(feature = "visual_data")]
 fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
     let mut c_lods: Vec<physis_LOD> = Vec::new();
 
@@ -181,7 +174,6 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
     c_lods
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_mdl_replace_vertices(
     mdl: *mut physis_MDL,

@@ -8,7 +8,6 @@ use std::ptr::null_mut;
 use std::{mem, slice};
 
 #[repr(C)]
-#[cfg(feature = "visual_data")]
 pub struct physis_Bone {
     pub index: u32,
     pub name: *const c_char,
@@ -22,7 +21,6 @@ pub struct physis_Bone {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[cfg(feature = "visual_data")]
 pub struct physis_Skeleton {
     num_bones: u32,
     bones: *mut physis_Bone,
@@ -39,7 +37,6 @@ impl Default for physis_Skeleton {
     }
 }
 
-#[cfg(feature = "visual_data")]
 fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
     let mut c_bones = vec![];
 
@@ -72,7 +69,6 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
     skel
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_parse_skeleton(buffer: physis_Buffer) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };

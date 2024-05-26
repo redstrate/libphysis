@@ -9,7 +9,6 @@ use std::{mem, slice};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[cfg(feature = "visual_data")]
 pub struct physis_PlateModel {
     position: [f32; 2],
     filename: *const c_char,
@@ -17,7 +16,6 @@ pub struct physis_PlateModel {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[cfg(feature = "visual_data")]
 pub struct physis_Terrain {
     num_plates: i32,
     plates: *mut physis_PlateModel,
@@ -32,7 +30,6 @@ impl Default for physis_Terrain {
     }
 }
 
-#[cfg(feature = "visual_data")]
 #[no_mangle]
 pub extern "C" fn physis_parse_tera(buffer: physis_Buffer) -> physis_Terrain {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
