@@ -4,6 +4,8 @@
 use std::os::raw::c_char;
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
+use std::ptr::slice_from_raw_parts;
+use physis::model::NewShapeValue;
 
 use physis::model::{SubMesh, Vertex, MDL};
 
@@ -200,6 +202,26 @@ pub extern "C" fn physis_mdl_replace_vertices(
             &*std::ptr::slice_from_raw_parts(indices_ptr, num_indices as usize),
             &*std::ptr::slice_from_raw_parts(submeshes_ptr, num_submeshes as usize),
         );
+
+
+        // We need to update the C version of these LODs as well
+        let mut new_lods = physis_mdl_update_vertices((*mdl).p_ptr.as_ref().unwrap());
+
+        (*mdl).lods = new_lods.as_mut_ptr();
+
+        mem::forget(new_lods);
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_mdl_remove_shape_meshes(mdl: *mut physis_MDL) {
+    unsafe {
+        (*(*mdl).p_ptr).remove_shape_meshes();
+    }
+}
+
+#[no_mangle] pub extern "C" fn physis_mdl_add_shape_mesh(mdl: *mut physis_MDL, lod_index: u32, shape_index: u32, shape_mesh_index: u32, part_index: u32, num_shape_Values: u32, shape_values: *const NewShapeValue) {
+    unsafe {
+        (*(*mdl).p_ptr).add_shape_mesh(lod_index as usize, shape_index as usize, shape_mesh_index as usize, part_index as usize, &*slice_from_raw_parts(shape_values, num_shape_Values as usize));
 
         // We need to update the C version of these LODs as well
         let mut new_lods = physis_mdl_update_vertices((*mdl).p_ptr.as_ref().unwrap());
