@@ -22,6 +22,16 @@ pub struct physis_Part {
 
     num_submeshes: u32,
     submeshes: *const SubMesh,
+
+    num_shapes: u32,
+    shapes: *mut physis_Shape
+}
+
+#[repr(C)]
+#[cfg(feature = "visual_data")]
+pub struct physis_Shape {
+    name: *const c_char,
+    morphed_vertices: *const Vertex,
 }
 
 #[repr(C)]
@@ -127,6 +137,18 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
             let mut c_vertices: Vec<Vertex> = part.vertices.clone();
             let mut c_indices: Vec<u16> = part.indices.clone();
             let mut c_submeshes: Vec<SubMesh> = part.submeshes.clone();
+            let mut c_shapes = vec![];
+
+            for shape in &part.shapes {
+                let mut c_morphed_vertices = shape.morphed_vertices.clone();
+
+                c_shapes.push(physis_Shape {
+                    name: ffi_to_c_string(&shape.name),
+                    morphed_vertices: c_morphed_vertices.as_mut_ptr()
+                });
+
+                mem::forget(c_morphed_vertices);
+            }
 
             c_parts.push(physis_Part {
                 num_vertices: c_vertices.len() as u32,
@@ -136,11 +158,14 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
                 material_index: part.material_index,
                 num_submeshes: c_submeshes.len() as u32,
                 submeshes: c_submeshes.as_mut_ptr(),
+                num_shapes: c_shapes.len() as u32,
+                shapes: c_shapes.as_mut_ptr()
             });
 
             mem::forget(c_vertices);
             mem::forget(c_indices);
             mem::forget(c_submeshes);
+            mem::forget(c_shapes);
         }
 
         c_lods.push(physis_LOD {
