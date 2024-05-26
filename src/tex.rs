@@ -3,9 +3,9 @@
 
 use crate::physis_Buffer;
 use physis::tex::Texture;
+use physis::tex::TextureType;
 use std::ptr::null_mut;
 use std::{mem, slice};
-use physis::tex::TextureType;
 
 #[repr(C)]
 #[derive(Clone, Copy)]

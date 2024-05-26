@@ -1,18 +1,20 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{ffi_from_c_string, ffi_to_c_string, physis_Buffer};
-use physis::shpk::{Key, Pass, ResourceParameter, ShaderPackage};
-use std::ptr::{null, null_mut};
-use std::{mem, slice};
 use std::ffi::c_char;
+use std::ptr::null_mut;
+use std::{mem, slice};
+
 use physis::shpk::MaterialParameter;
+use physis::shpk::{Key, Pass, ResourceParameter, ShaderPackage};
+
+use crate::{ffi_from_c_string, ffi_to_c_string, physis_Buffer};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_ShaderParameter {
     slot: u16,
-    name: *const c_char
+    name: *const c_char,
 }
 
 #[repr(C)]
@@ -59,18 +61,20 @@ impl Default for physis_SHPK {
             sub_view_key2_default: 0,
             material_parameters_size: 0,
             num_material_parameters: 0,
-            material_parameters: null_mut()
+            material_parameters: null_mut(),
         }
     }
 }
 
-fn physis_get_shader_parameter_array(parameter_array: &Vec<ResourceParameter>) -> (i32, *mut physis_ShaderParameter) {
+fn physis_get_shader_parameter_array(
+    parameter_array: &Vec<ResourceParameter>,
+) -> (i32, *mut physis_ShaderParameter) {
     let mut vec = vec![];
 
     for resource in parameter_array {
         vec.push(physis_ShaderParameter {
             name: ffi_to_c_string(&resource.name),
-            slot: resource.slot
+            slot: resource.slot,
         })
     }
 
@@ -92,8 +96,10 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
         for shader in &shpk.vertex_shaders {
             let mut bytecode = shader.bytecode.clone();
 
-            let (num_scalar_params, scalar_params) = physis_get_shader_parameter_array(&shader.scalar_parameters);
-            let (num_resource_params, resource_params) = physis_get_shader_parameter_array(&shader.resource_parameters);
+            let (num_scalar_params, scalar_params) =
+                physis_get_shader_parameter_array(&shader.scalar_parameters);
+            let (num_resource_params, resource_params) =
+                physis_get_shader_parameter_array(&shader.resource_parameters);
 
             let shader = physis_Shader {
                 len: bytecode.len() as i32,
@@ -112,8 +118,10 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
         for shader in &shpk.pixel_shaders {
             let mut bytecode = shader.bytecode.clone();
 
-            let (num_scalar_params, scalar_params) = physis_get_shader_parameter_array(&shader.scalar_parameters);
-            let (num_resource_params, resource_params) = physis_get_shader_parameter_array(&shader.resource_parameters);
+            let (num_scalar_params, scalar_params) =
+                physis_get_shader_parameter_array(&shader.scalar_parameters);
+            let (num_resource_params, resource_params) =
+                physis_get_shader_parameter_array(&shader.resource_parameters);
 
             let shader = physis_Shader {
                 len: bytecode.len() as i32,
@@ -158,7 +166,6 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
     }
 }
 
-
 #[repr(C)]
 pub struct physis_SHPKNode {
     selector: u32,
@@ -172,10 +179,11 @@ pub struct physis_SHPKNode {
     material_keys: *mut u32,
     subview_key_count: u32,
     subview_keys: *mut u32,
-    passes: *mut Pass
+    passes: *mut Pass,
 }
 
-#[no_mangle] pub extern "C" fn physis_shpk_get_node(shpk : *const physis_SHPK, key: u32) -> physis_SHPKNode {
+#[no_mangle]
+pub extern "C" fn physis_shpk_get_node(shpk: *const physis_SHPK, key: u32) -> physis_SHPKNode {
     unsafe {
         if let Some(node) = (*(*shpk).p_ptr).find_node(key) {
             let mut c_system_keys = node.system_keys.clone();
@@ -225,22 +233,47 @@ pub struct physis_SHPKNode {
     }
 }
 
-#[no_mangle] pub extern "C" fn physis_shpk_build_selector_from_all_keys(system_keys: *const u32,
-                                                                        system_key_count: u32,
-                                                                        scene_keys: *const u32,
-                                                                        scene_key_count: u32,
-                                                                        material_keys: *const u32,
-                                                                        material_key_count: u32,
-                                                                        subview_keys: *const u32,
-                                                                        subview_key_count: u32) -> u32 {
-    let system_keys = if system_keys != null() { unsafe { slice::from_raw_parts(system_keys, system_key_count as usize) } } else { &[] };
-    let scene_keys = if scene_keys != null() { unsafe { slice::from_raw_parts(scene_keys, scene_key_count as usize) } } else { &[] };
-    let material_keys = if material_keys != null() { unsafe { slice::from_raw_parts(material_keys, material_key_count as usize) } } else { &[] };
-    let subview_keys = if subview_keys != null() { unsafe { slice::from_raw_parts(subview_keys, subview_key_count as usize) } } else { &[] };
+#[no_mangle]
+pub extern "C" fn physis_shpk_build_selector_from_all_keys(
+    system_keys: *const u32,
+    system_key_count: u32,
+    scene_keys: *const u32,
+    scene_key_count: u32,
+    material_keys: *const u32,
+    material_key_count: u32,
+    subview_keys: *const u32,
+    subview_key_count: u32,
+) -> u32 {
+    let system_keys = if !system_keys.is_null() {
+        unsafe { slice::from_raw_parts(system_keys, system_key_count as usize) }
+    } else {
+        &[]
+    };
+    let scene_keys = if !scene_keys.is_null() {
+        unsafe { slice::from_raw_parts(scene_keys, scene_key_count as usize) }
+    } else {
+        &[]
+    };
+    let material_keys = if !material_keys.is_null() {
+        unsafe { slice::from_raw_parts(material_keys, material_key_count as usize) }
+    } else {
+        &[]
+    };
+    let subview_keys = if !subview_keys.is_null() {
+        unsafe { slice::from_raw_parts(subview_keys, subview_key_count as usize) }
+    } else {
+        &[]
+    };
 
-    ShaderPackage::build_selector_from_all_keys(system_keys, scene_keys, material_keys, subview_keys)
+    ShaderPackage::build_selector_from_all_keys(
+        system_keys,
+        scene_keys,
+        material_keys,
+        subview_keys,
+    )
 }
 
-#[no_mangle] pub extern "C" fn physis_shpk_crc(name: *const c_char) -> u32 {
+#[no_mangle]
+pub extern "C" fn physis_shpk_crc(name: *const c_char) -> u32 {
     ShaderPackage::crc(&ffi_from_c_string(name).unwrap())
 }

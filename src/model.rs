@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use physis::model::NewShapeValue;
 use std::os::raw::c_char;
+use std::ptr::slice_from_raw_parts;
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
-use std::ptr::slice_from_raw_parts;
-use physis::model::NewShapeValue;
 
 use physis::model::{SubMesh, Vertex, MDL};
 
@@ -26,7 +26,7 @@ pub struct physis_Part {
     submeshes: *const SubMesh,
 
     num_shapes: u32,
-    shapes: *mut physis_Shape
+    shapes: *mut physis_Shape,
 }
 
 #[repr(C)]
@@ -146,7 +146,7 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
 
                 c_shapes.push(physis_Shape {
                     name: ffi_to_c_string(&shape.name),
-                    morphed_vertices: c_morphed_vertices.as_mut_ptr()
+                    morphed_vertices: c_morphed_vertices.as_mut_ptr(),
                 });
 
                 mem::forget(c_morphed_vertices);
@@ -161,7 +161,7 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
                 num_submeshes: c_submeshes.len() as u32,
                 submeshes: c_submeshes.as_mut_ptr(),
                 num_shapes: c_shapes.len() as u32,
-                shapes: c_shapes.as_mut_ptr()
+                shapes: c_shapes.as_mut_ptr(),
             });
 
             mem::forget(c_vertices);
@@ -203,7 +203,6 @@ pub extern "C" fn physis_mdl_replace_vertices(
             &*std::ptr::slice_from_raw_parts(submeshes_ptr, num_submeshes as usize),
         );
 
-
         // We need to update the C version of these LODs as well
         let mut new_lods = physis_mdl_update_vertices((*mdl).p_ptr.as_ref().unwrap());
 
@@ -213,15 +212,31 @@ pub extern "C" fn physis_mdl_replace_vertices(
     }
 }
 
-#[no_mangle] pub extern "C" fn physis_mdl_remove_shape_meshes(mdl: *mut physis_MDL) {
+#[no_mangle]
+pub extern "C" fn physis_mdl_remove_shape_meshes(mdl: *mut physis_MDL) {
     unsafe {
         (*(*mdl).p_ptr).remove_shape_meshes();
     }
 }
 
-#[no_mangle] pub extern "C" fn physis_mdl_add_shape_mesh(mdl: *mut physis_MDL, lod_index: u32, shape_index: u32, shape_mesh_index: u32, part_index: u32, num_shape_Values: u32, shape_values: *const NewShapeValue) {
+#[no_mangle]
+pub extern "C" fn physis_mdl_add_shape_mesh(
+    mdl: *mut physis_MDL,
+    lod_index: u32,
+    shape_index: u32,
+    shape_mesh_index: u32,
+    part_index: u32,
+    num_shape_values: u32,
+    shape_values: *const NewShapeValue,
+) {
     unsafe {
-        (*(*mdl).p_ptr).add_shape_mesh(lod_index as usize, shape_index as usize, shape_mesh_index as usize, part_index as usize, &*slice_from_raw_parts(shape_values, num_shape_Values as usize));
+        (*(*mdl).p_ptr).add_shape_mesh(
+            lod_index as usize,
+            shape_index as usize,
+            shape_mesh_index as usize,
+            part_index as usize,
+            &*slice_from_raw_parts(shape_values, num_shape_values as usize),
+        );
 
         // We need to update the C version of these LODs as well
         let mut new_lods = physis_mdl_update_vertices((*mdl).p_ptr.as_ref().unwrap());

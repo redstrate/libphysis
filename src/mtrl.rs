@@ -2,27 +2,27 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_to_c_string, physis_Buffer};
+use physis::mtrl::ColorTableRow;
+use physis::mtrl::Constant;
 use physis::mtrl::Material;
+use physis::mtrl::Sampler;
+use physis::mtrl::ShaderKey;
 use std::os::raw::c_char;
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
-use physis::mtrl::ShaderKey;
-use physis::mtrl::Constant;
-use physis::mtrl::Sampler;
-use physis::mtrl::ColorTableRow;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_ColorTable {
     num_rows: u32,
-    rows: *mut ColorTableRow
+    rows: *mut ColorTableRow,
 }
 
 impl Default for physis_ColorTable {
     fn default() -> Self {
         Self {
             num_rows: 0,
-            rows: null_mut()
+            rows: null_mut(),
         }
     }
 }
@@ -39,7 +39,7 @@ pub struct physis_Material {
     constants: *mut Constant,
     num_samplers: u32,
     samplers: *mut Sampler,
-    color_table: physis_ColorTable
+    color_table: physis_ColorTable,
 }
 
 impl Default for physis_Material {
@@ -54,7 +54,7 @@ impl Default for physis_Material {
             constants: null_mut(),
             num_samplers: 0,
             samplers: null_mut(),
-            color_table: Default::default()
+            color_table: Default::default(),
         }
     }
 }
@@ -76,7 +76,7 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
 
         let mut rows = vec![];
         if let Some(color_table) = material.color_table {
-            rows = color_table.rows.clone();
+            rows.clone_from(&color_table.rows);
         }
 
         let mat = physis_Material {
@@ -91,8 +91,12 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
             samplers: samplers.as_mut_ptr(),
             color_table: physis_ColorTable {
                 num_rows: rows.len() as u32,
-                rows: if rows.is_empty() { null_mut() } else { rows.as_mut_ptr() }
-            }
+                rows: if rows.is_empty() {
+                    null_mut()
+                } else {
+                    rows.as_mut_ptr()
+                },
+            },
         };
 
         mem::forget(c_strings);
