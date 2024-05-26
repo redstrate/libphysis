@@ -24,7 +24,7 @@ pub struct physis_ExistingGameDirectories {
 
 #[no_mangle]
 pub extern "C" fn physis_find_existing_game_dirs() -> physis_ExistingGameDirectories {
-    let dirs = find_existing_user_dirs();
+    let dirs = find_existing_game_dirs();
 
     let mut c_dirs = Vec::new();
     for dir in dirs {
