@@ -4,13 +4,11 @@ C bindings for [Physis](https://github.com/redstrate/Physis), a library for read
 
 ## Usage
 
-Simply run `cargo build`, and Cargo will generate the bindings as well pull in Physis to compile into a C-compatible library.
-
-The headers and the libraries should appear under the `target` directory.
+Run `cargo build`, and it will generate the bindings under `target/public`. There should also be a C-compatible shared & static library to link to. 
 
 ### Logger
 
-A logger suitable for connecting to Qt is provided in `logger/`. Simply add_subdirectory to it, and link to the physis-logger target. Then include the header `physis_logger.h` and call the `setup_physis_logging()` function!
+A logger suitable for connecting to Qt is provided in `logger/`. Call `add_subdirectory`, and link to the `physis-logger` target. Then include the header `physis_logger.h` and call `setup_physis_logging()`!
 
 ## Contributing & Support
 
