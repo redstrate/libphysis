@@ -12,7 +12,7 @@ publish = false
 
 [lib]
 name = "physis"
-crate-type = ["cdylib", "staticlib"]
+crate-type = ["staticlib"]
 
 [profile.release]
 lto = true
