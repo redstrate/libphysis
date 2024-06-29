@@ -62,7 +62,7 @@ pub extern "C" fn physis_gamedata_extract_file(
 pub extern "C" fn physis_gamedata_find_offset(
     game_data: &mut GameData,
     path: *const c_char,
-) -> u32 {
+) -> u64 {
     unsafe {
         if let Some(d) = game_data.find_offset(CStr::from_ptr(path).to_string_lossy().as_ref()) {
             d
