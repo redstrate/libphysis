@@ -142,3 +142,5 @@ mod logging;
 
 mod schd;
 mod existing_dirs;
+
+mod execlookup;
