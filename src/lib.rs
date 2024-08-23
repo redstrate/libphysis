@@ -144,3 +144,5 @@ mod schd;
 mod existing_dirs;
 
 mod execlookup;
+
+mod patchlist;
