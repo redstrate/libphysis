@@ -18,6 +18,7 @@ pub struct physis_PatchEntry {
     hashes: *const *const c_char,
     hash_block_size: i64,
     length: i64,
+    size_on_disk: i64,
 }
 
 #[repr(C)]
@@ -54,6 +55,7 @@ pub extern "C" fn physis_parse_patchlist(patch_type: PatchListType, encoded: *co
                     hashes: c_hashes.as_mut_ptr(),
                     hash_block_size: entry.hash_block_size,
                     length: entry.length,
+                    size_on_disk: entry.size_on_disk,
                 });
 
                 mem::forget(c_hashes);
