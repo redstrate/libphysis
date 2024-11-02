@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_to_c_string, physis_Buffer};
-use physis::mtrl::ColorTableRow;
+use physis::mtrl::{ColorTable, LegacyColorTableRow, DawntrailColorTableRow};
 use physis::mtrl::Constant;
 use physis::mtrl::Material;
 use physis::mtrl::Sampler;
@@ -13,12 +13,28 @@ use std::{mem, slice};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_ColorTable {
+pub struct physis_LegacyColorTable {
     num_rows: u32,
-    rows: *mut ColorTableRow,
+    rows: *mut LegacyColorTableRow,
 }
 
-impl Default for physis_ColorTable {
+impl Default for physis_LegacyColorTable {
+    fn default() -> Self {
+        Self {
+            num_rows: 0,
+            rows: null_mut(),
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_DawntrailColorTable {
+    num_rows: u32,
+    rows: *mut DawntrailColorTableRow,
+}
+
+impl Default for physis_DawntrailColorTable {
     fn default() -> Self {
         Self {
             num_rows: 0,
@@ -39,7 +55,8 @@ pub struct physis_Material {
     constants: *mut Constant,
     num_samplers: u32,
     samplers: *mut Sampler,
-    color_table: physis_ColorTable,
+    legacy_color_table: physis_LegacyColorTable,
+    dawntrail_color_table: physis_DawntrailColorTable,
 }
 
 impl Default for physis_Material {
@@ -54,7 +71,8 @@ impl Default for physis_Material {
             constants: null_mut(),
             num_samplers: 0,
             samplers: null_mut(),
-            color_table: Default::default(),
+            legacy_color_table: Default::default(),
+            dawntrail_color_table: Default::default(),
         }
     }
 }
@@ -73,11 +91,40 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
         let mut shader_keys = material.shader_keys.clone();
         let mut constants = material.constants.clone();
         let mut samplers = material.samplers.clone();
+        let mut legacy_rows = vec![];
+        let mut dawntrail_rows = vec![];
 
-        let mut rows = vec![];
-        if let Some(color_table) = material.color_table {
-            rows.clone_from(&color_table.rows);
-        }
+        let legacy_color_table = match &material.color_table {
+            Some(ColorTable::LegacyColorTable(data)) => {
+                legacy_rows.clone_from(&data.rows);
+
+                physis_LegacyColorTable {
+                    num_rows: legacy_rows.len() as u32,
+                    rows: if legacy_rows.is_empty() {
+                        null_mut()
+                    } else {
+                        legacy_rows.as_mut_ptr()
+                    },
+                }
+            },
+            _ => { physis_LegacyColorTable::default() }
+        };
+
+        let dawntrail_color_table = match &material.color_table {
+            Some(ColorTable::DawntrailColorTable(data)) => {
+                dawntrail_rows.clone_from(&data.rows);
+
+                physis_DawntrailColorTable {
+                    num_rows: dawntrail_rows.len() as u32,
+                    rows: if dawntrail_rows.is_empty() {
+                        null_mut()
+                    } else {
+                        dawntrail_rows.as_mut_ptr()
+                    },
+                }
+            },
+            _ => { physis_DawntrailColorTable::default() }
+        };
 
         let mat = physis_Material {
             shpk_name: ffi_to_c_string(&material.shader_package_name),
@@ -89,21 +136,16 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
             constants: constants.as_mut_ptr(),
             num_samplers: samplers.len() as u32,
             samplers: samplers.as_mut_ptr(),
-            color_table: physis_ColorTable {
-                num_rows: rows.len() as u32,
-                rows: if rows.is_empty() {
-                    null_mut()
-                } else {
-                    rows.as_mut_ptr()
-                },
-            },
+            legacy_color_table,
+            dawntrail_color_table
         };
 
         mem::forget(c_strings);
         mem::forget(shader_keys);
         mem::forget(constants);
         mem::forget(samplers);
-        mem::forget(rows);
+        mem::forget(legacy_rows);
+        mem::forget(dawntrail_rows);
 
         mat
     } else {
