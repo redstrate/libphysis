@@ -36,6 +36,13 @@ pub struct physis_SHPK {
     vertex_shaders: *mut physis_Shader,
     num_pixel_shaders: i32,
     pixel_shaders: *mut physis_Shader,
+
+    num_system_keys: i32,
+    system_keys: *mut Key,
+
+    num_scene_keys: i32,
+    scene_keys: *mut Key,
+
     num_material_keys: i32,
     material_keys: *mut Key,
 
@@ -55,6 +62,10 @@ impl Default for physis_SHPK {
             vertex_shaders: null_mut(),
             num_pixel_shaders: 0,
             pixel_shaders: null_mut(),
+            num_system_keys: 0,
+            system_keys: null_mut(),
+            num_scene_keys: 0,
+            scene_keys: null_mut(),
             num_material_keys: 0,
             material_keys: null_mut(),
             sub_view_key1_default: 0,
@@ -137,6 +148,8 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
             mem::forget(bytecode);
         }
 
+        let mut system_keys = shpk.material_keys.clone();
+        let mut scene_keys = shpk.material_keys.clone();
         let mut material_keys = shpk.material_keys.clone();
         let mut material_params = shpk.material_parameters.clone();
 
@@ -145,6 +158,10 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
             vertex_shaders: c_vertex_shaders.as_mut_ptr(),
             num_pixel_shaders: c_fragment_shaders.len() as i32,
             pixel_shaders: c_fragment_shaders.as_mut_ptr(),
+            num_system_keys: system_keys.len() as i32,
+            system_keys: system_keys.as_mut_ptr(),
+            num_scene_keys: scene_keys.len() as i32,
+            scene_keys: scene_keys.as_mut_ptr(),
             num_material_keys: material_keys.len() as i32,
             material_keys: material_keys.as_mut_ptr(),
             sub_view_key1_default: shpk.sub_view_key1_default,
