@@ -148,8 +148,8 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
             mem::forget(bytecode);
         }
 
-        let mut system_keys = shpk.material_keys.clone();
-        let mut scene_keys = shpk.material_keys.clone();
+        let mut system_keys = shpk.system_keys.clone();
+        let mut scene_keys = shpk.scene_keys.clone();
         let mut material_keys = shpk.material_keys.clone();
         let mut material_params = shpk.material_parameters.clone();
 
@@ -174,6 +174,8 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
 
         mem::forget(c_vertex_shaders);
         mem::forget(c_fragment_shaders);
+        mem::forget(system_keys);
+        mem::forget(scene_keys);
         mem::forget(material_keys);
         mem::forget(material_params);
 
