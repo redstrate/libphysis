@@ -8,6 +8,9 @@ use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
 use physis::model::{SubMesh, Vertex, MDL};
+use physis::model_vertex_declarations::VertexElement;
+use physis::model_vertex_declarations::{VertexType, VertexUsage};
+use physis::model_vertex_declarations::get_vertex_type_size;
 
 use crate::{ffi_to_c_string, physis_Buffer};
 
@@ -15,6 +18,11 @@ use crate::{ffi_to_c_string, physis_Buffer};
 pub struct physis_Part {
     num_vertices: u32,
     vertices: *const Vertex,
+
+    streams: *const *const u8,
+    stream_sizes: *const usize,
+    stream_strides: *const usize,
+    num_streams: usize,
 
     num_indices: u32,
     indices: *const u16,
@@ -36,6 +44,8 @@ pub struct physis_Shape {
 
 #[repr(C)]
 pub struct physis_LOD {
+    num_vertex_elements: u32,
+    vertex_elements: *const VertexElement,
     num_parts: u32,
     parts: *const physis_Part,
 }
@@ -125,7 +135,9 @@ pub extern "C" fn physis_mdl_write(mdl: &physis_MDL) -> physis_Buffer {
 fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
     let mut c_lods: Vec<physis_LOD> = Vec::new();
 
-    for lod in &mdl.lods {
+    for (i, lod) in mdl.lods.iter().enumerate() {
+        let mut c_decls: Vec<VertexElement> = mdl.model_data.header.vertex_declarations[i].elements.clone();
+
         let mut c_parts: Vec<physis_Part> = Vec::new();
 
         for part in &lod.parts {
@@ -133,6 +145,9 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
             let mut c_indices: Vec<u16> = part.indices.clone();
             let mut c_submeshes: Vec<SubMesh> = part.submeshes.clone();
             let mut c_shapes = vec![];
+            let mut c_streams = vec![];
+            let mut c_stream_sizes = vec![];
+            let mut c_stream_strides = part.vertex_stream_strides.clone();
 
             for shape in &part.shapes {
                 let mut c_morphed_vertices = shape.morphed_vertices.clone();
@@ -145,9 +160,21 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
                 mem::forget(c_morphed_vertices);
             }
 
+            for stream in &part.vertex_streams {
+                let mut c_stream = stream.clone();
+                c_streams.push(c_stream.as_ptr());
+                c_stream_sizes.push(c_stream.len() as usize);
+
+                mem::forget(c_stream);
+            }
+
             c_parts.push(physis_Part {
                 num_vertices: c_vertices.len() as u32,
                 vertices: c_vertices.as_mut_ptr(),
+                streams: c_streams.as_mut_ptr(),
+                stream_sizes: c_stream_sizes.as_mut_ptr(),
+                stream_strides: c_stream_strides.as_mut_ptr(),
+                num_streams: c_stream_strides.len() as usize,
                 num_indices: c_indices.len() as u32,
                 indices: c_indices.as_mut_ptr(),
                 material_index: part.material_index,
@@ -161,13 +188,19 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
             mem::forget(c_indices);
             mem::forget(c_submeshes);
             mem::forget(c_shapes);
+            mem::forget(c_streams);
+            mem::forget(c_stream_sizes);
+            mem::forget(c_stream_strides);
         }
 
         c_lods.push(physis_LOD {
+            num_vertex_elements: c_decls.len() as u32,
+            vertex_elements: c_decls.as_mut_ptr(),
             num_parts: c_parts.len() as u32,
             parts: c_parts.as_mut_ptr(),
         });
 
+        mem::forget(c_decls);
         mem::forget(c_parts);
     }
 
@@ -237,4 +270,9 @@ pub extern "C" fn physis_mdl_add_shape_mesh(
 
         mem::forget(new_lods);
     }
+}
+
+#[no_mangle]
+pub extern "C" fn physis_get_vertex_type_size(vertex_type: VertexType) -> usize {
+    get_vertex_type_size(vertex_type)
 }
