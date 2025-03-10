@@ -15,7 +15,7 @@ pub struct physis_SCHD {
     shader_stage: ShaderStage,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_parse_schd(_buffer: physis_Buffer) -> physis_SCHD {
     physis_SCHD {
         p_ptr: null_mut(),

@@ -14,7 +14,7 @@ use std::os::raw::{c_char, c_uint};
 use std::ptr::{null, null_mut};
 
 /// Checks if the file at `path` exists.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_exists(game_data: &mut GameData, path: *const c_char) -> bool {
     if let Some(r_path) = ffi_from_c_string(path) {
         game_data.exists(&r_path)
@@ -23,7 +23,7 @@ pub extern "C" fn physis_gamedata_exists(game_data: &mut GameData, path: *const 
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_free_repositories(repositories: physis_Repositories) {
     let data = ffi_to_vec(repositories.repositories, repositories.repositories_count);
 
@@ -37,7 +37,7 @@ pub extern "C" fn physis_gamedata_free_repositories(repositories: physis_Reposit
 
 /// Extracts the raw game file from `path`, and puts it in `data` with `size` length. If the path was not found,
 /// `size` is 0 and `data` is NULL.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_extract_file(
     game_data: &mut GameData,
     path: *const c_char,
@@ -58,7 +58,7 @@ pub extern "C" fn physis_gamedata_extract_file(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_find_offset(
     game_data: &mut GameData,
     path: *const c_char,
@@ -72,7 +72,7 @@ pub extern "C" fn physis_gamedata_find_offset(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_free_sheet_header(_: *mut physis_EXH) {
     /*unsafe {
         drop(Box::from_raw(exh));
@@ -80,7 +80,7 @@ pub extern "C" fn physis_gamedata_free_sheet_header(_: *mut physis_EXH) {
 }
 
 /// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_initialize(path: *const c_char) -> *mut GameData {
     let Some(r_path) = ffi_from_c_string(path) else {
         return null_mut();
@@ -95,7 +95,7 @@ pub extern "C" fn physis_gamedata_initialize(path: *const c_char) -> *mut GameDa
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_free(game_data: *mut GameData) {
     unsafe {
         drop(Box::from_raw(game_data));
@@ -116,7 +116,7 @@ pub struct physis_Repositories {
     repositories: *mut physis_Repository,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_get_repositories(game_data: &GameData) -> physis_Repositories {
     let mut c_repositories: Vec<physis_Repository> = Vec::new();
 
@@ -143,7 +143,7 @@ pub extern "C" fn physis_gamedata_get_repositories(game_data: &GameData) -> phys
     repositories
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(
     game_data: &mut GameData,
     name: *const c_char,
@@ -203,7 +203,7 @@ pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn physis_gamedata_get_exd_filename(
     name: *const c_char,
     exh: &physis_EXH,
@@ -221,7 +221,7 @@ pub unsafe extern "C" fn physis_gamedata_get_exd_filename(
     ))
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_free_sheet(exd: physis_EXD) {
     unsafe {
         let data =
@@ -249,7 +249,7 @@ pub extern "C" fn physis_gamedata_free_sheet(exd: physis_EXD) {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_apply_patch(gamedata: &GameData, path: *const c_char) -> bool {
     if let Some(r_path) = ffi_from_c_string(path) {
         gamedata.apply_patch(&r_path).is_ok()
@@ -265,7 +265,7 @@ pub struct physis_SheetNames {
     names: *mut *const c_char,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_get_all_sheet_names(
     game_data: &mut GameData,
 ) -> physis_SheetNames {

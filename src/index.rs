@@ -27,7 +27,7 @@ impl Default for physis_IndexEntries {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries {
     let Some(r_path) = ffi_from_c_string(path) else {
         return physis_IndexEntries::default();
@@ -38,8 +38,15 @@ pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries
         let mut c_file_entries = vec![];
 
         for entry in &idx_file.entries {
-            c_file_entries.push(entry.hash as u32);
-            c_dir_entries.push((entry.hash >> 32) as u32);
+            match &entry.hash {
+                physis::index::Hash::SplitPath { name, path } => {
+                    c_file_entries.push(*name);
+                    c_dir_entries.push((path >> 32) as u32);
+                }
+                physis::index::Hash::FullPath(hash) => {
+                    c_file_entries.push(*hash); // TODO: is this really correct?
+                }
+            }
         }
 
         let mat = physis_IndexEntries {
@@ -57,7 +64,7 @@ pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_generate_partial_hash(name: *const c_char) -> u32 {
     let Some(r_name) = ffi_from_c_string(name) else {
         return 0;
@@ -66,11 +73,26 @@ pub extern "C" fn physis_generate_partial_hash(name: *const c_char) -> u32 {
     IndexFile::calculate_partial_hash(&r_name)
 }
 
-#[no_mangle]
-pub extern "C" fn physis_calculate_hash(path: *const c_char) -> u64 {
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_calculate_hash(
+    index_file_path: *const c_char,
+    path: *const c_char,
+) -> u64 {
     let Some(r_path) = ffi_from_c_string(path) else {
         return 0;
     };
 
-    IndexFile::calculate_hash(&r_path)
+    let Some(r_index_file_path) = ffi_from_c_string(index_file_path) else {
+        return 0;
+    };
+
+    // TODO: this is not ideal, we should just expose IndexFile in the C API
+    if let Some(idx_file) = IndexFile::from_existing(&r_index_file_path) {
+        match &idx_file.calculate_hash(&r_path) {
+            physis::index::Hash::SplitPath { name, path } => (*path as u64) << 32 | (*name as u64),
+            physis::index::Hash::FullPath(hash) => *hash as u64,
+        }
+    } else {
+        0
+    }
 }

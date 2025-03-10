@@ -3,15 +3,15 @@
 
 use crate::{ffi_from_c_string, ffi_to_c_string};
 use physis::equipment::{
-    build_character_path, build_ear_material_path, build_equipment_path, build_face_material_path,
-    build_gear_material_path, build_hair_material_path, build_skin_material_path,
-    build_tail_material_path, get_slot_abbreviation, get_slot_from_id, CharacterCategory, Slot,
+    CharacterCategory, Slot, build_character_path, build_ear_material_path, build_equipment_path,
+    build_face_material_path, build_gear_material_path, build_hair_material_path,
+    build_skin_material_path, build_tail_material_path, get_slot_abbreviation, get_slot_from_id,
 };
 use physis::race::{Gender, Race, Subrace};
 use std::os::raw::c_char;
 use std::ptr::null;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_slot_from_id(slot_id: i32) -> Slot {
     match get_slot_from_id(slot_id) {
         None => Slot::Head, // FIXME: this is currently used to cover-up the few missing slots. PLEASE DO NOT SHIP
@@ -19,13 +19,13 @@ pub extern "C" fn physis_slot_from_id(slot_id: i32) -> Slot {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_get_slot_name(slot: Slot) -> *const c_char {
     // TODO: no need to dynamically allocate a new string
     ffi_to_c_string(&get_slot_abbreviation(slot).to_string())
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_build_equipment_path(
     model_id: i32,
     race: Race,
@@ -36,7 +36,7 @@ pub extern "C" fn physis_build_equipment_path(
     ffi_to_c_string(&build_equipment_path(model_id, race, subrace, gender, slot))
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_build_character_path(
     category: CharacterCategory,
     body_ver: i32,
@@ -49,7 +49,7 @@ pub extern "C" fn physis_build_character_path(
     ))
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_build_skin_material_path(
     race_code: i32,
     body_code: i32,
@@ -66,7 +66,7 @@ pub extern "C" fn physis_build_skin_material_path(
     ))
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_build_gear_material_path(
     gear_id: i32,
     gear_version: i32,
@@ -83,7 +83,7 @@ pub extern "C" fn physis_build_gear_material_path(
     ))
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_build_face_material_path(
     race_code: i32,
     face_code: i32,
@@ -100,7 +100,7 @@ pub extern "C" fn physis_build_face_material_path(
     ))
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_build_hair_material_path(
     race_code: i32,
     hair_code: i32,
@@ -117,7 +117,7 @@ pub extern "C" fn physis_build_hair_material_path(
     ))
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_build_ear_material_path(
     race_code: i32,
     ear_code: i32,
@@ -134,7 +134,7 @@ pub extern "C" fn physis_build_ear_material_path(
     ))
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_build_tail_material_path(
     race_code: i32,
     tail_code: i32,

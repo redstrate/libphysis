@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::physis_Buffer;
-use physis::cmp::{RacialScalingParameters, CMP};
+use physis::cmp::{CMP, RacialScalingParameters};
 use physis::race::{Race, Subrace};
 use std::ptr::null_mut;
 use std::slice;
@@ -19,7 +19,7 @@ impl Default for physis_CMP {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_cmp_parse(buffer: physis_Buffer) -> physis_CMP {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -56,7 +56,7 @@ fn get_rsp_index(subrace: Subrace) -> i32 {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(
     cmp: physis_CMP,
     _: Race,

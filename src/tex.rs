@@ -31,7 +31,7 @@ impl Default for physis_Texture {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_texture_parse(buffer: physis_Buffer) -> physis_Texture {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 

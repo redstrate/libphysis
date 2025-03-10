@@ -29,7 +29,7 @@ impl Default for physis_EXL {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_read_excel_list(buffer: physis_Buffer) -> physis_EXL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 

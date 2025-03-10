@@ -23,7 +23,7 @@ impl Default for physis_Dictionary {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_parse_dictionary(buffer: physis_Buffer) -> physis_Dictionary {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 

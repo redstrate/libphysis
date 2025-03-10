@@ -31,12 +31,19 @@ pub struct physis_PatchList {
 
 impl Default for physis_PatchList {
     fn default() -> Self {
-        Self { patch_length: 0, num_entries: 0, entries: null() }
+        Self {
+            patch_length: 0,
+            num_entries: 0,
+            entries: null(),
+        }
     }
 }
 
-#[no_mangle]
-pub extern "C" fn physis_parse_patchlist(patch_type: PatchListType, encoded: *const c_char) -> physis_PatchList {
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_parse_patchlist(
+    patch_type: PatchListType,
+    encoded: *const c_char,
+) -> physis_PatchList {
     if let Some(r_path) = ffi_from_c_string(encoded) {
         if let patch_list = PatchList::from_string(patch_type, &r_path) {
             let mut c_patches = vec![];

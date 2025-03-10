@@ -7,10 +7,10 @@ use std::ptr::slice_from_raw_parts;
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
-use physis::model::{SubMesh, Vertex, MDL};
+use physis::model::{MDL, SubMesh, Vertex};
 use physis::model_vertex_declarations::VertexElement;
-use physis::model_vertex_declarations::{VertexType, VertexUsage};
 use physis::model_vertex_declarations::get_vertex_type_size;
+use physis::model_vertex_declarations::{VertexType, VertexUsage};
 
 use crate::{ffi_to_c_string, physis_Buffer};
 
@@ -75,7 +75,7 @@ impl Default for physis_MDL {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -116,7 +116,7 @@ pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
     mdl
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_mdl_write(mdl: &physis_MDL) -> physis_Buffer {
     unsafe {
         let mut buffer = (*mdl.p_ptr).write_to_buffer().unwrap();
@@ -136,7 +136,9 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
     let mut c_lods: Vec<physis_LOD> = Vec::new();
 
     for (i, lod) in mdl.lods.iter().enumerate() {
-        let mut c_decls: Vec<VertexElement> = mdl.model_data.header.vertex_declarations[i].elements.clone();
+        let mut c_decls: Vec<VertexElement> = mdl.model_data.header.vertex_declarations[i]
+            .elements
+            .clone();
 
         let mut c_parts: Vec<physis_Part> = Vec::new();
 
@@ -207,7 +209,7 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
     c_lods
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_mdl_replace_vertices(
     mdl: *mut physis_MDL,
     lod_index: u32,
@@ -237,14 +239,14 @@ pub extern "C" fn physis_mdl_replace_vertices(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_mdl_remove_shape_meshes(mdl: *mut physis_MDL) {
     unsafe {
         (*(*mdl).p_ptr).remove_shape_meshes();
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_mdl_add_shape_mesh(
     mdl: *mut physis_MDL,
     lod_index: u32,
@@ -272,7 +274,7 @@ pub extern "C" fn physis_mdl_add_shape_mesh(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_get_vertex_type_size(vertex_type: VertexType) -> usize {
     get_vertex_type_size(vertex_type)
 }

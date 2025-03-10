@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_to_c_string, physis_Buffer};
-use physis::mtrl::{ColorTable, LegacyColorTableRow, DawntrailColorTableRow};
 use physis::mtrl::Constant;
 use physis::mtrl::Material;
 use physis::mtrl::Sampler;
 use physis::mtrl::ShaderKey;
+use physis::mtrl::{ColorTable, DawntrailColorTableRow, LegacyColorTableRow};
 use std::os::raw::c_char;
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
@@ -77,7 +77,7 @@ impl Default for physis_Material {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Material {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -106,8 +106,8 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
                         legacy_rows.as_mut_ptr()
                     },
                 }
-            },
-            _ => { physis_LegacyColorTable::default() }
+            }
+            _ => physis_LegacyColorTable::default(),
         };
 
         let dawntrail_color_table = match &material.color_table {
@@ -122,8 +122,8 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
                         dawntrail_rows.as_mut_ptr()
                     },
                 }
-            },
-            _ => { physis_DawntrailColorTable::default() }
+            }
+            _ => physis_DawntrailColorTable::default(),
         };
 
         let mat = physis_Material {
@@ -137,7 +137,7 @@ pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Materia
             num_samplers: samplers.len() as u32,
             samplers: samplers.as_mut_ptr(),
             legacy_color_table,
-            dawntrail_color_table
+            dawntrail_color_table,
         };
 
         mem::forget(c_strings);

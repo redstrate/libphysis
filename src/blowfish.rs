@@ -5,20 +5,20 @@ use physis::blowfish::Blowfish;
 use std::os::raw::c_uint;
 use std::{mem, slice};
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_blowfish_initialize(key: *mut u8, key_size: c_uint) -> *mut Blowfish {
     let data = unsafe { slice::from_raw_parts(key, key_size as usize) };
     Box::into_raw(Box::new(Blowfish::new(data)))
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_blowfish_free(blowfish: *mut Blowfish) {
     unsafe {
         drop(Box::from_raw(blowfish));
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_blowfish_encrypt(
     blowfish: &Blowfish,
     in_data: *mut u8,
@@ -45,7 +45,7 @@ pub extern "C" fn physis_blowfish_encrypt(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_blowfish_decrypt(
     blowfish: &Blowfish,
     in_data: *mut u8,

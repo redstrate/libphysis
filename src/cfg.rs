@@ -19,7 +19,7 @@ impl Default for physis_ConfigFile {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_cfg_parse(buffer: physis_Buffer) -> physis_ConfigFile {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -34,7 +34,7 @@ pub extern "C" fn physis_cfg_parse(buffer: physis_Buffer) -> physis_ConfigFile {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_cfg_set_value(
     cfg: physis_ConfigFile,
     key: *const c_char,
@@ -53,7 +53,7 @@ pub extern "C" fn physis_cfg_set_value(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_cfg_write(cfg: physis_ConfigFile) -> physis_Buffer {
     unsafe {
         let mut buffer = (*cfg.p_ptr).write_to_buffer().unwrap();

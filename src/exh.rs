@@ -18,7 +18,7 @@ pub struct physis_EXH {
     row_count: u32,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut physis_EXH {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 

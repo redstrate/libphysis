@@ -96,7 +96,7 @@ fn physis_get_shader_parameter_array(
     result
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -201,7 +201,7 @@ pub struct physis_SHPKNode {
     passes: *mut Pass,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_shpk_get_node(shpk: *const physis_SHPK, key: u32) -> physis_SHPKNode {
     unsafe {
         if let Some(node) = (*(*shpk).p_ptr).find_node(key) {
@@ -252,7 +252,7 @@ pub extern "C" fn physis_shpk_get_node(shpk: *const physis_SHPK, key: u32) -> ph
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_shpk_build_selector_from_all_keys(
     system_keys: *const u32,
     system_key_count: u32,
@@ -292,7 +292,7 @@ pub extern "C" fn physis_shpk_build_selector_from_all_keys(
     )
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_shpk_crc(name: *const c_char) -> u32 {
     ShaderPackage::crc(&ffi_from_c_string(name).unwrap())
 }

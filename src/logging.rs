@@ -82,14 +82,14 @@ where
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn set_tracing_callback(callback: LogCallback) {
     tracing_subscriber::registry()
         .with(CustomLayer { callback })
         .init();
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_initialize_logging() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::TRACE)

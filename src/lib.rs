@@ -41,12 +41,12 @@ fn ffi_free_string(ptr: *const c_char) {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_get_physis_version() -> *const c_char {
     ffi_to_c_string(&physis::PHYSIS_VERSION.to_string())
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_get_libphysis_version() -> *const c_char {
     ffi_to_c_string(&env!("CARGO_PKG_VERSION").to_string())
 }
@@ -67,7 +67,7 @@ impl Default for physis_Buffer {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_read_file(path: *const c_char) -> physis_Buffer {
     let Some(r_path) = ffi_from_c_string(path) else {
         return physis_Buffer::default();
@@ -140,8 +140,8 @@ mod index;
 #[cfg(feature = "logging")]
 mod logging;
 
-mod schd;
 mod existing_dirs;
+mod schd;
 
 mod execlookup;
 

@@ -30,7 +30,7 @@ impl Default for physis_Terrain {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_parse_tera(buffer: physis_Buffer) -> physis_Terrain {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 

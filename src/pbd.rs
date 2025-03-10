@@ -19,7 +19,7 @@ impl Default for physis_PBD {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_parse_pbd(buffer: physis_Buffer) -> physis_PBD {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
@@ -55,7 +55,7 @@ impl Default for physis_PreBoneDeformMatrices {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_pbd_get_deform_matrix(
     pbd: physis_PBD,
     from_body_id: u16,

@@ -69,7 +69,7 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
     skel
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn physis_parse_skeleton(buffer: physis_Buffer) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
