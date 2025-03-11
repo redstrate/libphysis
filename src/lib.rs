@@ -91,7 +91,6 @@ mod gamedata;
 
 mod bootdata;
 
-#[cfg(feature = "visual_data")]
 mod model;
 
 mod race;
@@ -102,23 +101,16 @@ mod equipment;
 
 mod blowfish;
 
-#[cfg(feature = "game_install")]
-mod installer;
-
 mod exh;
 
 mod exd;
 
-#[cfg(feature = "visual_data")]
 mod skeleton;
 
-#[cfg(feature = "visual_data")]
 mod tex;
 
-#[cfg(feature = "visual_data")]
 mod mtrl;
 
-#[cfg(feature = "visual_data")]
 mod shpk;
 
 mod cmp;
@@ -127,10 +119,8 @@ mod chardat;
 
 mod cfg;
 
-#[cfg(feature = "visual_data")]
 mod pbd;
 
-#[cfg(feature = "visual_data")]
 mod tera;
 
 mod dic;

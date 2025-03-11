@@ -21,11 +21,8 @@ lto = true
 cbindgen = { version = "0.28", default-features = false }
 
 [features]
-default = ["visual_data", "logging"]
+default = ["logging"]
 logging = []
-
-game_install = ["physis/game_install"]
-visual_data = ["physis/visual_data"]
 
 [dependencies]
 physis = { git = "https://github.com/redstrate/physis", default-features = false }
