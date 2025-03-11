@@ -43,9 +43,9 @@ jobs:
       run: |
         cargo install --locked cargo-deny
     - name: Build
-      run: cargo build --features visual_data,game_install --verbose
+      run: cargo build --verbose
     - name: Run clippy
-      run: cargo clippy --features visual_data,game_install
+      run: cargo clippy
     - name: Run deny-check
       run: |
         cargo deny check

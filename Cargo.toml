@@ -21,7 +21,7 @@ lto = true
 cbindgen = { version = "0.28", default-features = false }
 
 [features]
-default = ["logging"]
+default = []
 logging = []
 
 [dependencies]
