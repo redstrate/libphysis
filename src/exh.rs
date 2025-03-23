@@ -3,7 +3,7 @@
 
 use crate::physis_Buffer;
 use physis::common::Language;
-use physis::exh::EXH;
+use physis::exh::{EXH, ColumnDataType};
 use std::ptr::null_mut;
 use std::{mem, slice};
 
@@ -16,6 +16,7 @@ pub struct physis_EXH {
     languages: *mut Language,
     column_count: u32,
     row_count: u32,
+    column_types: *mut ColumnDataType
 }
 
 #[unsafe(no_mangle)]
@@ -35,6 +36,12 @@ pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut
         c_languages.push(*lang);
     }
 
+    let mut c_column_types: Vec<ColumnDataType> = vec![];
+
+    for column in &exh.column_definitions {
+        c_column_types.push(column.data_type.clone());
+    }
+
     let page_len = exh.pages.len() as u32;
     let row_count = exh.header.row_count as u32;
     let column_count = exh.column_definitions.len() as u32;
@@ -46,9 +53,11 @@ pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut
         languages: c_languages.as_mut_ptr(),
         column_count,
         row_count,
+        column_types: c_column_types.as_mut_ptr()
     };
 
     mem::forget(c_languages);
+    mem::forget(c_column_types);
 
     Box::leak(Box::new(repositories))
 }
