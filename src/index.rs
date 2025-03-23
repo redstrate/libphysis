@@ -5,7 +5,7 @@ use std::mem;
 use std::os::raw::c_char;
 use std::ptr::null;
 
-use physis::index::IndexFile;
+use physis::sqpack::{Hash, SqPackIndex};
 
 use crate::ffi_from_c_string;
 
@@ -33,17 +33,17 @@ pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries
         return physis_IndexEntries::default();
     };
 
-    if let Some(idx_file) = IndexFile::from_existing(&r_path) {
+    if let Some(idx_file) = SqPackIndex::from_existing(&r_path) {
         let mut c_dir_entries = vec![];
         let mut c_file_entries = vec![];
 
         for entry in &idx_file.entries {
             match &entry.hash {
-                physis::index::Hash::SplitPath { name, path } => {
+                Hash::SplitPath { name, path } => {
                     c_file_entries.push(*name);
                     c_dir_entries.push((path >> 32) as u32);
                 }
-                physis::index::Hash::FullPath(hash) => {
+                Hash::FullPath(hash) => {
                     c_file_entries.push(*hash); // TODO: is this really correct?
                 }
             }
@@ -70,7 +70,7 @@ pub extern "C" fn physis_generate_partial_hash(name: *const c_char) -> u32 {
         return 0;
     };
 
-    IndexFile::calculate_partial_hash(&r_name)
+    SqPackIndex::calculate_partial_hash(&r_name)
 }
 
 #[unsafe(no_mangle)]
@@ -87,10 +87,10 @@ pub extern "C" fn physis_calculate_hash(
     };
 
     // TODO: this is not ideal, we should just expose IndexFile in the C API
-    if let Some(idx_file) = IndexFile::from_existing(&r_index_file_path) {
+    if let Some(idx_file) = SqPackIndex::from_existing(&r_index_file_path) {
         match &idx_file.calculate_hash(&r_path) {
-            physis::index::Hash::SplitPath { name, path } => (*path as u64) << 32 | (*name as u64),
-            physis::index::Hash::FullPath(hash) => *hash as u64,
+            Hash::SplitPath { name, path } => (*path as u64) << 32 | (*name as u64),
+            Hash::FullPath(hash) => *hash as u64,
         }
     } else {
         0

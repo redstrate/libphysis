@@ -158,44 +158,10 @@ pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(
     if let Some(exd) = game_data.read_excel_sheet(&r_name, &*exh.p_ptr, language, page as usize) {
         let exd = Box::new(exd);
 
-        let mut c_rows: Vec<physis_ExcelRow> = Vec::new();
-
-        for row in &exd.rows {
-            let mut c_col_data: Vec<physis_ColumnData> = Vec::new();
-
-            for col_data in &row.data {
-                match col_data {
-                    ColumnData::String(s) => {
-                        c_col_data.push(physis_ColumnData::String(ffi_to_c_string(s)))
-                    }
-                    ColumnData::Bool(b) => c_col_data.push(physis_ColumnData::Bool(*b)),
-                    ColumnData::Int8(i) => c_col_data.push(physis_ColumnData::Int8(*i)),
-                    ColumnData::UInt8(i) => c_col_data.push(physis_ColumnData::UInt8(*i)),
-                    ColumnData::Int16(i) => c_col_data.push(physis_ColumnData::Int16(*i)),
-                    ColumnData::UInt16(i) => c_col_data.push(physis_ColumnData::UInt16(*i)),
-                    ColumnData::Int32(i) => c_col_data.push(physis_ColumnData::Int32(*i)),
-                    ColumnData::UInt32(i) => c_col_data.push(physis_ColumnData::UInt32(*i)),
-                    ColumnData::Float32(i) => c_col_data.push(physis_ColumnData::Float32(*i)),
-                    ColumnData::Int64(i) => c_col_data.push(physis_ColumnData::Int64(*i)),
-                    ColumnData::UInt64(i) => c_col_data.push(physis_ColumnData::UInt64(*i)),
-                }
-            }
-
-            c_rows.push(physis_ExcelRow {
-                column_data: c_col_data.as_mut_ptr(),
-            });
-
-            mem::forget(c_col_data);
-        }
-
         let exd = physis_EXD {
             p_ptr: Box::leak(exd),
             column_count: (*exh.p_ptr).column_definitions.len() as c_uint,
-            row_data: c_rows.as_mut_ptr(),
-            row_count: c_rows.len() as c_uint,
         };
-
-        mem::forget(c_rows);
 
         exd
     } else {
@@ -224,27 +190,6 @@ pub unsafe extern "C" fn physis_gamedata_get_exd_filename(
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_free_sheet(exd: physis_EXD) {
     unsafe {
-        let data =
-            Vec::from_raw_parts(exd.row_data, exd.row_count as usize, exd.row_count as usize);
-
-        for i in 0..exd.row_count {
-            let col_data = Vec::from_raw_parts(
-                data[i as usize].column_data,
-                exd.column_count as usize,
-                exd.column_count as usize,
-            );
-
-            for col in &col_data {
-                if let physis_ColumnData::String(s) = col {
-                    ffi_free_string(*s);
-                }
-            }
-
-            drop(col_data);
-        }
-
-        drop(data);
-
         drop(Box::from_raw(exd.p_ptr));
     }
 }
