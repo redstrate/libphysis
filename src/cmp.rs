@@ -62,5 +62,5 @@ pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(
     _: Race,
     subrace: Subrace,
 ) -> RacialScalingParameters {
-    (*cmp.p_ptr).parameters[get_rsp_index(subrace) as usize]
+    unsafe { (*cmp.p_ptr).parameters[get_rsp_index(subrace) as usize] }
 }

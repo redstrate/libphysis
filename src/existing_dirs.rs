@@ -7,7 +7,6 @@ use physis::existing_dirs::{
 };
 use std::ffi::c_char;
 use std::mem;
-use std::ptr::null_mut;
 
 /// An existing install location on disk
 #[repr(C)]

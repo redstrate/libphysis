@@ -41,7 +41,7 @@ pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries
             match &entry.hash {
                 Hash::SplitPath { name, path } => {
                     c_file_entries.push(*name);
-                    c_dir_entries.push((path >> 32) as u32);
+                    c_dir_entries.push(path >> 32);
                 }
                 Hash::FullPath(hash) => {
                     c_file_entries.push(*hash); // TODO: is this really correct?
@@ -89,7 +89,7 @@ pub extern "C" fn physis_calculate_hash(
     // TODO: this is not ideal, we should just expose IndexFile in the C API
     if let Some(idx_file) = SqPackIndex::from_existing(&r_index_file_path) {
         match &idx_file.calculate_hash(&r_path) {
-            Hash::SplitPath { name, path } => (*path as u64) << 32 | (*name as u64),
+            Hash::SplitPath { name, path } => ((*path as u64) << 32) | (*name as u64),
             Hash::FullPath(hash) => *hash as u64,
         }
     } else {

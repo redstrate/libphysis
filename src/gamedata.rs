@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::exd::{physis_ColumnData, physis_EXD, physis_ExcelRow};
+use crate::exd::physis_EXD;
 use crate::exh::physis_EXH;
 use crate::{ffi_free_string, ffi_from_c_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::common::{Language, Platform};
-use physis::exd::{ColumnData, EXD};
+use physis::exd::EXD;
 use physis::gamedata::GameData;
 use physis::repository::RepositoryType;
 use std::ffi::CStr;
@@ -64,11 +64,9 @@ pub extern "C" fn physis_gamedata_find_offset(
     path: *const c_char,
 ) -> u64 {
     unsafe {
-        if let Some(d) = game_data.find_offset(CStr::from_ptr(path).to_string_lossy().as_ref()) {
-            d
-        } else {
-            0
-        }
+        game_data
+            .find_offset(CStr::from_ptr(path).to_string_lossy().as_ref())
+            .unwrap_or_default()
     }
 }
 
@@ -151,21 +149,24 @@ pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(
     language: Language,
     page: c_uint,
 ) -> physis_EXD {
-    let Some(r_name) = ffi_from_c_string(name) else {
-        return physis_EXD::default();
-    };
-
-    if let Some(exd) = game_data.read_excel_sheet(&r_name, &*exh.p_ptr, language, page as usize) {
-        let exd = Box::new(exd);
-
-        let exd = physis_EXD {
-            p_ptr: Box::leak(exd),
-            column_count: (*exh.p_ptr).column_definitions.len() as c_uint,
+    unsafe {
+        let Some(r_name) = ffi_from_c_string(name) else {
+            return physis_EXD::default();
         };
 
-        exd
-    } else {
-        physis_EXD::default()
+        if let Some(exd) = game_data.read_excel_sheet(&r_name, &*exh.p_ptr, language, page as usize)
+        {
+            let exd = Box::new(exd);
+
+            let exd = physis_EXD {
+                p_ptr: Box::leak(exd),
+                column_count: (*exh.p_ptr).column_definitions.len() as c_uint,
+            };
+
+            exd
+        } else {
+            physis_EXD::default()
+        }
     }
 }
 
@@ -176,15 +177,17 @@ pub unsafe extern "C" fn physis_gamedata_get_exd_filename(
     language: Language,
     page: c_uint,
 ) -> *const c_char {
-    let Some(r_name) = ffi_from_c_string(name) else {
-        return null();
-    };
+    unsafe {
+        let Some(r_name) = ffi_from_c_string(name) else {
+            return null();
+        };
 
-    ffi_to_c_string(&EXD::calculate_filename(
-        &r_name,
-        language,
-        &(*exh.p_ptr).pages[page as usize],
-    ))
+        ffi_to_c_string(&EXD::calculate_filename(
+            &r_name,
+            language,
+            &(*exh.p_ptr).pages[page as usize],
+        ))
+    }
 }
 
 #[unsafe(no_mangle)]

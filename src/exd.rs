@@ -57,7 +57,12 @@ impl Default for physis_ExcelRows {
     }
 }
 
-pub fn physis_exd_read_row(exd: &physis_EXD, exh: &physis_EXH, id: u32) -> physis_ExcelRows {
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_exd_read_row(
+    exd: &physis_EXD,
+    exh: &physis_EXH,
+    id: u32,
+) -> physis_ExcelRows {
     unsafe {
         if let Some(rows) = (*exd.p_ptr).read_row(&*exh.p_ptr, id) {
             let mut c_rows: Vec<physis_ExcelRow> = Vec::new();
@@ -103,7 +108,8 @@ pub fn physis_exd_read_row(exd: &physis_EXD, exh: &physis_EXH, id: u32) -> physi
     }
 }
 
-pub fn physis_exd_free_rows(exd: &physis_EXD, rows: &physis_ExcelRows) {
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_exd_free_rows(exd: &physis_EXD, rows: &physis_ExcelRows) {
     unsafe {
         let data = Vec::from_raw_parts(
             rows.row_data,

@@ -9,8 +9,8 @@ use std::{mem, slice};
 
 use physis::model::{MDL, SubMesh, Vertex};
 use physis::model_vertex_declarations::VertexElement;
+use physis::model_vertex_declarations::VertexType;
 use physis::model_vertex_declarations::get_vertex_type_size;
-use physis::model_vertex_declarations::{VertexType, VertexUsage};
 
 use crate::{ffi_to_c_string, physis_Buffer};
 
@@ -163,9 +163,9 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
             }
 
             for stream in &part.vertex_streams {
-                let mut c_stream = stream.clone();
+                let c_stream = stream.clone();
                 c_streams.push(c_stream.as_ptr());
-                c_stream_sizes.push(c_stream.len() as usize);
+                c_stream_sizes.push(c_stream.len());
 
                 mem::forget(c_stream);
             }
@@ -176,7 +176,7 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
                 streams: c_streams.as_mut_ptr(),
                 stream_sizes: c_stream_sizes.as_mut_ptr(),
                 stream_strides: c_stream_strides.as_mut_ptr(),
-                num_streams: c_stream_strides.len() as usize,
+                num_streams: c_stream_strides.len(),
                 num_indices: c_indices.len() as u32,
                 indices: c_indices.as_mut_ptr(),
                 material_index: part.material_index,

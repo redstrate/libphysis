@@ -45,39 +45,39 @@ pub extern "C" fn physis_parse_patchlist(
     encoded: *const c_char,
 ) -> physis_PatchList {
     if let Some(r_path) = ffi_from_c_string(encoded) {
-        if let patch_list = PatchList::from_string(patch_type, &r_path) {
-            let mut c_patches = vec![];
+        let patch_list = PatchList::from_string(patch_type, &r_path);
 
-            for entry in &patch_list.patches {
-                let mut c_hashes = vec![];
+        let mut c_patches = vec![];
 
-                for hash in &entry.hashes {
-                    c_hashes.push(ffi_to_c_string(&hash));
-                }
+        for entry in &patch_list.patches {
+            let mut c_hashes = vec![];
 
-                c_patches.push(physis_PatchEntry {
-                    url: ffi_to_c_string(&entry.url),
-                    version: ffi_to_c_string(&entry.version),
-                    hash_count: c_hashes.len() as u64,
-                    hashes: c_hashes.as_mut_ptr(),
-                    hash_block_size: entry.hash_block_size,
-                    length: entry.length,
-                    size_on_disk: entry.size_on_disk,
-                });
-
-                mem::forget(c_hashes);
+            for hash in &entry.hashes {
+                c_hashes.push(ffi_to_c_string(hash));
             }
 
-            let pl = physis_PatchList {
-                patch_length: patch_list.patch_length,
-                num_entries: c_patches.len() as i32,
-                entries: c_patches.as_mut_ptr(),
-            };
+            c_patches.push(physis_PatchEntry {
+                url: ffi_to_c_string(&entry.url),
+                version: ffi_to_c_string(&entry.version),
+                hash_count: c_hashes.len() as u64,
+                hashes: c_hashes.as_mut_ptr(),
+                hash_block_size: entry.hash_block_size,
+                length: entry.length,
+                size_on_disk: entry.size_on_disk,
+            });
 
-            mem::forget(c_patches);
-
-            return pl;
+            mem::forget(c_hashes);
         }
+
+        let pl = physis_PatchList {
+            patch_length: patch_list.patch_length,
+            num_entries: c_patches.len() as i32,
+            entries: c_patches.as_mut_ptr(),
+        };
+
+        mem::forget(c_patches);
+
+        return pl;
     }
 
     physis_PatchList::default()
