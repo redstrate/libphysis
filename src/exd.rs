@@ -1,13 +1,14 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{exh::physis_EXH, ffi_free_string, ffi_to_c_string};
+use crate::{ffi_free_string, ffi_to_c_string};
 use physis::exd::{ColumnData, EXD, ExcelRowKind};
 use std::mem;
 use std::os::raw::{c_char, c_uint};
 use std::ptr::null_mut;
 
 #[repr(C)]
+#[allow(dead_code)]
 pub enum physis_ColumnData {
     String(*const c_char),
     Bool(bool),
