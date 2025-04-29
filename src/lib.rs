@@ -136,3 +136,6 @@ mod schd;
 mod execlookup;
 
 mod patchlist;
+
+#[cfg(feature = "game_install")]
+mod installer;

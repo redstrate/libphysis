@@ -3,7 +3,7 @@
 
 use std::os::raw::c_char;
 
-use physis::installer::install_game;
+use miscel::installer::install_game;
 
 use crate::ffi_from_c_string;
 
