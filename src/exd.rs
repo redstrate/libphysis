@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{exh::physis_EXH, ffi_free_string, ffi_to_c_string};
-use physis::exd::{ColumnData, EXD};
+use physis::exd::{ColumnData, EXD, ExcelRowKind};
 use std::mem;
 use std::os::raw::{c_char, c_uint};
 use std::ptr::null_mut;
@@ -58,18 +58,19 @@ impl Default for physis_ExcelRows {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_exd_read_row(
-    exd: &physis_EXD,
-    exh: &physis_EXH,
-    id: u32,
-) -> physis_ExcelRows {
+pub extern "C" fn physis_exd_read_row(exd: &physis_EXD, id: u32) -> physis_ExcelRows {
     unsafe {
-        if let Some(rows) = (*exd.p_ptr).read_row(&*exh.p_ptr, id) {
+        if let Some(rows) = (*exd.p_ptr).get_row(id) {
+            let rows = match rows {
+                ExcelRowKind::SingleRow(val) => vec![val],
+                ExcelRowKind::SubRows(rows) => rows,
+            };
+
             let mut c_rows: Vec<physis_ExcelRow> = Vec::new();
             for row in &rows {
                 let mut c_col_data: Vec<physis_ColumnData> = Vec::new();
 
-                for col_data in &row.data {
+                for col_data in &row.columns {
                     match col_data {
                         ColumnData::String(s) => {
                             c_col_data.push(physis_ColumnData::String(ffi_to_c_string(s)))
