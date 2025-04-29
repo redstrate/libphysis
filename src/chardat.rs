@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::physis_Buffer;
-use physis::chardat::CharacterData;
+use physis::savedata::chardat::CharacterData;
 use std::slice;
 
 #[unsafe(no_mangle)]

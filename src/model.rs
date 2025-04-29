@@ -7,10 +7,10 @@ use std::ptr::slice_from_raw_parts;
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
+use physis::model::vertex_declarations::VertexElement;
+use physis::model::vertex_declarations::VertexType;
+use physis::model::vertex_declarations::get_vertex_type_size;
 use physis::model::{MDL, SubMesh, Vertex};
-use physis::model_vertex_declarations::VertexElement;
-use physis::model_vertex_declarations::VertexType;
-use physis::model_vertex_declarations::get_vertex_type_size;
 
 use crate::{ffi_to_c_string, physis_Buffer};
 

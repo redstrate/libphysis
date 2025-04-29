@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::ffi_to_c_string;
-use physis::existing_dirs::{
+use miscel::existing_dirs::{
     ExistingInstallType, find_existing_game_dirs, find_existing_user_dirs,
 };
 use std::ffi::c_char;

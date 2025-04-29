@@ -7,7 +7,7 @@ use physis::equipment::{
     build_face_material_path, build_gear_material_path, build_hair_material_path,
     build_skin_material_path, build_tail_material_path, get_slot_abbreviation, get_slot_from_id,
 };
-use physis::race::{Gender, Race, Subrace};
+use physis::race::{Gender, Race, Tribe};
 use std::os::raw::c_char;
 use std::ptr::null;
 
@@ -29,11 +29,11 @@ pub extern "C" fn physis_get_slot_name(slot: Slot) -> *const c_char {
 pub extern "C" fn physis_build_equipment_path(
     model_id: i32,
     race: Race,
-    subrace: Subrace,
+    tribe: Tribe,
     gender: Gender,
     slot: Slot,
 ) -> *const c_char {
-    ffi_to_c_string(&build_equipment_path(model_id, race, subrace, gender, slot))
+    ffi_to_c_string(&build_equipment_path(model_id, race, tribe, gender, slot))
 }
 
 #[unsafe(no_mangle)]
@@ -41,11 +41,11 @@ pub extern "C" fn physis_build_character_path(
     category: CharacterCategory,
     body_ver: i32,
     race: Race,
-    subrace: Subrace,
+    tribe: Tribe,
     gender: Gender,
 ) -> *const c_char {
     ffi_to_c_string(&build_character_path(
-        category, body_ver, race, subrace, gender,
+        category, body_ver, race, tribe, gender,
     ))
 }
 

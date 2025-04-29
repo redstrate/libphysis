@@ -3,7 +3,7 @@
 
 use crate::physis_Buffer;
 use physis::common::Language;
-use physis::exh::{EXH, ColumnDataType};
+use physis::exh::{ColumnDataType, EXH};
 use std::ptr::null_mut;
 use std::{mem, slice};
 
@@ -16,7 +16,7 @@ pub struct physis_EXH {
     languages: *mut Language,
     column_count: u32,
     row_count: u32,
-    column_types: *mut ColumnDataType
+    column_types: *mut ColumnDataType,
 }
 
 #[unsafe(no_mangle)]
@@ -53,7 +53,7 @@ pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut
         languages: c_languages.as_mut_ptr(),
         column_count,
         row_count,
-        column_types: c_column_types.as_mut_ptr()
+        column_types: c_column_types.as_mut_ptr(),
     };
 
     mem::forget(c_languages);
