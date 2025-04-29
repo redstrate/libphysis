@@ -31,6 +31,7 @@ pub struct physis_ExcelRow {
 pub struct physis_EXD {
     pub p_ptr: *mut EXD,
     pub column_count: c_uint,
+    pub row_count: c_uint,
 }
 
 impl Default for physis_EXD {
@@ -38,6 +39,7 @@ impl Default for physis_EXD {
         Self {
             p_ptr: null_mut(),
             column_count: 0,
+            row_count: 0,
         }
     }
 }

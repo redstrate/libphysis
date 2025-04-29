@@ -156,11 +156,13 @@ pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(
 
         if let Some(exd) = game_data.read_excel_sheet(&r_name, &*exh.p_ptr, language, page as usize)
         {
+            let row_count = exd.rows.len() as c_uint;
             let exd = Box::new(exd);
 
             let exd = physis_EXD {
                 p_ptr: Box::leak(exd),
                 column_count: (*exh.p_ptr).column_definitions.len() as c_uint,
+                row_count,
             };
 
             exd
