@@ -226,7 +226,7 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 [[package]]
 name = "miscel"
 version = "0.1.0"
-source = "git+https://github.com/redstrate/miscel#7646580eead2e5b838af7be93f55b2e36dc130cd"
+source = "git+https://github.com/redstrate/miscel#ccfe3cd0c379ef03352eb9d510dd10e8ea182811"
 dependencies = [
  "system-deps",
 ]
