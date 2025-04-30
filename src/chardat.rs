@@ -3,8 +3,8 @@
 
 use crate::{ffi_to_c_string, physis_Buffer};
 use physis::savedata::chardat::{CharacterData, CustomizeData};
-use std::slice;
 use std::ffi::c_char;
+use std::slice;
 
 #[repr(C)]
 pub struct physis_CharacterData {

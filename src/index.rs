@@ -40,8 +40,8 @@ pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries
         for entry in &idx_file.entries {
             match &entry.hash {
                 Hash::SplitPath { name, path } => {
-                    c_file_entries.push(*name);
-                    c_dir_entries.push(path >> 32);
+                    c_file_entries.push((((*path as u64) << 32) | (*name as u64)) as u32);
+                    c_dir_entries.push(*path);
                 }
                 Hash::FullPath(hash) => {
                     c_file_entries.push(*hash); // TODO: is this really correct?
