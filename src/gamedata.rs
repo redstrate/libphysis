@@ -77,20 +77,17 @@ pub extern "C" fn physis_gamedata_free_sheet_header(_: *mut physis_EXH) {
     }*/
 }
 
-/// Initializes a new GameData structure. Path must be a valid game path, or else it will return NULL.
+/// Initializes a new GameData structure.
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_gamedata_initialize(path: *const c_char) -> *mut GameData {
     let Some(r_path) = ffi_from_c_string(path) else {
         return null_mut();
     };
 
-    if let Some(game_data) = GameData::from_existing(Platform::Win32, &r_path) {
-        let boxed = Box::new(game_data);
+    let game_data = GameData::from_existing(Platform::Win32, &r_path);
+    let boxed = Box::new(game_data);
 
-        Box::leak(boxed)
-    } else {
-        null_mut()
-    }
+    Box::leak(boxed)
 }
 
 #[unsafe(no_mangle)]
