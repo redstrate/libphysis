@@ -15,6 +15,8 @@ pub struct physis_ExistingGameDirectory {
     pub install_type: ExistingInstallType,
     /// The path to the "main folder" where "game" and "boot" sits
     pub path: *const c_char,
+    /// The latest game/expansion version in this directory
+    pub version: *const c_char,
 }
 
 #[repr(C)]
@@ -32,6 +34,7 @@ pub extern "C" fn physis_find_existing_game_dirs() -> physis_ExistingGameDirecto
         c_dirs.push(physis_ExistingGameDirectory {
             path: ffi_to_c_string(&dir.path),
             install_type: dir.install_type,
+            version: ffi_to_c_string(&dir.version),
         });
     }
 
