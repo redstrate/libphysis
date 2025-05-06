@@ -27,6 +27,7 @@ pub struct physis_PatchList {
     patch_length: u64,
     num_entries: i32,
     entries: *const physis_PatchEntry,
+    total_size_downloaded: i64,
 }
 
 impl Default for physis_PatchList {
@@ -35,6 +36,7 @@ impl Default for physis_PatchList {
             patch_length: 0,
             num_entries: 0,
             entries: null(),
+            total_size_downloaded: 0,
         }
     }
 }
@@ -73,6 +75,7 @@ pub extern "C" fn physis_parse_patchlist(
             patch_length: patch_list.patch_length,
             num_entries: c_patches.len() as i32,
             entries: c_patches.as_mut_ptr(),
+            total_size_downloaded: patch_list.total_size_downloaded(),
         };
 
         mem::forget(c_patches);
