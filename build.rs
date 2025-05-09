@@ -21,7 +21,6 @@ fn main() {
         .with_parse_deps(true)
         .with_parse_include(&["physis", "miscel"])
         .with_language(Language::C)
-        .with_define("feature", "logging", "ENABLE_LOGGING")
         .generate()
         .expect("Unable to generate C bindings")
         .write_to_file("target/public/physis.h");
@@ -32,7 +31,6 @@ fn main() {
         .with_parse_include(&["physis", "miscel"])
         .with_language(Language::Cxx)
         .with_pragma_once(true)
-        .with_define("feature", "logging", "ENABLE_LOGGING")
         .generate()
         .expect("Unable to generate C++ bindings")
         .write_to_file("target/public/physis.hpp");

@@ -127,9 +127,6 @@ mod dic;
 
 mod index;
 
-#[cfg(feature = "logging")]
-mod logging;
-
 mod existing_dirs;
 mod schd;
 
