@@ -210,7 +210,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 [[package]]
 name = "physis"
 version = "0.4.0"
-source = "git+https://github.com/redstrate/physis#e751ffa765ccd316112b3cb6ccdbb7a80fab8ccf"
+source = "git+https://github.com/redstrate/physis#6413a592f09c557990b1ab85ff454da56316e85d"
 dependencies = [
  "binrw",
  "bitflags",
@@ -315,9 +315,9 @@ dependencies = [
 
 [[package]]
 name = "tempfile"
-version = "3.19.1"
+version = "3.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7437ac7763b9b123ccf33c338a5cc1bac6f69b45a136c19bdd8a65e3916435bf"
+checksum = "e8a64e3985349f2441a1a9ef0b853f869006c3855f2cda6862a94d26ebb9d6a1"
 dependencies = [
  "fastrand",
  "getrandom",

@@ -14,6 +14,7 @@ use crate::{ffi_to_c_string, physis_Buffer};
 pub struct physis_InstanceObject {
     instance_id: u32,
     name: *const c_char,
+    transform: Transformation,
 }
 
 #[repr(C)]
@@ -63,6 +64,7 @@ pub extern "C" fn physis_layergroup_read(buffer: physis_Buffer) -> physis_LayerG
                     c_objects.push(physis_InstanceObject {
                         instance_id: object.instance_id,
                         name: ffi_to_c_string(&object.name),
+                        transform: object.transform,
                     });
                 }
 
