@@ -12,25 +12,25 @@ use physis::model::vertex_declarations::VertexType;
 use physis::model::vertex_declarations::get_vertex_type_size;
 use physis::model::{MDL, SubMesh, Vertex};
 
-use crate::{ffi_to_c_string, physis_Buffer};
+use crate::{ffi_to_c_string, physis_Buffer, ffi_to_vec, ffi_free_string};
 
 #[repr(C)]
 pub struct physis_Part {
     num_vertices: u32,
-    vertices: *const Vertex,
+    vertices: *mut Vertex,
 
-    streams: *const *const u8,
-    stream_sizes: *const usize,
-    stream_strides: *const usize,
+    streams: *mut *const u8,
+    stream_sizes: *mut usize,
+    stream_strides: *mut usize,
     num_streams: usize,
 
     num_indices: u32,
-    indices: *const u16,
+    indices: *mut u16,
 
     material_index: u16,
 
     num_submeshes: u32,
-    submeshes: *const SubMesh,
+    submeshes: *mut SubMesh,
 
     num_shapes: u32,
     shapes: *mut physis_Shape,
@@ -39,22 +39,22 @@ pub struct physis_Part {
 #[repr(C)]
 pub struct physis_Shape {
     name: *const c_char,
-    morphed_vertices: *const Vertex,
+    morphed_vertices: *mut Vertex,
 }
 
 #[repr(C)]
 pub struct physis_LOD {
     num_vertex_elements: u32,
-    vertex_elements: *const VertexElement,
+    vertex_elements: *mut VertexElement,
     num_parts: u32,
-    parts: *const physis_Part,
+    parts: *mut physis_Part,
 }
 
 #[repr(C)]
 pub struct physis_MDL {
     p_ptr: *mut MDL,
     num_lod: u32,
-    lods: *const physis_LOD,
+    lods: *mut physis_LOD,
     num_affected_bones: u32,
     affected_bone_names: *mut *const c_char,
     num_material_names: u32,
@@ -66,7 +66,7 @@ impl Default for physis_MDL {
         Self {
             p_ptr: null_mut(),
             num_lod: 0,
-            lods: null(),
+            lods: null_mut(),
             num_affected_bones: 0,
             affected_bone_names: null_mut(),
             num_material_names: 0,
@@ -277,4 +277,62 @@ pub extern "C" fn physis_mdl_add_shape_mesh(
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_get_vertex_type_size(vertex_type: VertexType) -> usize {
     get_vertex_type_size(vertex_type)
+}
+
+fn physis_mdl_free(mdl: &physis_MDL) {
+    unsafe {
+        let lods = ffi_to_vec(mdl.lods, mdl.num_lod);
+        for lod in &lods {
+            let parts = ffi_to_vec(lod.parts, lod.num_parts);
+            for part in &parts {
+                let vertices = ffi_to_vec(part.vertices, part.num_vertices);
+                drop(vertices);
+
+                let streams = ffi_to_vec(part.streams, part.num_streams as u32);
+                for stream in &streams {
+                    drop(stream);
+                }
+                drop(streams);
+
+                let stream_sizes = ffi_to_vec(part.stream_sizes, part.num_streams as u32);
+                drop(stream_sizes);
+
+                let stream_strides = ffi_to_vec(part.stream_strides, part.num_streams as u32);
+                drop(stream_strides);
+
+                let indices = ffi_to_vec(part.indices, part.num_indices);
+                drop(indices);
+
+                let submeshes = ffi_to_vec(part.submeshes, part.num_submeshes);
+                drop(submeshes);
+
+                let shapes = ffi_to_vec(part.shapes, part.num_shapes);
+                for shape in &shapes {
+                    ffi_free_string(shape.name);
+                    let morphed_vertices = ffi_to_vec(shape.morphed_vertices, part.num_vertices);
+                    drop(morphed_vertices);
+                }
+                drop(shapes);
+            }
+            drop(parts);
+
+            let vertex_elements = ffi_to_vec(lod.vertex_elements, lod.num_vertex_elements);
+            drop(vertex_elements);
+        }
+        drop(lods);
+
+        let affected_bone_names = ffi_to_vec(mdl.affected_bone_names, mdl.num_affected_bones);
+        for name in &affected_bone_names {
+            ffi_free_string(*name);
+        }
+        drop(affected_bone_names);
+
+        let material_names = ffi_to_vec(mdl.material_names, mdl.num_material_names);
+        for name in &material_names {
+            ffi_free_string(*name);
+        }
+        drop(material_names);
+
+        drop(Box::from_raw(mdl.p_ptr));
+    }
 }
