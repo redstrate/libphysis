@@ -5,9 +5,23 @@ use std::os::raw::c_char;
 use std::ptr::null;
 use std::slice;
 
+use physis::layer::LayerEntryData::BG;
 use physis::layer::*;
 
 use crate::{ffi_to_c_string, physis_Buffer};
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_BGInstanceObject {
+    asset_path: *const c_char,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub enum physis_LayerEntry {
+    None, // NOTE: a thing until every layer entry is supported
+    BG(physis_BGInstanceObject),
+}
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -15,6 +29,7 @@ pub struct physis_InstanceObject {
     instance_id: u32,
     name: *const c_char,
     transform: Transformation,
+    data: physis_LayerEntry,
 }
 
 #[repr(C)]
@@ -47,6 +62,15 @@ impl Default for physis_LayerGroup {
     }
 }
 
+fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
+    match data {
+        BG(bg) => physis_LayerEntry::BG(physis_BGInstanceObject {
+            asset_path: ffi_to_c_string(&bg.asset_path.value),
+        }),
+        _ => physis_LayerEntry::None,
+    }
+}
+
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_layergroup_read(buffer: physis_Buffer) -> physis_LayerGroup {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
@@ -63,8 +87,9 @@ pub extern "C" fn physis_layergroup_read(buffer: physis_Buffer) -> physis_LayerG
                 for object in &layer.objects {
                     c_objects.push(physis_InstanceObject {
                         instance_id: object.instance_id,
-                        name: ffi_to_c_string(&object.name),
+                        name: ffi_to_c_string(&object.name.value),
                         transform: object.transform,
+                        data: convert_data(&object.data),
                     });
                 }
 
