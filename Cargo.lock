@@ -163,7 +163,7 @@ version = "0.4.0"
 dependencies = [
  "cbindgen",
  "miscel",
- "physis",
+ "physis 0.4.0",
 ]
 
 [[package]]
@@ -198,7 +198,7 @@ name = "miscel"
 version = "0.1.0"
 source = "git+https://github.com/redstrate/miscel#e1ec6c2dde25750652961211da520aab63a0dfce"
 dependencies = [
- "physis",
+ "physis 0.4.0 (git+https://github.com/redstrate/physis)",
 ]
 
 [[package]]
@@ -206,6 +206,16 @@ name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
+
+[[package]]
+name = "physis"
+version = "0.4.0"
+dependencies = [
+ "binrw",
+ "bitflags",
+ "half",
+ "libz-rs-sys",
+]
 
 [[package]]
 name = "physis"
