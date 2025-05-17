@@ -33,9 +33,9 @@ dependencies = [
 
 [[package]]
 name = "bitflags"
-version = "2.9.0"
+version = "2.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
+checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
 
 [[package]]
 name = "bytemuck"
@@ -87,9 +87,9 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "errno"
-version = "0.3.11"
+version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "976dd42dc7e85965fe702eb8164f21f450704bdde31faefd6471dba214cb594e"
+checksum = "cea14ef9355e3beab063703aa9dab15afd25f0667c341310c1e5274bb1d0da18"
 dependencies = [
  "libc",
  "windows-sys",
@@ -163,7 +163,7 @@ version = "0.4.0"
 dependencies = [
  "cbindgen",
  "miscel",
- "physis 0.4.0",
+ "physis",
 ]
 
 [[package]]
@@ -198,7 +198,7 @@ name = "miscel"
 version = "0.1.0"
 source = "git+https://github.com/redstrate/miscel#e1ec6c2dde25750652961211da520aab63a0dfce"
 dependencies = [
- "physis 0.4.0 (git+https://github.com/redstrate/physis)",
+ "physis",
 ]
 
 [[package]]
@@ -210,17 +210,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 [[package]]
 name = "physis"
 version = "0.4.0"
-dependencies = [
- "binrw",
- "bitflags",
- "half",
- "libz-rs-sys",
-]
-
-[[package]]
-name = "physis"
-version = "0.4.0"
-source = "git+https://github.com/redstrate/physis#39f1c9665f6e48d7faec83c63003541532484a26"
+source = "git+https://github.com/redstrate/physis#a905234a18ae2e3e2b214128afcbb5e26062bf4f"
 dependencies = [
  "binrw",
  "bitflags",

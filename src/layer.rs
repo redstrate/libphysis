@@ -37,6 +37,8 @@ pub struct physis_InstanceObject {
 pub struct physis_Layer {
     objects: *const physis_InstanceObject,
     num_objects: u32,
+    name: *const c_char,
+    id: u32,
 }
 
 #[repr(C)]
@@ -96,6 +98,8 @@ pub extern "C" fn physis_layergroup_read(buffer: physis_Buffer) -> physis_LayerG
                 c_layers.push(physis_Layer {
                     objects: c_objects.as_ptr(),
                     num_objects: c_objects.len() as u32,
+                    name: ffi_to_c_string(&layer.header.name.value),
+                    id: layer.header.layer_id,
                 });
 
                 std::mem::forget(c_objects);
