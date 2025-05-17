@@ -279,7 +279,8 @@ pub extern "C" fn physis_get_vertex_type_size(vertex_type: VertexType) -> usize 
     get_vertex_type_size(vertex_type)
 }
 
-fn physis_mdl_free(mdl: &physis_MDL) {
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_mdl_free(mdl: &physis_MDL) {
     unsafe {
         let lods = ffi_to_vec(mdl.lods, mdl.num_lod);
         for lod in &lods {
