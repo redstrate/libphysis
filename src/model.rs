@@ -12,7 +12,7 @@ use physis::model::vertex_declarations::VertexType;
 use physis::model::vertex_declarations::get_vertex_type_size;
 use physis::model::{MDL, SubMesh, Vertex};
 
-use crate::{ffi_to_c_string, physis_Buffer, ffi_to_vec, ffi_free_string};
+use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 
 #[repr(C)]
 pub struct physis_Part {

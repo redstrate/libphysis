@@ -87,6 +87,12 @@ pub extern "C" fn physis_read_file(path: *const c_char) -> physis_Buffer {
     buf
 }
 
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_free_file(buffer: &physis_Buffer) {
+    let bytes = ffi_to_vec(buffer.data, buffer.size);
+    drop(bytes);
+}
+
 mod gamedata;
 
 mod bootdata;
