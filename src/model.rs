@@ -3,8 +3,8 @@
 
 use physis::model::NewShapeValue;
 use std::os::raw::c_char;
+use std::ptr::null_mut;
 use std::ptr::slice_from_raw_parts;
-use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
 use physis::model::vertex_declarations::VertexElement;
@@ -290,9 +290,6 @@ pub extern "C" fn physis_mdl_free(mdl: &physis_MDL) {
                 drop(vertices);
 
                 let streams = ffi_to_vec(part.streams, part.num_streams as u32);
-                for stream in &streams {
-                    drop(stream);
-                }
                 drop(streams);
 
                 let stream_sizes = ffi_to_vec(part.stream_sizes, part.num_streams as u32);

@@ -66,7 +66,7 @@ pub extern "C" fn physis_exd_read_row(exd: &physis_EXD, id: u32) -> physis_Excel
         if let Some(rows) = (*exd.p_ptr).get_row(id) {
             let rows = match rows {
                 ExcelRowKind::SingleRow(val) => vec![val],
-                ExcelRowKind::SubRows(rows) => rows,
+                ExcelRowKind::SubRows(rows) => rows.iter().map(|x| x.1.clone()).collect(),
             };
 
             let mut c_rows: Vec<physis_ExcelRow> = Vec::new();

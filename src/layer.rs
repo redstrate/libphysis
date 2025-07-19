@@ -18,6 +18,7 @@ pub struct physis_BGInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[allow(dead_code)]
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
     BG(physis_BGInstanceObject),
