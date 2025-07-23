@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2025 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::ffi_from_c_string;
 use physis::patch::ZiPatch;
 use std::ffi::c_char;
