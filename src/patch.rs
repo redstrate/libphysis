@@ -15,8 +15,5 @@ pub extern "C" fn physis_patch_apply(data_dir: *const c_char, patch_path: *const
         return false;
     };
 
-    dbg!(&data_dir);
-    dbg!(&patch_path);
-
     ZiPatch::apply(&data_dir, &patch_path).is_ok()
 }
