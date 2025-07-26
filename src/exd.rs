@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{ffi_free_string, ffi_to_c_string};
-use physis::exd::{ColumnData, EXD, ExcelRowKind};
-use std::mem;
+use crate::ffi_free_string;
+use physis::exd::EXD;
 use std::os::raw::{c_char, c_uint};
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
+use std::slice;
 
 #[repr(C)]
 #[allow(dead_code)]
@@ -25,7 +25,25 @@ pub enum physis_ColumnData {
 
 #[repr(C)]
 pub struct physis_ExcelRow {
+    pub subrow_id: u16,
     pub column_data: *mut physis_ColumnData,
+}
+
+#[repr(C)]
+pub struct physis_ExcelRows {
+    pub row_id: u32,
+    pub row_data: *mut physis_ExcelRow,
+    pub row_count: c_uint,
+}
+
+impl Default for physis_ExcelRows {
+    fn default() -> Self {
+        Self {
+            row_id: 0,
+            row_data: null_mut(),
+            row_count: 0,
+        }
+    }
 }
 
 #[repr(C)]
@@ -33,6 +51,7 @@ pub struct physis_EXD {
     pub p_ptr: *mut EXD,
     pub column_count: c_uint,
     pub row_count: c_uint,
+    pub rows: *const physis_ExcelRows,
 }
 
 impl Default for physis_EXD {
@@ -41,74 +60,22 @@ impl Default for physis_EXD {
             p_ptr: null_mut(),
             column_count: 0,
             row_count: 0,
-        }
-    }
-}
-
-#[repr(C)]
-pub struct physis_ExcelRows {
-    pub row_data: *mut physis_ExcelRow,
-    pub row_count: c_uint,
-}
-
-impl Default for physis_ExcelRows {
-    fn default() -> Self {
-        Self {
-            row_data: null_mut(),
-            row_count: 0,
+            rows: null(),
         }
     }
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_exd_read_row(exd: &physis_EXD, id: u32) -> physis_ExcelRows {
+pub extern "C" fn physis_exd_get_row(exd: &physis_EXD, row_id: u32) -> *const physis_ExcelRow {
     unsafe {
-        if let Some(rows) = (*exd.p_ptr).get_row(id) {
-            let rows = match rows {
-                ExcelRowKind::SingleRow(val) => vec![val],
-                ExcelRowKind::SubRows(rows) => rows.iter().map(|x| x.1.clone()).collect(),
-            };
-
-            let mut c_rows: Vec<physis_ExcelRow> = Vec::new();
-            for row in &rows {
-                let mut c_col_data: Vec<physis_ColumnData> = Vec::new();
-
-                for col_data in &row.columns {
-                    match col_data {
-                        ColumnData::String(s) => {
-                            c_col_data.push(physis_ColumnData::String(ffi_to_c_string(s)))
-                        }
-                        ColumnData::Bool(b) => c_col_data.push(physis_ColumnData::Bool(*b)),
-                        ColumnData::Int8(i) => c_col_data.push(physis_ColumnData::Int8(*i)),
-                        ColumnData::UInt8(i) => c_col_data.push(physis_ColumnData::UInt8(*i)),
-                        ColumnData::Int16(i) => c_col_data.push(physis_ColumnData::Int16(*i)),
-                        ColumnData::UInt16(i) => c_col_data.push(physis_ColumnData::UInt16(*i)),
-                        ColumnData::Int32(i) => c_col_data.push(physis_ColumnData::Int32(*i)),
-                        ColumnData::UInt32(i) => c_col_data.push(physis_ColumnData::UInt32(*i)),
-                        ColumnData::Float32(i) => c_col_data.push(physis_ColumnData::Float32(*i)),
-                        ColumnData::Int64(i) => c_col_data.push(physis_ColumnData::Int64(*i)),
-                        ColumnData::UInt64(i) => c_col_data.push(physis_ColumnData::UInt64(*i)),
-                    }
-                }
-
-                c_rows.push(physis_ExcelRow {
-                    column_data: c_col_data.as_mut_ptr(),
-                });
-
-                mem::forget(c_col_data);
+        let rows = unsafe { slice::from_raw_parts(exd.rows, exd.row_count as usize) };
+        for row in rows {
+            if row.row_id == row_id {
+                return row.row_data;
             }
-
-            let rows = physis_ExcelRows {
-                row_data: c_rows.as_mut_ptr(),
-                row_count: c_rows.len() as u32,
-            };
-
-            mem::forget(c_rows);
-
-            return rows;
         }
 
-        physis_ExcelRows::default()
+        null()
     }
 }
 

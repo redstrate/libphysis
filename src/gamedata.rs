@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::exd::physis_EXD;
+use crate::exd::{physis_ColumnData, physis_EXD, physis_ExcelRow, physis_ExcelRows};
 use crate::exh::physis_EXH;
 use crate::{ffi_free_string, ffi_from_c_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::common::{Language, Platform};
-use physis::exd::EXD;
+use physis::exd::{ColumnData, EXD, ExcelRowKind};
 use physis::repository::RepositoryType;
 use physis::resource::{Resource, SqPackResource, get_all_sheet_names, read_excel_sheet};
 use std::ffi::CStr;
@@ -162,11 +162,64 @@ pub unsafe extern "C" fn physis_gamedata_read_excel_sheet(
             let row_count = exd.rows.len() as c_uint;
             let exd = Box::new(exd);
 
+            let mut c_rows = Vec::new();
+
+            for row in &exd.rows {
+                let reduced_rows = match &row.kind {
+                    ExcelRowKind::SingleRow(val) => &vec![(0u16, val.clone())],
+                    ExcelRowKind::SubRows(rows) => rows,
+                };
+
+                let mut c_subrows: Vec<physis_ExcelRow> = Vec::new();
+
+                for (subrow_id, row) in reduced_rows {
+                    let mut c_col_data: Vec<physis_ColumnData> = Vec::new();
+
+                    for col_data in &row.columns {
+                        match &col_data {
+                            ColumnData::String(s) => {
+                                c_col_data.push(physis_ColumnData::String(ffi_to_c_string(s)))
+                            }
+                            ColumnData::Bool(b) => c_col_data.push(physis_ColumnData::Bool(*b)),
+                            ColumnData::Int8(i) => c_col_data.push(physis_ColumnData::Int8(*i)),
+                            ColumnData::UInt8(i) => c_col_data.push(physis_ColumnData::UInt8(*i)),
+                            ColumnData::Int16(i) => c_col_data.push(physis_ColumnData::Int16(*i)),
+                            ColumnData::UInt16(i) => c_col_data.push(physis_ColumnData::UInt16(*i)),
+                            ColumnData::Int32(i) => c_col_data.push(physis_ColumnData::Int32(*i)),
+                            ColumnData::UInt32(i) => c_col_data.push(physis_ColumnData::UInt32(*i)),
+                            ColumnData::Float32(i) => {
+                                c_col_data.push(physis_ColumnData::Float32(*i))
+                            }
+                            ColumnData::Int64(i) => c_col_data.push(physis_ColumnData::Int64(*i)),
+                            ColumnData::UInt64(i) => c_col_data.push(physis_ColumnData::UInt64(*i)),
+                        }
+                    }
+
+                    c_subrows.push(physis_ExcelRow {
+                        subrow_id: *subrow_id,
+                        column_data: c_col_data.as_mut_ptr(),
+                    });
+
+                    mem::forget(c_col_data);
+                }
+
+                c_rows.push(physis_ExcelRows {
+                    row_id: row.row_id,
+                    row_count: c_subrows.len() as u32,
+                    row_data: c_subrows.as_mut_ptr(),
+                });
+
+                mem::forget(c_subrows);
+            }
+
             let exd = physis_EXD {
                 p_ptr: Box::leak(exd),
                 column_count: (*exh.p_ptr).column_definitions.len() as c_uint,
                 row_count,
+                rows: c_rows.as_ptr(),
             };
+
+            mem::forget(c_rows);
 
             exd
         } else {
