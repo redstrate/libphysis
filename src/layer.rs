@@ -5,7 +5,7 @@ use std::os::raw::c_char;
 use std::ptr::null;
 use std::slice;
 
-use physis::layer::LayerEntryData::{BG, EventObject};
+use physis::layer::LayerEntryData::{BG, EventObject, PopRange};
 use physis::layer::*;
 
 use crate::{ffi_to_c_string, physis_Buffer};
@@ -33,11 +33,19 @@ pub struct physis_EventInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_PopRangeInstanceObject {
+    pop_type: PopType,
+    index: u8,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
     BG(physis_BGInstanceObject),
     EventObject(physis_EventInstanceObject),
+    PopRange(physis_PopRangeInstanceObject),
 }
 
 #[repr(C)]
@@ -93,6 +101,10 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             },
             bound_instance_id: eobj.bound_instance_id,
             linked_instance_id: eobj.linked_instance_id,
+        }),
+        PopRange(pop) => physis_LayerEntry::PopRange(physis_PopRangeInstanceObject {
+            pop_type: pop.pop_type,
+            index: pop.index,
         }),
         _ => physis_LayerEntry::None,
     }
