@@ -5,7 +5,7 @@ use std::os::raw::c_char;
 use std::ptr::null;
 use std::slice;
 
-use physis::layer::LayerEntryData::BG;
+use physis::layer::LayerEntryData::{BG, EventObject};
 use physis::layer::*;
 
 use crate::{ffi_to_c_string, physis_Buffer};
@@ -14,6 +14,21 @@ use crate::{ffi_to_c_string, physis_Buffer};
 #[derive(Clone, Copy)]
 pub struct physis_BGInstanceObject {
     asset_path: *const c_char,
+    collision_asset_path: *const c_char,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_GameInstanceObject {
+    base_id: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_EventInstanceObject {
+    parent_data: physis_GameInstanceObject,
+    bound_instance_id: u32,
+    linked_instance_id: u32,
 }
 
 #[repr(C)]
@@ -22,6 +37,7 @@ pub struct physis_BGInstanceObject {
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
     BG(physis_BGInstanceObject),
+    EventObject(physis_EventInstanceObject),
 }
 
 #[repr(C)]
@@ -69,6 +85,14 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
     match data {
         BG(bg) => physis_LayerEntry::BG(physis_BGInstanceObject {
             asset_path: ffi_to_c_string(&bg.asset_path.value),
+            collision_asset_path: ffi_to_c_string(&bg.collision_asset_path.value),
+        }),
+        EventObject(eobj) => physis_LayerEntry::EventObject(physis_EventInstanceObject {
+            parent_data: physis_GameInstanceObject {
+                base_id: eobj.parent_data.base_id,
+            },
+            bound_instance_id: eobj.bound_instance_id,
+            linked_instance_id: eobj.linked_instance_id,
         }),
         _ => physis_LayerEntry::None,
     }
