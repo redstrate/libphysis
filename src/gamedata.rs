@@ -243,7 +243,7 @@ pub unsafe extern "C" fn physis_gamedata_get_exd_filename(
         ffi_to_c_string(&EXD::calculate_filename(
             &r_name,
             language,
-            &(*exh.p_ptr).pages[page as usize],
+            &(&(*exh.p_ptr).pages)[page as usize],
         ))
     }
 }

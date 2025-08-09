@@ -67,16 +67,14 @@ impl Default for physis_EXD {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_exd_get_row(exd: &physis_EXD, row_id: u32) -> *const physis_ExcelRow {
-    unsafe {
-        let rows = unsafe { slice::from_raw_parts(exd.rows, exd.row_count as usize) };
-        for row in rows {
-            if row.row_id == row_id {
-                return row.row_data;
-            }
+    let rows = unsafe { slice::from_raw_parts(exd.rows, exd.row_count as usize) };
+    for row in rows {
+        if row.row_id == row_id {
+            return row.row_data;
         }
-
-        null()
     }
+
+    null()
 }
 
 #[unsafe(no_mangle)]
