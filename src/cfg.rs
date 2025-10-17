@@ -24,11 +24,9 @@ pub extern "C" fn physis_cfg_parse(buffer: physis_Buffer) -> physis_ConfigFile {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
     if let Some(cfg) = ConfigFile::from_existing(data) {
-        let cfg_struct = physis_ConfigFile {
+        physis_ConfigFile {
             p_ptr: Box::leak(Box::new(cfg)),
-        };
-
-        cfg_struct
+        }
     } else {
         physis_ConfigFile::default()
     }

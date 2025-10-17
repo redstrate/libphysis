@@ -24,11 +24,9 @@ pub extern "C" fn physis_cmp_parse(buffer: physis_Buffer) -> physis_CMP {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
     if let Some(cmp) = CMP::from_existing(data) {
-        let cmp = physis_CMP {
+        physis_CMP {
             p_ptr: Box::leak(Box::new(cmp)),
-        };
-
-        cmp
+        }
     } else {
         physis_CMP::default()
     }

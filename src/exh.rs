@@ -39,7 +39,7 @@ pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut
     let mut c_column_types: Vec<ColumnDataType> = vec![];
 
     for column in &exh.column_definitions {
-        c_column_types.push(column.data_type.clone());
+        c_column_types.push(column.data_type);
     }
 
     let page_len = exh.pages.len() as u32;
