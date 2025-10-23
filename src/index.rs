@@ -12,17 +12,15 @@ use crate::ffi_from_c_string;
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_IndexEntries {
-    num_entries: u32,
-    dir_entries: *const u32,
-    filename_entries: *const u32,
+    num_hashes: u32,
+    hashes: *const Hash,
 }
 
 impl Default for physis_IndexEntries {
     fn default() -> Self {
         Self {
-            num_entries: 0,
-            dir_entries: null(),
-            filename_entries: null(),
+            num_hashes: 0,
+            hashes: null(),
         }
     }
 }
@@ -34,29 +32,18 @@ pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries
     };
 
     if let Some(idx_file) = SqPackIndex::from_existing(&r_path) {
-        let mut c_dir_entries = vec![];
-        let mut c_file_entries = vec![];
+        let mut c_hashes = Vec::new();
 
         for entry in &idx_file.entries {
-            match &entry.hash {
-                Hash::SplitPath { name, path } => {
-                    c_file_entries.push((((*path as u64) << 32) | (*name as u64)) as u32);
-                    c_dir_entries.push(*path);
-                }
-                Hash::FullPath(hash) => {
-                    c_file_entries.push(*hash); // TODO: is this really correct?
-                }
-            }
+            c_hashes.push(entry.hash);
         }
 
         let mat = physis_IndexEntries {
-            num_entries: c_dir_entries.len() as u32,
-            dir_entries: c_dir_entries.as_mut_ptr(),
-            filename_entries: c_file_entries.as_mut_ptr(),
+            num_hashes: c_hashes.len() as u32,
+            hashes: c_hashes.as_mut_ptr(),
         };
 
-        mem::forget(c_dir_entries);
-        mem::forget(c_file_entries);
+        mem::forget(c_hashes);
 
         mat
     } else {

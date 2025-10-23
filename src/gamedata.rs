@@ -8,6 +8,7 @@ use physis::common::{Language, Platform};
 use physis::exd::{ColumnData, EXD, ExcelRowKind};
 use physis::repository::RepositoryType;
 use physis::resource::{Resource, SqPackResource, get_all_sheet_names, read_excel_sheet};
+use physis::sqpack::Hash;
 use std::ffi::CStr;
 use std::mem;
 use std::os::raw::{c_char, c_uint};
@@ -47,6 +48,32 @@ pub extern "C" fn physis_gamedata_extract_file(
 ) -> physis_Buffer {
     unsafe {
         if let Some(mut d) = game_data.read(CStr::from_ptr(path).to_string_lossy().as_ref()) {
+            let b = physis_Buffer {
+                size: d.len() as u32,
+                data: d.as_mut_ptr(),
+            };
+
+            mem::forget(d);
+
+            b
+        } else {
+            physis_Buffer::default()
+        }
+    }
+}
+
+/// Extracts the raw game file from `hash` and `index_path`, and puts it in `data` with `size` length. If the path was not found,
+/// `size` is 0 and `data` is NULL.
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_gamedata_extract_file_from_hash(
+    game_data: &mut SqPackResource,
+    index_path: *const c_char,
+    hash: Hash,
+) -> physis_Buffer {
+    unsafe {
+        if let Some(mut d) =
+            game_data.read_from_hash(CStr::from_ptr(index_path).to_string_lossy().as_ref(), hash)
+        {
             let b = physis_Buffer {
                 size: d.len() as u32,
                 data: d.as_mut_ptr(),
