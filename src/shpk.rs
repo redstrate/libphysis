@@ -58,6 +58,11 @@ pub struct physis_SHPK {
 
     num_nodes: u32,
     nodes: *mut physis_SHPKNode,
+
+    num_scalar_parameters: u32,
+    scalar_parameters: *mut physis_ShaderParameter,
+    num_texture_parameters: u32,
+    texture_parameters: *mut physis_ShaderParameter,
 }
 
 impl Default for physis_SHPK {
@@ -83,6 +88,10 @@ impl Default for physis_SHPK {
             material_default_parameters: null_mut(),
             num_nodes: 0,
             nodes: null_mut(),
+            num_scalar_parameters: 0,
+            scalar_parameters: null_mut(),
+            num_texture_parameters: 0,
+            texture_parameters: null_mut(),
         }
     }
 }
@@ -169,6 +178,11 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
             nodes.push(convert_node(node));
         }
 
+        let (num_scalar_params, scalar_params) =
+            physis_get_shader_parameter_array(&shpk.scalar_parameters);
+        let (num_texture_params, texture_params) =
+            physis_get_shader_parameter_array(&shpk.texture_parameters);
+
         let mat = physis_SHPK {
             num_vertex_shaders: c_vertex_shaders.len() as u32,
             vertex_shaders: c_vertex_shaders.as_mut_ptr(),
@@ -189,6 +203,10 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
             material_default_parameters: material_default_params.as_mut_ptr(),
             num_nodes: nodes.len() as u32,
             nodes: nodes.as_mut_ptr(),
+            num_scalar_parameters: num_scalar_params,
+            scalar_parameters: scalar_params,
+            num_texture_parameters: num_texture_params,
+            texture_parameters: texture_params,
             p_ptr: Box::leak(Box::new(shpk)),
         };
 
