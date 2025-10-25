@@ -6,7 +6,7 @@ use std::ptr::null_mut;
 use std::{mem, slice};
 
 use physis::shpk::MaterialParameter;
-use physis::shpk::{Key, Pass, ResourceParameter, ShaderPackage};
+use physis::shpk::{Key, Node, Pass, ResourceParameter, ShaderPackage};
 
 use crate::{ffi_from_c_string, ffi_to_c_string, physis_Buffer};
 
@@ -20,11 +20,11 @@ pub struct physis_ShaderParameter {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_Shader {
-    len: i32,
+    len: u32,
     bytecode: *mut u8,
-    num_scalar_parameters: i32,
+    num_scalar_parameters: u32,
     scalar_parameters: *mut physis_ShaderParameter,
-    num_resource_parameters: i32,
+    num_resource_parameters: u32,
     resource_parameters: *mut physis_ShaderParameter,
 }
 
@@ -32,18 +32,18 @@ pub struct physis_Shader {
 #[derive(Clone, Copy)]
 pub struct physis_SHPK {
     p_ptr: *mut ShaderPackage,
-    num_vertex_shaders: i32,
+    num_vertex_shaders: u32,
     vertex_shaders: *mut physis_Shader,
-    num_pixel_shaders: i32,
+    num_pixel_shaders: u32,
     pixel_shaders: *mut physis_Shader,
 
-    num_system_keys: i32,
+    num_system_keys: u32,
     system_keys: *mut Key,
 
-    num_scene_keys: i32,
+    num_scene_keys: u32,
     scene_keys: *mut Key,
 
-    num_material_keys: i32,
+    num_material_keys: u32,
     material_keys: *mut Key,
 
     sub_view_key1_default: u32,
@@ -55,6 +55,9 @@ pub struct physis_SHPK {
 
     material_default_parameters_size: u32,
     material_default_parameters: *mut f32,
+
+    num_nodes: u32,
+    nodes: *mut physis_SHPKNode,
 }
 
 impl Default for physis_SHPK {
@@ -78,13 +81,15 @@ impl Default for physis_SHPK {
             material_parameters: null_mut(),
             material_default_parameters_size: 0,
             material_default_parameters: null_mut(),
+            num_nodes: 0,
+            nodes: null_mut(),
         }
     }
 }
 
 fn physis_get_shader_parameter_array(
     parameter_array: &Vec<ResourceParameter>,
-) -> (i32, *mut physis_ShaderParameter) {
+) -> (u32, *mut physis_ShaderParameter) {
     let mut vec = vec![];
 
     for resource in parameter_array {
@@ -94,7 +99,7 @@ fn physis_get_shader_parameter_array(
         })
     }
 
-    let result = (vec.len() as i32, vec.as_mut_ptr());
+    let result = (vec.len() as u32, vec.as_mut_ptr());
 
     mem::forget(vec);
 
@@ -118,7 +123,7 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
                 physis_get_shader_parameter_array(&shader.resource_parameters);
 
             let shader = physis_Shader {
-                len: bytecode.len() as i32,
+                len: bytecode.len() as u32,
                 bytecode: bytecode.as_mut_ptr(),
                 num_scalar_parameters: num_scalar_params,
                 scalar_parameters: scalar_params,
@@ -140,7 +145,7 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
                 physis_get_shader_parameter_array(&shader.resource_parameters);
 
             let shader = physis_Shader {
-                len: bytecode.len() as i32,
+                len: bytecode.len() as u32,
                 bytecode: bytecode.as_mut_ptr(),
                 num_scalar_parameters: num_scalar_params,
                 scalar_parameters: scalar_params,
@@ -159,16 +164,21 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
         let mut material_params = shpk.material_parameters.clone();
         let mut material_default_params = shpk.mat_param_defaults.clone();
 
+        let mut nodes = Vec::new();
+        for node in &shpk.nodes {
+            nodes.push(convert_node(node));
+        }
+
         let mat = physis_SHPK {
-            num_vertex_shaders: c_vertex_shaders.len() as i32,
+            num_vertex_shaders: c_vertex_shaders.len() as u32,
             vertex_shaders: c_vertex_shaders.as_mut_ptr(),
-            num_pixel_shaders: c_fragment_shaders.len() as i32,
+            num_pixel_shaders: c_fragment_shaders.len() as u32,
             pixel_shaders: c_fragment_shaders.as_mut_ptr(),
-            num_system_keys: system_keys.len() as i32,
+            num_system_keys: system_keys.len() as u32,
             system_keys: system_keys.as_mut_ptr(),
-            num_scene_keys: scene_keys.len() as i32,
+            num_scene_keys: scene_keys.len() as u32,
             scene_keys: scene_keys.as_mut_ptr(),
-            num_material_keys: material_keys.len() as i32,
+            num_material_keys: material_keys.len() as u32,
             material_keys: material_keys.as_mut_ptr(),
             sub_view_key1_default: shpk.sub_view_key1_default,
             sub_view_key2_default: shpk.sub_view_key2_default,
@@ -177,6 +187,8 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
             material_parameters: material_params.as_mut_ptr(),
             material_default_parameters_size: material_default_params.len() as u32,
             material_default_parameters: material_default_params.as_mut_ptr(),
+            num_nodes: nodes.len() as u32,
+            nodes: nodes.as_mut_ptr(),
             p_ptr: Box::leak(Box::new(shpk)),
         };
 
@@ -187,6 +199,7 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
         mem::forget(material_keys);
         mem::forget(material_params);
         mem::forget(material_default_params);
+        mem::forget(nodes);
 
         mat
     } else {
@@ -210,38 +223,42 @@ pub struct physis_SHPKNode {
     passes: *mut Pass,
 }
 
+fn convert_node(node: &Node) -> physis_SHPKNode {
+    let mut c_system_keys = node.system_keys.clone();
+    let mut c_scene_keys = node.scene_keys.clone();
+    let mut c_material_keys = node.material_keys.clone();
+    let mut c_subview_keys = node.subview_keys.clone();
+    let mut c_passes = node.passes.clone();
+
+    let new_node = physis_SHPKNode {
+        selector: node.selector,
+        pass_count: node.pass_count,
+        pass_indices: node.pass_indices,
+        system_key_count: node.system_keys.len() as u32,
+        system_keys: c_system_keys.as_mut_ptr(),
+        scene_key_count: node.scene_keys.len() as u32,
+        scene_keys: c_scene_keys.as_mut_ptr(),
+        material_key_count: node.material_keys.len() as u32,
+        material_keys: c_material_keys.as_mut_ptr(),
+        subview_key_count: node.subview_keys.len() as u32,
+        subview_keys: c_subview_keys.as_mut_ptr(),
+        passes: c_passes.as_mut_ptr(),
+    };
+
+    mem::forget(c_system_keys);
+    mem::forget(c_scene_keys);
+    mem::forget(c_material_keys);
+    mem::forget(c_subview_keys);
+    mem::forget(c_passes);
+
+    new_node
+}
+
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_shpk_get_node(shpk: *const physis_SHPK, key: u32) -> physis_SHPKNode {
     unsafe {
         if let Some(node) = (*(*shpk).p_ptr).find_node(key) {
-            let mut c_system_keys = node.system_keys.clone();
-            let mut c_scene_keys = node.scene_keys.clone();
-            let mut c_material_keys = node.material_keys.clone();
-            let mut c_subview_keys = node.subview_keys.clone();
-            let mut c_passes = node.passes.clone();
-
-            let new_node = physis_SHPKNode {
-                selector: node.selector,
-                pass_count: node.pass_count,
-                pass_indices: node.pass_indices,
-                system_key_count: node.system_keys.len() as u32,
-                system_keys: c_system_keys.as_mut_ptr(),
-                scene_key_count: node.scene_keys.len() as u32,
-                scene_keys: c_scene_keys.as_mut_ptr(),
-                material_key_count: node.material_keys.len() as u32,
-                material_keys: c_material_keys.as_mut_ptr(),
-                subview_key_count: node.subview_keys.len() as u32,
-                subview_keys: c_subview_keys.as_mut_ptr(),
-                passes: c_passes.as_mut_ptr(),
-            };
-
-            mem::forget(c_system_keys);
-            mem::forget(c_scene_keys);
-            mem::forget(c_material_keys);
-            mem::forget(c_subview_keys);
-            mem::forget(c_passes);
-
-            new_node
+            convert_node(node)
         } else {
             physis_SHPKNode {
                 selector: 0,
