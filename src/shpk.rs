@@ -52,6 +52,9 @@ pub struct physis_SHPK {
     material_parameters_size: u32,
     num_material_parameters: u32,
     material_parameters: *mut MaterialParameter,
+
+    material_default_parameters_size: u32,
+    material_default_parameters: *mut f32,
 }
 
 impl Default for physis_SHPK {
@@ -73,6 +76,8 @@ impl Default for physis_SHPK {
             material_parameters_size: 0,
             num_material_parameters: 0,
             material_parameters: null_mut(),
+            material_default_parameters_size: 0,
+            material_default_parameters: null_mut(),
         }
     }
 }
@@ -152,6 +157,7 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
         let mut scene_keys = shpk.scene_keys.clone();
         let mut material_keys = shpk.material_keys.clone();
         let mut material_params = shpk.material_parameters.clone();
+        let mut material_default_params = shpk.mat_param_defaults.clone();
 
         let mat = physis_SHPK {
             num_vertex_shaders: c_vertex_shaders.len() as i32,
@@ -169,6 +175,8 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
             material_parameters_size: shpk.material_parameters_size,
             num_material_parameters: material_params.len() as u32,
             material_parameters: material_params.as_mut_ptr(),
+            material_default_parameters_size: material_default_params.len() as u32,
+            material_default_parameters: material_default_params.as_mut_ptr(),
             p_ptr: Box::leak(Box::new(shpk)),
         };
 
@@ -178,6 +186,7 @@ pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
         mem::forget(scene_keys);
         mem::forget(material_keys);
         mem::forget(material_params);
+        mem::forget(material_default_params);
 
         mat
     } else {
