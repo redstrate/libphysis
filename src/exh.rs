@@ -7,6 +7,14 @@ use physis::exh::{ColumnDataType, EXH};
 use std::ptr::null_mut;
 use std::{mem, slice};
 
+// TODO: re-use from Physis since their struct is also simple
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ColumnDefinition {
+    data_type: ColumnDataType,
+    offset: u16,
+}
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_EXH {
@@ -16,7 +24,7 @@ pub struct physis_EXH {
     languages: *mut Language,
     column_count: u32,
     row_count: u32,
-    column_types: *mut ColumnDataType,
+    column_definitions: *mut physis_ColumnDefinition,
 }
 
 #[unsafe(no_mangle)]
@@ -36,10 +44,13 @@ pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut
         c_languages.push(*lang);
     }
 
-    let mut c_column_types: Vec<ColumnDataType> = vec![];
+    let mut c_column_definitions: Vec<physis_ColumnDefinition> = vec![];
 
     for column in &exh.column_definitions {
-        c_column_types.push(column.data_type);
+        c_column_definitions.push(physis_ColumnDefinition {
+            data_type: column.data_type,
+            offset: column.offset,
+        });
     }
 
     let page_len = exh.pages.len() as u32;
@@ -53,11 +64,11 @@ pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut
         languages: c_languages.as_mut_ptr(),
         column_count,
         row_count,
-        column_types: c_column_types.as_mut_ptr(),
+        column_definitions: c_column_definitions.as_mut_ptr(),
     };
 
     mem::forget(c_languages);
-    mem::forget(c_column_types);
+    mem::forget(c_column_definitions);
 
     Box::leak(Box::new(repositories))
 }
