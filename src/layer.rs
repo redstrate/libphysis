@@ -5,7 +5,7 @@ use std::os::raw::c_char;
 use std::ptr::null;
 use std::slice;
 
-use physis::layer::LayerEntryData::{BG, EventObject, PopRange};
+use physis::layer::LayerEntryData::{BG, EventNPC, EventObject, PopRange};
 use physis::layer::*;
 
 use crate::{ffi_to_c_string, physis_Buffer};
@@ -40,12 +40,33 @@ pub struct physis_PopRangeInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_NPCInstanceObject {
+    parent_data: physis_GameInstanceObject,
+    pop_weather: u32,
+    pop_time_start: u8,
+    pop_time_end: u8,
+    move_ai: u32,
+    wandering_range: u8,
+    route: u8,
+    event_group: u16,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ENPCInstanceObject {
+    parent_data: physis_NPCInstanceObject,
+    behavior: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
     BG(physis_BGInstanceObject),
     EventObject(physis_EventInstanceObject),
     PopRange(physis_PopRangeInstanceObject),
+    EventNPC(physis_ENPCInstanceObject),
 }
 
 #[repr(C)]
@@ -105,6 +126,21 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         PopRange(pop) => physis_LayerEntry::PopRange(physis_PopRangeInstanceObject {
             pop_type: pop.pop_type,
             index: pop.index,
+        }),
+        EventNPC(enpc) => physis_LayerEntry::EventNPC(physis_ENPCInstanceObject {
+            parent_data: physis_NPCInstanceObject {
+                parent_data: physis_GameInstanceObject {
+                    base_id: enpc.parent_data.parent_data.base_id,
+                },
+                pop_weather: enpc.parent_data.pop_weather,
+                pop_time_start: enpc.parent_data.pop_time_start,
+                pop_time_end: enpc.parent_data.pop_time_end,
+                move_ai: enpc.parent_data.move_ai,
+                wandering_range: enpc.parent_data.wandering_range,
+                route: enpc.parent_data.route,
+                event_group: enpc.parent_data.event_group,
+            },
+            behavior: enpc.behavior,
         }),
         _ => physis_LayerEntry::None,
     }
