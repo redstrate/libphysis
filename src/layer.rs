@@ -85,6 +85,8 @@ pub struct physis_Layer {
     num_objects: u32,
     name: *const c_char,
     id: u32,
+    festival_id: u16,
+    festival_phase_id: u16,
 }
 
 #[repr(C)]
@@ -173,6 +175,8 @@ pub extern "C" fn physis_layergroup_read(buffer: physis_Buffer) -> physis_LayerG
                     num_objects: c_objects.len() as u32,
                     name: ffi_to_c_string(&layer.header.name.value),
                     id: layer.header.layer_id,
+                    festival_id: layer.header.festival_id,
+                    festival_phase_id: layer.header.festival_phase_id,
                 });
 
                 std::mem::forget(c_objects);
