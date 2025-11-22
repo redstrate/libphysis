@@ -134,7 +134,7 @@ mod dic;
 mod index;
 
 mod existing_dirs;
-mod schd;
+mod shcd;
 
 mod execlookup;
 
@@ -143,3 +143,5 @@ mod patchlist;
 mod layer;
 
 mod patch;
+
+mod hwc;
