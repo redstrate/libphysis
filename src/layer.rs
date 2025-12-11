@@ -5,7 +5,7 @@ use std::os::raw::c_char;
 use std::ptr::null;
 use std::slice;
 
-use physis::layer::LayerEntryData::{BG, EventNPC, EventObject, PopRange};
+use physis::layer::LayerEntryData::{BG, EventNPC, EventObject, MapRange, PopRange};
 use physis::layer::*;
 
 use crate::{ffi_to_c_string, physis_Buffer};
@@ -60,6 +60,27 @@ pub struct physis_ENPCInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_TriggerBoxInstanceObject {
+    trigger_box_shape: TriggerBoxShape,
+    priority: i16,
+    enabled: bool,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_MapRangeInstanceObject {
+    parent_data: physis_TriggerBoxInstanceObject,
+    place_name_block: u32,
+    place_name_spot: u32,
+    rest_bonus_effective: bool,
+    discovery_id: u8,
+    place_name_enabled: bool,
+    discovery_enabled: bool,
+    rest_bonus_enabled: bool,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
@@ -67,6 +88,7 @@ pub enum physis_LayerEntry {
     EventObject(physis_EventInstanceObject),
     PopRange(physis_PopRangeInstanceObject),
     EventNPC(physis_ENPCInstanceObject),
+    MapRange(physis_MapRangeInstanceObject),
 }
 
 #[repr(C)]
@@ -143,6 +165,20 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                 event_group: enpc.parent_data.event_group,
             },
             behavior: enpc.behavior,
+        }),
+        MapRange(map_range) => physis_LayerEntry::MapRange(physis_MapRangeInstanceObject {
+            parent_data: physis_TriggerBoxInstanceObject {
+                trigger_box_shape: map_range.parent_data.trigger_box_shape,
+                priority: map_range.parent_data.priority,
+                enabled: map_range.parent_data.enabled,
+            },
+            place_name_block: map_range.place_name_block,
+            place_name_spot: map_range.place_name_spot,
+            rest_bonus_effective: map_range.rest_bonus_effective,
+            discovery_id: map_range.discovery_id,
+            place_name_enabled: map_range.place_name_enabled,
+            discovery_enabled: map_range.discovery_enabled,
+            rest_bonus_enabled: map_range.rest_bonus_enabled,
         }),
         _ => physis_LayerEntry::None,
     }

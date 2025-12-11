@@ -33,9 +33,6 @@ pub extern "C" fn physis_bootdata_free(boot_data: *mut BootData) {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_bootdata_apply_patch(bootdata: &BootData, path: *const c_char) -> bool {
-    if let Some(r_path) = ffi_from_c_string(path) {
-        bootdata.apply_patch(&r_path).is_ok()
-    } else {
-        false
-    }
+    // TODO: reimplement
+    false
 }

@@ -287,11 +287,8 @@ pub extern "C" fn physis_gamedata_apply_patch(
     gamedata: &SqPackResource,
     path: *const c_char,
 ) -> bool {
-    if let Some(r_path) = ffi_from_c_string(path) {
-        gamedata.apply_patch(&r_path).is_ok()
-    } else {
-        false
-    }
+    // TODO: reimplement
+    false
 }
 
 #[repr(C)]
