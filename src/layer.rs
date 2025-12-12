@@ -5,7 +5,10 @@ use std::os::raw::c_char;
 use std::ptr::null;
 use std::slice;
 
-use physis::layer::LayerEntryData::{BG, EventNPC, EventObject, MapRange, PopRange};
+use physis::layer::LayerEntryData::{
+    Aetheryte, BG, ChairMarker, EventNPC, EventObject, EventRange, ExitRange, MapRange, PopRange,
+    PrefetchRange, SharedGroup,
+};
 use physis::layer::*;
 
 use crate::{ffi_to_c_string, physis_Buffer};
@@ -81,6 +84,47 @@ pub struct physis_MapRangeInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_SharedGroupInstanceObject {
+    asset_path: *const c_char,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_AetheryteInstanceObject {
+    parent_data: physis_GameInstanceObject,
+    bound_instance_id: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ExitRangeInstanceObject {
+    parent_data: physis_TriggerBoxInstanceObject,
+    exit_type: ExitType,
+    zone_id: u16,
+    territory_type: u16,
+    destination_instance_id: u32,
+    return_instance_id: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_EventRangeInstanceObject {
+    parent_data: physis_TriggerBoxInstanceObject,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ChairMarkerInstanceObject {}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_PrefetchRangeInstanceObject {
+    parent_data: physis_TriggerBoxInstanceObject,
+    bound_instance_id: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
@@ -89,6 +133,12 @@ pub enum physis_LayerEntry {
     PopRange(physis_PopRangeInstanceObject),
     EventNPC(physis_ENPCInstanceObject),
     MapRange(physis_MapRangeInstanceObject),
+    SharedGroup(physis_SharedGroupInstanceObject),
+    Aetheryte(physis_AetheryteInstanceObject),
+    ExitRange(physis_ExitRangeInstanceObject),
+    EventRange(physis_EventRangeInstanceObject),
+    ChairMarker(physis_ChairMarkerInstanceObject),
+    PrefetchRange(physis_PrefetchRangeInstanceObject),
 }
 
 #[repr(C)]
@@ -134,6 +184,22 @@ impl Default for physis_LayerGroup {
     }
 }
 
+fn convert_gameinstanceobject(obj: &GameInstanceObject) -> physis_GameInstanceObject {
+    physis_GameInstanceObject {
+        base_id: obj.base_id,
+    }
+}
+
+fn convert_triggerboxinstanceobject(
+    obj: &TriggerBoxInstanceObject,
+) -> physis_TriggerBoxInstanceObject {
+    physis_TriggerBoxInstanceObject {
+        trigger_box_shape: obj.trigger_box_shape,
+        priority: obj.priority,
+        enabled: obj.enabled,
+    }
+}
+
 fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
     match data {
         BG(bg) => physis_LayerEntry::BG(physis_BGInstanceObject {
@@ -141,9 +207,7 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             collision_asset_path: ffi_to_c_string(&bg.collision_asset_path.value),
         }),
         EventObject(eobj) => physis_LayerEntry::EventObject(physis_EventInstanceObject {
-            parent_data: physis_GameInstanceObject {
-                base_id: eobj.parent_data.base_id,
-            },
+            parent_data: convert_gameinstanceobject(&eobj.parent_data),
             bound_instance_id: eobj.bound_instance_id,
             linked_instance_id: eobj.linked_instance_id,
         }),
@@ -153,9 +217,7 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         }),
         EventNPC(enpc) => physis_LayerEntry::EventNPC(physis_ENPCInstanceObject {
             parent_data: physis_NPCInstanceObject {
-                parent_data: physis_GameInstanceObject {
-                    base_id: enpc.parent_data.parent_data.base_id,
-                },
+                parent_data: convert_gameinstanceobject(&enpc.parent_data.parent_data),
                 pop_weather: enpc.parent_data.pop_weather,
                 pop_time_start: enpc.parent_data.pop_time_start,
                 pop_time_end: enpc.parent_data.pop_time_end,
@@ -167,11 +229,7 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             behavior: enpc.behavior,
         }),
         MapRange(map_range) => physis_LayerEntry::MapRange(physis_MapRangeInstanceObject {
-            parent_data: physis_TriggerBoxInstanceObject {
-                trigger_box_shape: map_range.parent_data.trigger_box_shape,
-                priority: map_range.parent_data.priority,
-                enabled: map_range.parent_data.enabled,
-            },
+            parent_data: convert_triggerboxinstanceobject(&map_range.parent_data),
             place_name_block: map_range.place_name_block,
             place_name_spot: map_range.place_name_spot,
             rest_bonus_effective: map_range.rest_bonus_effective,
@@ -180,6 +238,33 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             discovery_enabled: map_range.discovery_enabled,
             rest_bonus_enabled: map_range.rest_bonus_enabled,
         }),
+        SharedGroup(shared_group) => {
+            physis_LayerEntry::SharedGroup(physis_SharedGroupInstanceObject {
+                asset_path: ffi_to_c_string(&shared_group.asset_path.value),
+            })
+        }
+        Aetheryte(aetheryte) => physis_LayerEntry::Aetheryte(physis_AetheryteInstanceObject {
+            parent_data: convert_gameinstanceobject(&aetheryte.parent_data),
+            bound_instance_id: aetheryte.bound_instance_id,
+        }),
+        ExitRange(exit_range) => physis_LayerEntry::ExitRange(physis_ExitRangeInstanceObject {
+            parent_data: convert_triggerboxinstanceobject(&exit_range.parent_data),
+            exit_type: exit_range.exit_type,
+            zone_id: exit_range.zone_id,
+            territory_type: exit_range.territory_type,
+            destination_instance_id: exit_range.destination_instance_id,
+            return_instance_id: exit_range.return_instance_id,
+        }),
+        EventRange(event_range) => physis_LayerEntry::EventRange(physis_EventRangeInstanceObject {
+            parent_data: convert_triggerboxinstanceobject(&event_range.parent_data),
+        }),
+        ChairMarker(_) => physis_LayerEntry::ChairMarker(physis_ChairMarkerInstanceObject {}),
+        PrefetchRange(prefetch_range) => {
+            physis_LayerEntry::PrefetchRange(physis_PrefetchRangeInstanceObject {
+                parent_data: convert_triggerboxinstanceobject(&prefetch_range.parent_data),
+                bound_instance_id: prefetch_range.bound_instance_id,
+            })
+        }
         _ => physis_LayerEntry::None,
     }
 }
