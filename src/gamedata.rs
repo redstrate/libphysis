@@ -6,6 +6,7 @@ use crate::exh::physis_EXH;
 use crate::{ffi_free_string, ffi_from_c_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::common::{Language, Platform};
 use physis::exd::{ColumnData, EXD, ExcelRowKind};
+use physis::patch::ZiPatch;
 use physis::repository::RepositoryType;
 use physis::resource::{Resource, SqPackResource, get_all_sheet_names, read_excel_sheet};
 use physis::sqpack::Hash;
@@ -287,8 +288,7 @@ pub extern "C" fn physis_gamedata_apply_patch(
     gamedata: &SqPackResource,
     path: *const c_char,
 ) -> bool {
-    // TODO: reimplement
-    false
+    ZiPatch::apply(&gamedata.game_directory, &ffi_from_c_string(path).unwrap()).is_ok()
 }
 
 #[repr(C)]

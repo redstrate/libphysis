@@ -3,6 +3,7 @@
 
 use crate::{ffi_from_c_string, ffi_to_c_string};
 use physis::bootdata::BootData;
+use physis::patch::ZiPatch;
 use std::os::raw::c_char;
 use std::ptr::null_mut;
 
@@ -33,6 +34,5 @@ pub extern "C" fn physis_bootdata_free(boot_data: *mut BootData) {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_bootdata_apply_patch(bootdata: &BootData, path: *const c_char) -> bool {
-    // TODO: reimplement
-    false
+    ZiPatch::apply(&bootdata.path, &ffi_from_c_string(path).unwrap()).is_ok()
 }
