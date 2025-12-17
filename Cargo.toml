@@ -21,5 +21,5 @@ lto = true
 cbindgen = { version = "0.29", default-features = false }
 
 [dependencies]
-physis = { git = "https://github.com/redstrate/physis", default-features = false }
-miscel = { git = "https://github.com/redstrate/miscel", default-features = false }
+physis = { version = "0.5", default-features = false }
+miscel = { version = "0.2", default-features = false }

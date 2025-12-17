@@ -197,7 +197,8 @@ checksum = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273"
 [[package]]
 name = "miscel"
 version = "0.2.0"
-source = "git+https://github.com/redstrate/miscel#2781152948de30d88b4168fb7639749cc2603994"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96acfbcd7a9fe0893a45ab30dd5a56929bda4e438b26ca9ba2e290466573c61b"
 dependencies = [
  "physis",
 ]
@@ -210,8 +211,9 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "physis"
-version = "0.6.0"
-source = "git+https://github.com/redstrate/physis#08967f438eb7ac3b560b53a3a2394e0b9b2744bb"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51018fe6a91cd6292c89de282fa4426465080d56a0d62ae21628edc95af23a93"
 dependencies = [
  "binrw",
  "bitflags",
