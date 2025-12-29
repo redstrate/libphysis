@@ -8,7 +8,9 @@ use physis::common::{Language, Platform};
 use physis::exd::{ColumnData, EXD, ExcelRowKind};
 use physis::patch::ZiPatch;
 use physis::repository::RepositoryType;
-use physis::resource::{Resource, SqPackResource, get_all_sheet_names, read_excel_sheet};
+use physis::resource::{
+    RepairAction, Resource, SqPackResource, get_all_sheet_names, read_excel_sheet,
+};
 use physis::sqpack::Hash;
 use std::ffi::CStr;
 use std::mem;
@@ -316,4 +318,51 @@ pub extern "C" fn physis_gamedata_get_all_sheet_names(
     mem::forget(c_repo_names);
 
     repositories
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_RepairActions {
+    action_count: u32,
+    repositories: *const *const c_char,
+    actions: *const RepairAction,
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_gamedata_needs_repair(game_data: &SqPackResource) -> physis_RepairActions {
+    if let Some(repairs) = game_data.needs_repair() {
+        let mut c_repositories = vec![];
+        let mut c_actions = vec![];
+
+        for (repository, action) in repairs {
+            c_repositories.push(ffi_to_c_string(&repository.name));
+            c_actions.push(action);
+        }
+
+        let actions = physis_RepairActions {
+            action_count: c_actions.len() as u32,
+            repositories: c_repositories.as_ptr(),
+            actions: c_actions.as_ptr(),
+        };
+
+        mem::forget(c_repositories);
+        mem::forget(c_actions);
+
+        actions
+    } else {
+        physis_RepairActions {
+            action_count: 0,
+            repositories: null(),
+            actions: null(),
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_gamedata_repair(game_data: &SqPackResource) -> bool {
+    if let Some(repairs) = game_data.needs_repair() {
+        game_data.perform_repair(&repairs).is_ok()
+    } else {
+        true
+    }
 }
