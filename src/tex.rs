@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::physis_Buffer;
+use physis::ReadableFile;
+use physis::common::Platform;
 use physis::tex::Texture;
 use physis::tex::TextureType;
 use std::ptr::null_mut;
@@ -32,10 +34,13 @@ impl Default for physis_Texture {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_texture_parse(buffer: physis_Buffer) -> physis_Texture {
+pub extern "C" fn physis_texture_parse(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> physis_Texture {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(mut texture) = Texture::from_existing(data) {
+    if let Some(mut texture) = Texture::from_existing(platform, data) {
         let tex = physis_Texture {
             texture_type: texture.texture_type,
             width: texture.width,

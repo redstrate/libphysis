@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::{ffi_to_c_string, physis_Buffer};
+use physis::ReadableFile;
+use physis::common::Platform;
+use physis::exl::EXL;
 use std::os::raw::c_char;
 use std::ptr::null;
 use std::{mem, slice};
-
-use physis::exl::EXL;
-
-use crate::{ffi_to_c_string, physis_Buffer};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -30,10 +30,10 @@ impl Default for physis_EXL {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_gamedata_read_excel_list(buffer: physis_Buffer) -> physis_EXL {
+pub extern "C" fn physis_exl_parse(platform: Platform, buffer: physis_Buffer) -> physis_EXL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(exl) = EXL::from_existing(data) {
+    if let Some(exl) = EXL::from_existing(platform, data) {
         let mut c_keys = vec![];
         let mut c_values = vec![];
 

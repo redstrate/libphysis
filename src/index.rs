@@ -5,6 +5,7 @@ use std::mem;
 use std::os::raw::c_char;
 use std::ptr::null;
 
+use physis::common::Platform;
 use physis::sqpack::{Hash, SqPackIndex};
 
 use crate::ffi_from_c_string;
@@ -26,12 +27,15 @@ impl Default for physis_IndexEntries {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_index_parse(path: *const c_char) -> physis_IndexEntries {
+pub extern "C" fn physis_index_parse(
+    platform: Platform,
+    path: *const c_char,
+) -> physis_IndexEntries {
     let Some(r_path) = ffi_from_c_string(path) else {
         return physis_IndexEntries::default();
     };
 
-    if let Some(idx_file) = SqPackIndex::from_existing(&r_path) {
+    if let Some(idx_file) = SqPackIndex::from_existing(platform, &r_path) {
         let mut c_hashes = Vec::new();
 
         for entry in &idx_file.entries {
@@ -74,7 +78,7 @@ pub extern "C" fn physis_calculate_hash(
     };
 
     // TODO: this is not ideal, we should just expose IndexFile in the C API
-    if let Some(idx_file) = SqPackIndex::from_existing(&r_index_file_path) {
+    if let Some(idx_file) = SqPackIndex::from_existing(Platform::Win32, &r_index_file_path) {
         match &idx_file.calculate_hash(&r_path) {
             Hash::SplitPath { name, path } => ((*path as u64) << 32) | (*name as u64),
             Hash::FullPath(hash) => *hash as u64,

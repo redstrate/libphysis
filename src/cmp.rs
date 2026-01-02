@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::physis_Buffer;
+use physis::ReadableFile;
 use physis::cmp::{CMP, RacialScalingParameters};
+use physis::common::Platform;
 use physis::race::{Race, Tribe};
 use std::ptr::null_mut;
 use std::slice;
@@ -20,10 +22,10 @@ impl Default for physis_CMP {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_cmp_parse(buffer: physis_Buffer) -> physis_CMP {
+pub extern "C" fn physis_cmp_parse(platform: Platform, buffer: physis_Buffer) -> physis_CMP {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(cmp) = CMP::from_existing(data) {
+    if let Some(cmp) = CMP::from_existing(platform, data) {
         physis_CMP {
             p_ptr: Box::leak(Box::new(cmp)),
         }

@@ -93,8 +93,6 @@ pub extern "C" fn physis_free_file(buffer: &physis_Buffer) {
     drop(bytes);
 }
 
-mod gamedata;
-
 mod bootdata;
 
 mod model;
@@ -134,6 +132,7 @@ mod dic;
 mod index;
 
 mod existing_dirs;
+
 mod shcd;
 
 mod execlookup;
@@ -145,3 +144,5 @@ mod layer;
 mod patch;
 
 mod hwc;
+
+mod resource;

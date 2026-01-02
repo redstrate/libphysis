@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_to_c_string, physis_Buffer};
+use physis::ReadableFile;
+use physis::common::Platform;
 use physis::mtrl::Constant;
 use physis::mtrl::Material;
 use physis::mtrl::Sampler;
@@ -78,10 +80,13 @@ impl Default for physis_Material {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_material_parse(buffer: physis_Buffer) -> physis_Material {
+pub extern "C" fn physis_material_parse(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> physis_Material {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(material) = Material::from_existing(data) {
+    if let Some(material) = Material::from_existing(platform, data) {
         let mut c_strings = vec![];
 
         for tex in &material.texture_paths {

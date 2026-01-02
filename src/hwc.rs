@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::physis_Buffer;
+use physis::ReadableFile;
+use physis::common::Platform;
 use physis::hwc::Hwc;
 use std::mem;
 use std::ptr::null;
@@ -20,10 +22,10 @@ impl Default for physis_HWC {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_parse_hwc(buffer: physis_Buffer) -> physis_HWC {
+pub extern "C" fn physis_hwc_parse(platform: Platform, buffer: physis_Buffer) -> physis_HWC {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(hwc) = Hwc::from_existing(data) {
+    if let Some(hwc) = Hwc::from_existing(platform, data) {
         let c_hwc = physis_HWC {
             rgba: hwc.rgba.as_ptr(),
         };

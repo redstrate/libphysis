@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use physis::ReadableFile;
+use physis::common::Platform;
+use physis::shpk::MaterialParameter;
+use physis::shpk::{Key, Node, Pass, ResourceParameter, ShaderPackage};
 use std::ffi::c_char;
 use std::ptr::null_mut;
 use std::{mem, slice};
-
-use physis::shpk::MaterialParameter;
-use physis::shpk::{Key, Node, Pass, ResourceParameter, ShaderPackage};
 
 use crate::{ffi_from_c_string, ffi_to_c_string, physis_Buffer};
 
@@ -116,10 +117,10 @@ fn physis_get_shader_parameter_array(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_parse_shpk(buffer: physis_Buffer) -> physis_SHPK {
+pub extern "C" fn physis_shpk_parse(platform: Platform, buffer: physis_Buffer) -> physis_SHPK {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(shpk) = ShaderPackage::from_existing(data) {
+    if let Some(shpk) = ShaderPackage::from_existing(platform, data) {
         let mut c_vertex_shaders = vec![];
         let mut c_fragment_shaders = vec![];
 

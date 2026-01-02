@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::physis_Buffer;
-use physis::common::Language;
+use physis::ReadableFile;
+use physis::common::{Language, Platform};
 use physis::exh::{ColumnDataType, EXH};
 use std::ptr::null_mut;
 use std::{mem, slice};
@@ -36,13 +37,28 @@ pub struct physis_EXH {
     column_definitions: *mut physis_ColumnDefinition,
 }
 
+impl Default for physis_EXH {
+    fn default() -> Self {
+        Self {
+            p_ptr: null_mut(),
+            page_count: 0,
+            pages: null_mut(),
+            language_count: 0,
+            languages: null_mut(),
+            column_count: 0,
+            row_count: 0,
+            column_definitions: null_mut(),
+        }
+    }
+}
+
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut physis_EXH {
+pub extern "C" fn physis_exh_parse(platform: Platform, buffer: physis_Buffer) -> physis_EXH {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    let exh = EXH::from_existing(data);
+    let exh = EXH::from_existing(platform, data);
     if exh.is_none() {
-        return null_mut();
+        return physis_EXH::default();
     }
 
     let exh = Box::new(exh.unwrap());
@@ -90,5 +106,12 @@ pub extern "C" fn physis_parse_excel_sheet_header(buffer: physis_Buffer) -> *mut
     mem::forget(c_column_definitions);
     mem::forget(c_pages);
 
-    Box::leak(Box::new(repositories))
+    repositories
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_exh_free(exh: &mut physis_EXH) {
+    unsafe {
+        drop(Box::from_raw(exh.p_ptr)); // TODO: free other things
+    }
 }

@@ -197,7 +197,7 @@ checksum = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273"
 [[package]]
 name = "miscel"
 version = "0.3.0"
-source = "git+https://github.com/redstrate/miscel#4d241ffc0c25867e2d896a148e0d48db9d7e0113"
+source = "git+https://github.com/redstrate/miscel#924389b34c84a7107eb8f4356e3c803fc3473234"
 dependencies = [
  "physis",
 ]
@@ -211,7 +211,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 [[package]]
 name = "physis"
 version = "0.6.0"
-source = "git+https://github.com/redstrate/physis#bf8d2b56bc48cd3d2d778c9792a1c74e95438bd7"
+source = "git+https://github.com/redstrate/physis#8f0b6d7ac7b116b2a8c9e2c3c4e7e502cb9ec5b1"
 dependencies = [
  "binrw",
  "bitflags",
@@ -310,9 +310,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.111"
+version = "2.0.112"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "390cc9a294ab71bdb1aa2e99d13be9c753cd2d7bd6560c77118597410c4d2e87"
+checksum = "21f182278bf2d2bcb3c88b1b08a37df029d71ce3d3ae26168e3c653b213b99d4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -441,6 +441,6 @@ checksum = "40990edd51aae2c2b6907af74ffb635029d5788228222c4bb811e9351c0caad3"
 
 [[package]]
 name = "zmij"
-version = "1.0.2"
+version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f4a4e8e9dc5c62d159f04fcdbe07f4c3fb710415aab4754bf11505501e3251d"
+checksum = "de9211a9f64b825911bdf0240f58b7a8dac217fe260fc61f080a07f61372fbd5"

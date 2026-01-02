@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_to_c_string, physis_Buffer};
+use physis::ReadableFile;
+use physis::common::Platform;
 use physis::tera::Terrain;
 use std::os::raw::c_char;
 use std::ptr::null_mut;
@@ -31,10 +33,13 @@ impl Default for physis_Terrain {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_parse_tera(buffer: physis_Buffer) -> physis_Terrain {
+pub extern "C" fn physis_terrain_parse(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> physis_Terrain {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(tera) = Terrain::from_existing(data) {
+    if let Some(tera) = Terrain::from_existing(platform, data) {
         let mut c_plates = vec![];
 
         for plate in &tera.plates {

@@ -1,18 +1,19 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use physis::common::Platform;
 use physis::model::NewShapeValue;
 use std::os::raw::c_char;
 use std::ptr::null_mut;
 use std::ptr::slice_from_raw_parts;
 use std::{mem, slice};
 
+use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::model::vertex_declarations::VertexElement;
 use physis::model::vertex_declarations::VertexType;
 use physis::model::vertex_declarations::get_vertex_type_size;
 use physis::model::{MDL, SubMesh, Vertex};
-
-use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
+use physis::{ReadableFile, WritableFile};
 
 #[repr(C)]
 pub struct physis_Part {
@@ -76,10 +77,10 @@ impl Default for physis_MDL {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
+pub extern "C" fn physis_mdl_parse(platform: Platform, buffer: physis_Buffer) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    let Some(mdl_d) = MDL::from_existing(data) else {
+    let Some(mdl_d) = MDL::from_existing(platform, data) else {
         return physis_MDL::default();
     };
 
@@ -119,7 +120,7 @@ pub extern "C" fn physis_mdl_parse(buffer: physis_Buffer) -> physis_MDL {
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_mdl_write(mdl: &physis_MDL) -> physis_Buffer {
     unsafe {
-        let mut buffer = (*mdl.p_ptr).write_to_buffer().unwrap();
+        let mut buffer = (*mdl.p_ptr).write_to_buffer(Platform::Win32).unwrap();
 
         let leak_buffer = physis_Buffer {
             size: buffer.len() as u32,

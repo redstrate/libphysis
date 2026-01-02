@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_to_c_string, physis_Buffer};
+use physis::ReadableFile;
+use physis::common::Platform;
 use physis::pbd::PreBoneDeformer;
 use std::os::raw::c_char;
 use std::ptr::null_mut;
@@ -20,10 +22,10 @@ impl Default for physis_PBD {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_parse_pbd(buffer: physis_Buffer) -> physis_PBD {
+pub extern "C" fn physis_pbd_parse(platform: Platform, buffer: physis_Buffer) -> physis_PBD {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(pbd) = PreBoneDeformer::from_existing(data) {
+    if let Some(pbd) = PreBoneDeformer::from_existing(platform, data) {
         physis_PBD {
             p_ptr: Box::leak(Box::new(pbd)),
         }

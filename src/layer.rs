@@ -5,13 +5,14 @@ use std::os::raw::c_char;
 use std::ptr::null;
 use std::slice;
 
+use crate::{ffi_to_c_string, physis_Buffer};
+use physis::ReadableFile;
+use physis::common::Platform;
 use physis::layer::LayerEntryData::{
     Aetheryte, BG, ChairMarker, EventNPC, EventObject, EventRange, ExitRange, MapRange, PopRange,
     PrefetchRange, SharedGroup,
 };
 use physis::layer::*;
-
-use crate::{ffi_to_c_string, physis_Buffer};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -270,10 +271,13 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_layergroup_read(buffer: physis_Buffer) -> physis_LayerGroup {
+pub extern "C" fn physis_layergroup_parse(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> physis_LayerGroup {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(lgb) = LayerGroup::from_existing(data) {
+    if let Some(lgb) = LayerGroup::from_existing(platform, data) {
         let mut c_chunks = vec![];
 
         for chunk in &lgb.chunks {

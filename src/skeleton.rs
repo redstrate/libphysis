@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_to_c_string, physis_Buffer};
+use physis::ReadableFile;
+use physis::common::Platform;
 use physis::skeleton::Skeleton;
 use std::os::raw::c_char;
 use std::ptr::null_mut;
@@ -70,10 +72,13 @@ fn convert_skeleton(skeleton: &Skeleton) -> physis_Skeleton {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_parse_skeleton(buffer: physis_Buffer) -> physis_Skeleton {
+pub extern "C" fn physis_skeleton_parse(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(skeleton) = Skeleton::from_existing(data) {
+    if let Some(skeleton) = Skeleton::from_existing(platform, data) {
         convert_skeleton(&skeleton)
     } else {
         physis_Skeleton::default()

@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::ffi_free_string;
+use crate::exh::physis_EXH;
+use crate::{ffi_from_c_string, ffi_to_c_string};
+use physis::common::Language;
 use physis::exd::EXD;
 use std::os::raw::{c_char, c_uint};
 use std::ptr::{null, null_mut};
-use std::slice;
 
 #[repr(C)]
 #[allow(dead_code)]
@@ -46,62 +47,22 @@ impl Default for physis_ExcelRows {
     }
 }
 
-#[repr(C)]
-pub struct physis_EXD {
-    pub p_ptr: *mut EXD,
-    pub column_count: c_uint,
-    pub row_count: c_uint,
-    pub rows: *const physis_ExcelRows,
-}
-
-impl Default for physis_EXD {
-    fn default() -> Self {
-        Self {
-            p_ptr: null_mut(),
-            column_count: 0,
-            row_count: 0,
-            rows: null(),
-        }
-    }
-}
-
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_exd_get_row(exd: &physis_EXD, row_id: u32) -> *const physis_ExcelRow {
-    let rows = unsafe { slice::from_raw_parts(exd.rows, exd.row_count as usize) };
-    for row in rows {
-        if row.row_id == row_id {
-            return row.row_data;
-        }
-    }
-
-    null()
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn physis_exd_free_rows(exd: &physis_EXD, rows: &physis_ExcelRows) {
+pub unsafe extern "C" fn physis_exd_calculate_filename(
+    name: *const c_char,
+    exh: &physis_EXH,
+    language: Language,
+    page: c_uint,
+) -> *const c_char {
     unsafe {
-        let data = Vec::from_raw_parts(
-            rows.row_data,
-            rows.row_count as usize,
-            rows.row_count as usize,
-        );
+        let Some(r_name) = ffi_from_c_string(name) else {
+            return null();
+        };
 
-        for i in 0..rows.row_count {
-            let col_data = Vec::from_raw_parts(
-                data[i as usize].column_data,
-                exd.column_count as usize,
-                exd.column_count as usize,
-            );
-
-            for col in &col_data {
-                if let physis_ColumnData::String(s) = col {
-                    ffi_free_string(*s);
-                }
-            }
-
-            drop(col_data);
-        }
-
-        drop(data);
+        ffi_to_c_string(&EXD::calculate_filename(
+            &r_name,
+            language,
+            &(&(*exh.p_ptr).pages)[page as usize],
+        ))
     }
 }

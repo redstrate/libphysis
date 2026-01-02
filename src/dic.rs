@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_to_c_string, physis_Buffer};
+use physis::ReadableFile;
+use physis::common::Platform;
 use physis::dic::Dictionary;
 use std::os::raw::c_char;
 use std::ptr::null;
@@ -24,10 +26,13 @@ impl Default for physis_Dictionary {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_parse_dictionary(buffer: physis_Buffer) -> physis_Dictionary {
+pub extern "C" fn physis_dictionary_parse(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> physis_Dictionary {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(dic) = Dictionary::from_existing(data) {
+    if let Some(dic) = Dictionary::from_existing(platform, data) {
         let mut c_words = vec![];
 
         for word in &dic.words {
