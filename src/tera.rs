@@ -42,10 +42,10 @@ pub extern "C" fn physis_terrain_parse(
     if let Some(tera) = Terrain::from_existing(platform, data) {
         let mut c_plates = vec![];
 
-        for plate in &tera.plates {
+        for (i, plate) in tera.plates.iter().enumerate() {
             c_plates.push(physis_PlateModel {
-                position: plate.position.into(),
-                filename: ffi_to_c_string(&plate.filename),
+                position: tera.plate_position(plate),
+                filename: ffi_to_c_string(&Terrain::mdl_filename(i)),
             });
         }
 
