@@ -4,7 +4,7 @@
 use crate::{ffi_from_c_string, ffi_to_c_string};
 use core::ffi::c_char;
 use core::ptr::null;
-use miscel::execlookup::extract_frontier_url;
+use physis::execlookup::extract_frontier_url;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_extract_frontier_url(launcher_path: *const c_char) -> *const c_char {
