@@ -13,16 +13,17 @@ use std::ptr::null;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_slot_from_id(slot_id: i32) -> Slot {
-    match get_slot_from_id(slot_id) {
-        None => Slot::Head, // FIXME: this is currently used to cover-up the few missing slots. PLEASE DO NOT SHIP
-        Some(x) => x,
-    }
+    get_slot_from_id(slot_id)
 }
 
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_get_slot_name(slot: Slot) -> *const c_char {
     // TODO: no need to dynamically allocate a new string
-    ffi_to_c_string(&get_slot_abbreviation(slot).to_string())
+    if let Some(abbr) = get_slot_abbreviation(slot) {
+        ffi_to_c_string(&abbr.to_string())
+    } else {
+        null()
+    }
 }
 
 #[unsafe(no_mangle)]
