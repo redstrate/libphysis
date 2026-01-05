@@ -10,7 +10,7 @@ use std::ptr::{null, null_mut};
 
 #[repr(C)]
 #[allow(dead_code)]
-pub enum physis_ColumnData {
+pub enum physis_Field {
     String(*const c_char),
     Bool(bool),
     Int8(i8),
@@ -27,22 +27,31 @@ pub enum physis_ColumnData {
 #[repr(C)]
 pub struct physis_ExcelRow {
     pub subrow_id: u16,
-    pub column_data: *mut physis_ColumnData,
+    pub columns: *mut physis_Field,
+}
+
+impl Default for physis_ExcelRow {
+    fn default() -> Self {
+        Self {
+            subrow_id: 0,
+            columns: null_mut(),
+        }
+    }
 }
 
 #[repr(C)]
-pub struct physis_ExcelRows {
+pub struct physis_ExcelEntry {
     pub row_id: u32,
-    pub row_data: *mut physis_ExcelRow,
-    pub row_count: c_uint,
+    pub subrows: *mut physis_ExcelRow,
+    pub subrow_count: c_uint,
 }
 
-impl Default for physis_ExcelRows {
+impl Default for physis_ExcelEntry {
     fn default() -> Self {
         Self {
             row_id: 0,
-            row_data: null_mut(),
-            row_count: 0,
+            subrows: null_mut(),
+            subrow_count: 0,
         }
     }
 }
