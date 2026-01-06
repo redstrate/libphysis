@@ -146,3 +146,5 @@ mod patch;
 mod hwc;
 
 mod resource;
+
+mod lgb;

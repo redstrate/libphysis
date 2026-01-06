@@ -2,12 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use std::os::raw::c_char;
-use std::ptr::null;
-use std::slice;
 
-use crate::{ffi_to_c_string, physis_Buffer};
-use physis::ReadableFile;
-use physis::common::Platform;
+use crate::ffi_to_c_string;
 use physis::layer::LayerEntryData::{
     Aetheryte, BG, ChairMarker, EventNPC, EventObject, EventRange, ExitRange, MapRange, PopRange,
     PrefetchRange, SharedGroup,
@@ -145,44 +141,21 @@ pub enum physis_LayerEntry {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_InstanceObject {
-    instance_id: u32,
-    name: *const c_char,
-    transform: Transformation,
-    data: physis_LayerEntry,
+    pub instance_id: u32,
+    pub name: *const c_char,
+    pub transform: Transformation,
+    pub data: physis_LayerEntry,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_Layer {
-    objects: *const physis_InstanceObject,
-    num_objects: u32,
-    name: *const c_char,
-    id: u32,
-    festival_id: u16,
-    festival_phase_id: u16,
-}
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct physis_LayerChunk {
-    layers: *const physis_Layer,
-    num_layers: u32,
-}
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct physis_LayerGroup {
-    chunks: *const physis_LayerChunk,
-    num_chunks: u32,
-}
-
-impl Default for physis_LayerGroup {
-    fn default() -> Self {
-        Self {
-            chunks: null(),
-            num_chunks: 0,
-        }
-    }
+    pub objects: *const physis_InstanceObject,
+    pub num_objects: u32,
+    pub name: *const c_char,
+    pub id: u32,
+    pub festival_id: u16,
+    pub festival_phase_id: u16,
 }
 
 fn convert_gameinstanceobject(obj: &GameInstanceObject) -> physis_GameInstanceObject {
@@ -201,7 +174,7 @@ fn convert_triggerboxinstanceobject(
     }
 }
 
-fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
+pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
     match data {
         BG(bg) => physis_LayerEntry::BG(physis_BGInstanceObject {
             asset_path: ffi_to_c_string(&bg.asset_path.value),
@@ -267,63 +240,5 @@ fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             })
         }
         _ => physis_LayerEntry::None,
-    }
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn physis_layergroup_parse(
-    platform: Platform,
-    buffer: physis_Buffer,
-) -> physis_LayerGroup {
-    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
-
-    if let Some(lgb) = LayerGroup::from_existing(platform, data) {
-        let mut c_chunks = vec![];
-
-        for chunk in &lgb.chunks {
-            let mut c_layers = vec![];
-
-            for layer in &chunk.layers {
-                let mut c_objects = vec![];
-
-                for object in &layer.objects {
-                    c_objects.push(physis_InstanceObject {
-                        instance_id: object.instance_id,
-                        name: ffi_to_c_string(&object.name.value),
-                        transform: object.transform,
-                        data: convert_data(&object.data),
-                    });
-                }
-
-                c_layers.push(physis_Layer {
-                    objects: c_objects.as_ptr(),
-                    num_objects: c_objects.len() as u32,
-                    name: ffi_to_c_string(&layer.header.name.value),
-                    id: layer.header.layer_id,
-                    festival_id: layer.header.festival_id,
-                    festival_phase_id: layer.header.festival_phase_id,
-                });
-
-                std::mem::forget(c_objects);
-            }
-
-            c_chunks.push(physis_LayerChunk {
-                layers: c_layers.as_ptr(),
-                num_layers: c_layers.len() as u32,
-            });
-
-            std::mem::forget(c_layers);
-        }
-
-        let lgb = physis_LayerGroup {
-            chunks: c_chunks.as_ptr(),
-            num_chunks: c_chunks.len() as u32,
-        };
-
-        std::mem::forget(c_chunks);
-
-        lgb
-    } else {
-        physis_LayerGroup::default()
     }
 }
