@@ -148,3 +148,8 @@ mod hwc;
 mod resource;
 
 mod lgb;
+
+mod sgb;
+
+mod lvb;
+mod scn;

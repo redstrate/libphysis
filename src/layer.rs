@@ -242,3 +242,29 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         _ => physis_LayerEntry::None,
     }
 }
+
+pub(crate) fn to_c_layer(layer: &Layer) -> physis_Layer {
+    let mut c_objects = vec![];
+
+    for object in &layer.objects {
+        c_objects.push(physis_InstanceObject {
+            instance_id: object.instance_id,
+            name: ffi_to_c_string(&object.name.value),
+            transform: object.transform,
+            data: convert_data(&object.data),
+        });
+    }
+
+    let layer = physis_Layer {
+        objects: c_objects.as_ptr(),
+        num_objects: c_objects.len() as u32,
+        name: ffi_to_c_string(&layer.header.name.value),
+        id: layer.header.layer_id,
+        festival_id: layer.header.festival_id,
+        festival_phase_id: layer.header.festival_phase_id,
+    };
+
+    std::mem::forget(c_objects);
+
+    layer
+}

@@ -265,7 +265,7 @@ pub unsafe extern "C" fn physis_excel_get_row(
 ) -> physis_ExcelRow {
     unsafe {
         if let Some(row) = (*sheet.p_ptr).row(row_id) {
-            return to_c_row(0, &row);
+            return to_c_row(0, row);
         }
     }
 
