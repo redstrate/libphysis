@@ -1,6 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Joshua Goins <josh@redstrate.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::ffi_to_c_string;
 use crate::layer::{physis_Layer, to_c_layer};
-use physis::layer::{ScnLayerGroup, ScnSection};
+use crate::tmb::{physis_Tmb, to_c_tmb};
+use physis::layer::{ScnLayerGroup, ScnSection, ScnTimeline};
 use std::ffi::c_char;
 
 #[repr(C)]
@@ -9,6 +13,7 @@ pub struct physis_ScnSection {
     layer_groups: *const physis_ScnLayerGroup,
 
     general: physis_ScnGeneralSection,
+    timelines: physis_ScnTimelinesSection,
 
     num_lgb_paths: u32,
     lgb_paths: *const *const c_char,
@@ -17,6 +22,17 @@ pub struct physis_ScnSection {
 #[repr(C)]
 pub struct physis_ScnGeneralSection {
     bg_path: *const c_char,
+}
+
+#[repr(C)]
+pub struct physis_ScnTimelinesSection {
+    timeline_count: u32,
+    timelines: *const physis_ScnTimeline,
+}
+
+#[repr(C)]
+pub struct physis_ScnTimeline {
+    tmb: physis_Tmb,
 }
 
 #[repr(C)]
@@ -42,16 +58,28 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
         bg_path: ffi_to_c_string(&section.general.bg_path.value),
     };
 
+    let mut c_timelines = Vec::new();
+    for timeline in &section.timelines.timelines {
+        c_timelines.push(to_c_timeline(timeline));
+    }
+
+    let timelines = physis_ScnTimelinesSection {
+        timeline_count: c_timelines.len() as u32,
+        timelines: c_timelines.as_ptr(),
+    };
+
     let scn = physis_ScnSection {
         num_layer_groups: c_layer_groups.len() as u32,
         layer_groups: c_layer_groups.as_ptr(),
         general,
+        timelines,
         num_lgb_paths: c_lgb_paths.len() as u32,
         lgb_paths: c_lgb_paths.as_ptr(),
     };
 
     std::mem::forget(c_layer_groups);
     std::mem::forget(c_lgb_paths);
+    std::mem::forget(c_timelines);
 
     scn
 }
@@ -73,4 +101,10 @@ pub fn to_c_layer_group(section: &ScnLayerGroup) -> physis_ScnLayerGroup {
     std::mem::forget(c_layers);
 
     layer_group
+}
+
+pub fn to_c_timeline(timeline: &ScnTimeline) -> physis_ScnTimeline {
+    physis_ScnTimeline {
+        tmb: to_c_tmb(&timeline.tmb),
+    }
 }
