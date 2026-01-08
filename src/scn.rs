@@ -4,6 +4,7 @@
 use crate::ffi_to_c_string;
 use crate::layer::{physis_Layer, to_c_layer};
 use crate::tmb::{physis_Tmb, to_c_tmb};
+use physis::scn::ScnSGActionControllerDescriptor;
 use physis::scn::{ScnLayerGroup, ScnSection, ScnTimeline, ScnTimelineInstance};
 use std::ffi::c_char;
 
@@ -17,6 +18,8 @@ pub struct physis_ScnSection {
 
     num_lgb_paths: u32,
     lgb_paths: *const *const c_char,
+
+    action_descriptors: physis_ScnSGActionDescriptors,
 }
 
 #[repr(C)]
@@ -45,6 +48,12 @@ pub struct physis_ScnLayerGroup {
     layers: *mut physis_Layer,
 }
 
+#[repr(C)]
+pub struct physis_ScnSGActionDescriptors {
+    descriptor_count: u32,
+    descriptors: *const ScnSGActionControllerDescriptor,
+}
+
 pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
     let mut c_layer_groups = Vec::new();
     for layer_group in &section.layer_groups {
@@ -70,6 +79,13 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
         timelines: c_timelines.as_ptr(),
     };
 
+    let c_descriptors = section.action_descriptors.descriptors.clone();
+
+    let action_descriptors = physis_ScnSGActionDescriptors {
+        descriptor_count: c_descriptors.len() as u32,
+        descriptors: c_descriptors.as_ptr(),
+    };
+
     let scn = physis_ScnSection {
         num_layer_groups: c_layer_groups.len() as u32,
         layer_groups: c_layer_groups.as_ptr(),
@@ -77,11 +93,13 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
         timelines,
         num_lgb_paths: c_lgb_paths.len() as u32,
         lgb_paths: c_lgb_paths.as_ptr(),
+        action_descriptors,
     };
 
     std::mem::forget(c_layer_groups);
     std::mem::forget(c_lgb_paths);
     std::mem::forget(c_timelines);
+    std::mem::forget(c_descriptors);
 
     scn
 }

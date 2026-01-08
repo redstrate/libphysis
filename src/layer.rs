@@ -6,7 +6,6 @@ use std::os::raw::c_char;
 use crate::ffi_to_c_string;
 use physis::layer::LayerEntryData::*;
 use physis::layer::*;
-use physis::repository::Category::VFX;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
