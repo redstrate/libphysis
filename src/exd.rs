@@ -3,7 +3,7 @@
 
 use crate::exh::physis_EXH;
 use crate::{ffi_from_c_string, ffi_to_c_string};
-use physis::common::Language;
+use physis::Language;
 use physis::exd::EXD;
 use std::os::raw::{c_char, c_uint};
 use std::ptr::{null, null_mut};

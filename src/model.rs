@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use physis::common::Platform;
+use physis::Platform;
 use physis::model::NewShapeValue;
 use std::os::raw::c_char;
 use std::ptr::null_mut;

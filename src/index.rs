@@ -5,7 +5,7 @@ use std::mem;
 use std::os::raw::c_char;
 use std::ptr::null;
 
-use physis::common::Platform;
+use physis::Platform;
 use physis::sqpack::{Hash, SqPackIndex};
 
 use crate::ffi_from_c_string;

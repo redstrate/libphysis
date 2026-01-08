@@ -4,13 +4,13 @@
 use crate::exd::{physis_ExcelEntry, physis_ExcelRow, physis_Field};
 use crate::exh::physis_EXH;
 use crate::{ffi_free_string, ffi_from_c_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
-use physis::common::{Language, Platform};
 use physis::excel::Field;
 use physis::excel::Row;
 use physis::excel::{Entry, Sheet};
 use physis::repository::RepositoryType;
 use physis::resource::{RepairAction, Resource, SqPackRelease, SqPackResource};
 use physis::sqpack::Hash;
+use physis::{Language, Platform};
 use std::ffi::CStr;
 use std::mem;
 use std::os::raw::{c_char, c_uint};

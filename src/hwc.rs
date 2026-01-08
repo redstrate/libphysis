@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::physis_Buffer;
+use physis::Platform;
 use physis::ReadableFile;
-use physis::common::Platform;
 use physis::hwc::Hwc;
 use std::mem;
 use std::ptr::null;

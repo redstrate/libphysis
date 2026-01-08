@@ -3,8 +3,8 @@
 
 use crate::layer::{physis_Layer, to_c_layer};
 use crate::physis_Buffer;
+use physis::Platform;
 use physis::ReadableFile;
-use physis::common::Platform;
 use physis::lgb::Lgb;
 use std::ptr::null;
 use std::slice;

@@ -3,8 +3,8 @@
 
 use crate::physis_Buffer;
 use physis::ReadableFile;
-use physis::common::{Language, Platform};
 use physis::exh::{ColumnDataType, EXH};
+use physis::{Language, Platform};
 use std::ptr::null_mut;
 use std::{mem, slice};
 

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_to_c_string, physis_Buffer};
+use physis::Platform;
 use physis::ReadableFile;
-use physis::common::Platform;
 use physis::skeleton::Skeleton;
 use std::os::raw::c_char;
 use std::ptr::null_mut;

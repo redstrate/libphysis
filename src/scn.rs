@@ -4,7 +4,7 @@
 use crate::ffi_to_c_string;
 use crate::layer::{physis_Layer, to_c_layer};
 use crate::tmb::{physis_Tmb, to_c_tmb};
-use physis::layer::{ScnLayerGroup, ScnSection, ScnTimeline, ScnTimelineInstance};
+use physis::scn::{ScnLayerGroup, ScnSection, ScnTimeline, ScnTimelineInstance};
 use std::ffi::c_char;
 
 #[repr(C)]

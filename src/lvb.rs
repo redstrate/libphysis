@@ -3,8 +3,8 @@
 
 use crate::physis_Buffer;
 use crate::scn::{physis_ScnSection, to_c_section};
+use physis::Platform;
 use physis::ReadableFile;
-use physis::common::Platform;
 use physis::lvb::Lvb;
 use std::ptr::null;
 use std::slice;

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::physis_Buffer;
+use physis::Platform;
 use physis::ReadableFile;
 use physis::cmp::{CMP, RacialScalingParameters};
-use physis::common::Platform;
 use physis::race::{Race, Tribe};
 use std::ptr::null_mut;
 use std::slice;

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use physis::Platform;
 use physis::ReadableFile;
-use physis::common::Platform;
 use physis::shpk::MaterialParameter;
 use physis::shpk::{Key, Node, Pass, ResourceParameter, ShaderPackage};
 use std::ffi::c_char;
