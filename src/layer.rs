@@ -4,17 +4,27 @@
 use std::os::raw::c_char;
 
 use crate::ffi_to_c_string;
-use physis::layer::LayerEntryData::{
-    Aetheryte, BG, ChairMarker, EventNPC, EventObject, EventRange, ExitRange, MapRange, PopRange,
-    PrefetchRange, SharedGroup,
-};
+use physis::layer::LayerEntryData::*;
 use physis::layer::*;
+use physis::repository::Category::VFX;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_BGInstanceObject {
     asset_path: *const c_char,
     collision_asset_path: *const c_char,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_LightInstanceObject {
+    light_type: LightType,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_VfxInstanceObject {
+    asset_path: *const c_char,
 }
 
 #[repr(C)]
@@ -126,6 +136,8 @@ pub struct physis_PrefetchRangeInstanceObject {
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
     BG(physis_BGInstanceObject),
+    LayLight(physis_LightInstanceObject),
+    Vfx(physis_VfxInstanceObject),
     EventObject(physis_EventInstanceObject),
     PopRange(physis_PopRangeInstanceObject),
     EventNPC(physis_ENPCInstanceObject),
@@ -179,6 +191,12 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         BG(bg) => physis_LayerEntry::BG(physis_BGInstanceObject {
             asset_path: ffi_to_c_string(&bg.asset_path.value),
             collision_asset_path: ffi_to_c_string(&bg.collision_asset_path.value),
+        }),
+        LayLight(light) => physis_LayerEntry::LayLight(physis_LightInstanceObject {
+            light_type: light.light_type,
+        }),
+        Vfx(vfx) => physis_LayerEntry::Vfx(physis_VfxInstanceObject {
+            asset_path: ffi_to_c_string(&vfx.asset_path.value),
         }),
         EventObject(eobj) => physis_LayerEntry::EventObject(physis_EventInstanceObject {
             parent_data: convert_gameinstanceobject(&eobj.parent_data),
