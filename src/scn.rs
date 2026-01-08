@@ -42,7 +42,7 @@ pub struct physis_ScnLayerGroup {
     layer_group_id: u32,
     name: *const c_char,
     layer_count: u32,
-    layers: *const physis_Layer,
+    layers: *mut physis_Layer,
 }
 
 pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
@@ -97,7 +97,7 @@ pub fn to_c_layer_group(section: &ScnLayerGroup) -> physis_ScnLayerGroup {
         layer_group_id: section.layer_group_id,
         name: ffi_to_c_string(&section.name.value),
         layer_count: c_layers.len() as u32,
-        layers: c_layers.as_ptr(),
+        layers: c_layers.as_mut_ptr(),
     };
 
     std::mem::forget(c_layers);

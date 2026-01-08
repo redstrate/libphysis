@@ -150,7 +150,7 @@ pub struct physis_InstanceObject {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_Layer {
-    pub objects: *const physis_InstanceObject,
+    pub objects: *mut physis_InstanceObject,
     pub num_objects: u32,
     pub name: *const c_char,
     pub id: u32,
@@ -256,7 +256,7 @@ pub(crate) fn to_c_layer(layer: &Layer) -> physis_Layer {
     }
 
     let layer = physis_Layer {
-        objects: c_objects.as_ptr(),
+        objects: c_objects.as_mut_ptr(),
         num_objects: c_objects.len() as u32,
         name: ffi_to_c_string(&layer.header.name.value),
         id: layer.header.layer_id,
