@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::physis_Buffer;
 use crate::scn::{physis_ScnSection, to_c_section};
+use crate::{ffi_to_c_string, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
 use physis::lvb::Lvb;
+use std::ffi::c_char;
 use std::ptr::null;
 use std::slice;
 
@@ -45,5 +46,19 @@ pub extern "C" fn physis_lvb_parse(platform: Platform, buffer: physis_Buffer) ->
         lvb
     } else {
         physis_Lvb::default()
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_lvb_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(lvb) = Lvb::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{lvb:#?}"))
+    } else {
+        null()
     }
 }
