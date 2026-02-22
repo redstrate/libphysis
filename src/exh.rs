@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::physis_Buffer;
+use crate::{ffi_to_c_string, physis_Buffer};
 use physis::ReadableFile;
 use physis::exh::{ColumnDataType, EXH};
 use physis::{Language, Platform};
-use std::ptr::null_mut;
+use std::ffi::c_char;
+use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
 // TODO: re-use from Physis since their struct is also simple
@@ -113,5 +114,19 @@ pub extern "C" fn physis_exh_parse(platform: Platform, buffer: physis_Buffer) ->
 pub extern "C" fn physis_exh_free(exh: &mut physis_EXH) {
     unsafe {
         drop(Box::from_raw(exh.p_ptr)); // TODO: free other things
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_exh_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(pcb) = EXH::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{pcb:#?}"))
+    } else {
+        null()
     }
 }

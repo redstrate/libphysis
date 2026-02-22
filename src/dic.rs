@@ -51,3 +51,17 @@ pub extern "C" fn physis_dictionary_parse(
         physis_Dictionary::default()
     }
 }
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_dic_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(dic) = Dictionary::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{dic:#?}"))
+    } else {
+        null()
+    }
+}

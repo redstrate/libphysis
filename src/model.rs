@@ -4,8 +4,8 @@
 use physis::Platform;
 use physis::model::NewShapeValue;
 use std::os::raw::c_char;
-use std::ptr::null_mut;
 use std::ptr::slice_from_raw_parts;
+use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
 use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
@@ -333,5 +333,19 @@ pub extern "C" fn physis_mdl_free(mdl: &physis_MDL) {
         drop(material_names);
 
         drop(Box::from_raw(mdl.p_ptr));
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_mdl_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(mdl) = MDL::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{mdl:#?}"))
+    } else {
+        null()
     }
 }

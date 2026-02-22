@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::physis_Buffer;
+use crate::{ffi_to_c_string, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
 use physis::cmp::{CMP, RacialScalingParameters};
 use physis::race::{Race, Tribe};
-use std::ptr::null_mut;
+use std::ffi::c_char;
+use std::ptr::{null, null_mut};
 use std::slice;
 
 #[repr(C)]
@@ -63,4 +64,18 @@ pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(
     tribe: Tribe,
 ) -> RacialScalingParameters {
     unsafe { (&(*cmp.p_ptr).parameters)[get_rsp_index(tribe) as usize] }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_cmp_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(cmp) = CMP::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{cmp:#?}"))
+    } else {
+        null()
+    }
 }

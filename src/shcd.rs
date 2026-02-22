@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::physis_Buffer;
+use crate::{ffi_to_c_string, physis_Buffer};
 use physis::shcd::SHCD;
 use physis::shcd::ShaderStage;
 use physis::{Platform, ReadableFile};
-use std::ptr::null_mut;
+use std::ffi::c_char;
+use std::ptr::{null, null_mut};
 use std::slice;
 
 #[repr(C)]
@@ -44,5 +45,19 @@ pub extern "C" fn physis_shcd_parse(platform: Platform, buffer: physis_Buffer) -
         shcd
     } else {
         physis_SHCD::default()
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_shcd_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(shcd) = SHCD::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{shcd:#?}"))
+    } else {
+        null()
     }
 }

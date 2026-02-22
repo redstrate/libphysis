@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::exh::physis_EXH;
-use crate::{ffi_from_c_string, ffi_to_c_string};
-use physis::Language;
+use crate::{ffi_from_c_string, ffi_to_c_string, physis_Buffer};
 use physis::exd::EXD;
+use physis::{Language, Platform, ReadableFile};
 use std::os::raw::{c_char, c_uint};
 use std::ptr::{null, null_mut};
+use std::slice;
 
 #[repr(C)]
 #[allow(dead_code)]
@@ -73,5 +74,19 @@ pub unsafe extern "C" fn physis_exd_calculate_filename(
             language,
             &(&(*exh.p_ptr).pages)[page as usize],
         ))
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_exd_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const std::ffi::c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(exd) = EXD::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{exd:#?}"))
+    } else {
+        null()
     }
 }

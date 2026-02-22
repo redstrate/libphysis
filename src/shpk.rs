@@ -6,7 +6,7 @@ use physis::ReadableFile;
 use physis::shpk::MaterialParameter;
 use physis::shpk::{Key, Node, Pass, ResourceParameter, ShaderPackage};
 use std::ffi::c_char;
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
 use crate::{ffi_from_c_string, ffi_to_c_string, physis_Buffer};
@@ -340,4 +340,18 @@ pub extern "C" fn physis_shpk_build_selector_from_all_keys(
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_shpk_crc(name: *const c_char) -> u32 {
     ShaderPackage::crc(&ffi_from_c_string(name).unwrap())
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_shpk_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(shpk) = ShaderPackage::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{shpk:#?}"))
+    } else {
+        null()
+    }
 }

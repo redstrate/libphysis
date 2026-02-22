@@ -157,3 +157,17 @@ pub extern "C" fn physis_material_parse(
         physis_Material::default()
     }
 }
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_mtrl_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(mtrl) = Material::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{mtrl:#?}"))
+    } else {
+        null()
+    }
+}

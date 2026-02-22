@@ -6,7 +6,7 @@ use physis::Platform;
 use physis::ReadableFile;
 use physis::pbd::PreBoneDeformer;
 use std::os::raw::c_char;
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
 #[repr(C)]
@@ -85,5 +85,19 @@ pub extern "C" fn physis_pbd_get_deform_matrix(
         } else {
             physis_PreBoneDeformMatrices::default()
         }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_pbd_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Some(pbd) = PreBoneDeformer::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{pbd:#?}"))
+    } else {
+        null()
     }
 }
