@@ -272,6 +272,36 @@ pub unsafe extern "C" fn physis_excel_get_row(
     physis_ExcelRow::default()
 }
 
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_excel_get_subrow(
+    sheet: &physis_ExcelSheet,
+    row_id: u32,
+    subrow_id: u16,
+) -> physis_ExcelRow {
+    unsafe {
+        if let Some(row) = (*sheet.p_ptr).subrow(row_id, subrow_id) {
+            return to_c_row(subrow_id, row);
+        }
+    }
+
+    physis_ExcelRow::default()
+}
+
+// TODO: not final API, this sucks
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_excel_get_subrow_count(
+    sheet: &physis_ExcelSheet,
+    row_id: u32,
+) -> usize {
+    unsafe {
+        if let Some(row) = (*sheet.p_ptr).entry(row_id) {
+            return row.subrows.len();
+        }
+    }
+
+    0
+}
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_SheetNames {
