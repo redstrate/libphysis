@@ -131,6 +131,28 @@ pub struct physis_PrefetchRangeInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_EnvSetInstanceObject {
+    asset_path: *const c_char,
+    bound_instance_id: u32,
+    shape: EnvSetShape,
+    is_env_map_shooting_point: bool,
+    priority: u8,
+    effective_range: f32,
+    interpolation_time: i32,
+    reverb: f32,
+    filter: f32,
+    sound_asset_path: *const c_char,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_EnvLocationObject {
+    ambient_light_asset_path: *const c_char,
+    env_map_asset_path: *const c_char,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
@@ -147,6 +169,8 @@ pub enum physis_LayerEntry {
     EventRange(physis_EventRangeInstanceObject),
     ChairMarker(physis_ChairMarkerInstanceObject),
     PrefetchRange(physis_PrefetchRangeInstanceObject),
+    EnvSet(physis_EnvSetInstanceObject),
+    EnvLocation(physis_EnvLocationObject),
 }
 
 #[repr(C)]
@@ -256,6 +280,22 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                 bound_instance_id: prefetch_range.bound_instance_id,
             })
         }
+        EnvSet(env_set) => physis_LayerEntry::EnvSet(physis_EnvSetInstanceObject {
+            asset_path: ffi_to_c_string(&env_set.asset_path.value),
+            bound_instance_id: env_set.bound_instance_id,
+            shape: env_set.shape,
+            is_env_map_shooting_point: env_set.is_env_map_shooting_point,
+            priority: env_set.priority,
+            effective_range: env_set.effective_range,
+            interpolation_time: env_set.interpolation_time,
+            reverb: env_set.reverb,
+            filter: env_set.filter,
+            sound_asset_path: ffi_to_c_string(&env_set.sound_asset_path.value),
+        }),
+        EnvLocation(env_location) => physis_LayerEntry::EnvLocation(physis_EnvLocationObject {
+            ambient_light_asset_path: ffi_to_c_string(&env_location.ambient_light_asset_path.value),
+            env_map_asset_path: ffi_to_c_string(&env_location.env_map_asset_path.value),
+        }),
         _ => physis_LayerEntry::None,
     }
 }
