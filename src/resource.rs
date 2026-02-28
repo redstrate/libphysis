@@ -14,6 +14,7 @@ use physis::{Language, Platform};
 use std::ffi::CStr;
 use std::mem;
 use std::os::raw::{c_char, c_uint};
+use std::path::Path;
 use std::ptr::{null, null_mut};
 
 #[repr(C)]
@@ -352,9 +353,10 @@ pub extern "C" fn physis_sqpack_read_from_hash(
     hash: Hash,
 ) -> physis_Buffer {
     unsafe {
-        if let Some(mut d) = (*resource.p_ptr)
-            .read_from_hash(CStr::from_ptr(index_path).to_string_lossy().as_ref(), hash)
-        {
+        if let Some(mut d) = (*resource.p_ptr).read_from_hash(
+            Path::new(CStr::from_ptr(index_path).to_string_lossy().as_ref()),
+            hash,
+        ) {
             let b = physis_Buffer {
                 size: d.len() as u32,
                 data: d.as_mut_ptr(),
