@@ -153,6 +153,45 @@ pub struct physis_EnvLocationObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_SoundInstanceObject {
+    sound_effect_param: i32,
+    asset_path: *const c_char,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_CollisionBoxInstanceObject {
+    parent_data: physis_TriggerBoxInstanceObject,
+    collision_asset_path: *const c_char,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_DoorRangeInstanceObject {
+    parent_data: physis_TriggerBoxInstanceObject,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_LineVFXInstanceObject {
+    line_style: LineStyle,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_TreasureInstanceObject {
+    nonpop_init_zone: u8,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_TargetMarkerInstanceObject {
+    nameplate_offset_y: f32,
+    target_market_type: TargetMarkerType,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
@@ -171,6 +210,12 @@ pub enum physis_LayerEntry {
     PrefetchRange(physis_PrefetchRangeInstanceObject),
     EnvSet(physis_EnvSetInstanceObject),
     EnvLocation(physis_EnvLocationObject),
+    Sound(physis_SoundInstanceObject),
+    CollisionBox(physis_CollisionBoxInstanceObject),
+    DoorRange(physis_DoorRangeInstanceObject),
+    LineVFX(physis_LineVFXInstanceObject),
+    Treasure(physis_TreasureInstanceObject),
+    TargetMarker(physis_TargetMarkerInstanceObject),
 }
 
 #[repr(C)]
@@ -296,6 +341,31 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             ambient_light_asset_path: ffi_to_c_string(&env_location.ambient_light_asset_path.value),
             env_map_asset_path: ffi_to_c_string(&env_location.env_map_asset_path.value),
         }),
+        Sound(sound) => physis_LayerEntry::Sound(physis_SoundInstanceObject {
+            sound_effect_param: sound.sound_effect_param,
+            asset_path: ffi_to_c_string(&sound.asset_path.value),
+        }),
+        CollisionBox(collision_box) => {
+            physis_LayerEntry::CollisionBox(physis_CollisionBoxInstanceObject {
+                parent_data: convert_triggerboxinstanceobject(&collision_box.parent_data),
+                collision_asset_path: ffi_to_c_string(&collision_box.collision_asset_path.value),
+            })
+        }
+        DoorRange(door_range) => physis_LayerEntry::DoorRange(physis_DoorRangeInstanceObject {
+            parent_data: convert_triggerboxinstanceobject(&door_range.parent_data),
+        }),
+        LineVFX(line_vfx) => physis_LayerEntry::LineVFX(physis_LineVFXInstanceObject {
+            line_style: line_vfx.line_style,
+        }),
+        Treasure(treasure) => physis_LayerEntry::Treasure(physis_TreasureInstanceObject {
+            nonpop_init_zone: treasure.nonpop_init_zone,
+        }),
+        TargetMarker(target_marker) => {
+            physis_LayerEntry::TargetMarker(physis_TargetMarkerInstanceObject {
+                nameplate_offset_y: target_marker.nameplate_offset_y,
+                target_market_type: target_marker.target_marker_type,
+            })
+        }
         _ => physis_LayerEntry::None,
     }
 }

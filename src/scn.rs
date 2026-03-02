@@ -35,6 +35,7 @@ pub struct physis_ScnTimelinesSection {
 
 #[repr(C)]
 pub struct physis_ScnTimeline {
+    sub_id: u32,
     tmb: physis_Tmb,
     instance_count: u32,
     instances: *const ScnTimelineInstance,
@@ -127,6 +128,7 @@ pub fn to_c_timeline(timeline: &ScnTimeline) -> physis_ScnTimeline {
     let c_instances = timeline.instances.clone();
 
     let c_timeline = physis_ScnTimeline {
+        sub_id: timeline.sub_id,
         tmb: to_c_tmb(&timeline.tmb),
         instance_count: c_instances.len() as u32,
         instances: c_instances.as_ptr(),
