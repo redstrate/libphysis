@@ -204,9 +204,9 @@ dependencies = [
 
 [[package]]
 name = "libz-rs-sys"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f22ae25415efaefbc733e0562f3b6d71e35668b584721d5724c3f7f18157bcaa"
+checksum = "f1116a951fd9d5110720bb2ae66f72ce5d7b10bd8aa8744924677157089ce13f"
 dependencies = [
  "zlib-rs",
 ]
@@ -238,7 +238,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 [[package]]
 name = "physis"
 version = "0.6.0"
-source = "git+https://github.com/redstrate/physis#c265e842cc2046b39ffdc1f71588a8fda748a802"
+source = "git+https://github.com/redstrate/physis#f022511302891dcfd1df3ba877f3240f9a9bd0a6"
 dependencies = [
  "binrw",
  "bitflags",
@@ -609,9 +609,9 @@ dependencies = [
 
 [[package]]
 name = "zlib-rs"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c745c48e1007337ed136dc99df34128b9faa6ed542d80a1c673cf55a6d7236c8"
+checksum = "3be3d40e40a133f9c916ee3f9f4fa2d9d63435b5fbe1bfc6d9dae0aa0ada1513"
 
 [[package]]
 name = "zmij"
