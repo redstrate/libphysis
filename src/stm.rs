@@ -4,7 +4,7 @@
 use crate::{ffi_to_c_string, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
-use physis::stm::StainingTemplate;
+use physis::stm::Stm;
 use std::ffi::c_char;
 use std::ptr::null;
 use std::slice;
@@ -16,7 +16,7 @@ pub unsafe extern "C" fn physis_stm_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(stm) = StainingTemplate::from_existing(platform, data) {
+    if let Some(stm) = Stm::from_existing(platform, data) {
         ffi_to_c_string(&format!("{stm:#?}"))
     } else {
         null()
