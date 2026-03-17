@@ -64,29 +64,3 @@ pub extern "C" fn physis_generate_partial_hash(name: *const c_char) -> u32 {
 
     SqPackIndex::calculate_partial_hash(&r_name)
 }
-
-#[unsafe(no_mangle)]
-pub extern "C" fn physis_calculate_hash(
-    index_file_path: *const c_char,
-    path: *const c_char,
-) -> u64 {
-    let Some(r_path) = ffi_from_c_string(path) else {
-        return 0;
-    };
-
-    let Some(r_index_file_path) = ffi_from_c_string(index_file_path) else {
-        return 0;
-    };
-
-    // TODO: this is not ideal, we should just expose IndexFile in the C API
-    if let Some(idx_file) =
-        SqPackIndex::from_existing(Platform::Win32, Path::new(&r_index_file_path))
-    {
-        match &idx_file.calculate_hash(&r_path) {
-            Hash::SplitPath { name, path } => ((*path as u64) << 32) | (*name as u64),
-            Hash::FullPath(hash) => *hash as u64,
-        }
-    } else {
-        0
-    }
-}
