@@ -4,7 +4,7 @@
 use crate::physis_Buffer;
 use physis::Platform;
 use physis::ReadableFile;
-use physis::tex::Texture;
+use physis::tex::{Texture, TextureFormat};
 use physis::tex::TextureType;
 use std::ptr::null_mut;
 use std::{mem, slice};
@@ -13,6 +13,7 @@ use std::{mem, slice};
 #[derive(Clone, Copy)]
 pub struct physis_Texture {
     texture_type: TextureType,
+    format: TextureFormat,
     width: u32,
     height: u32,
     depth: u32,
@@ -24,6 +25,7 @@ impl Default for physis_Texture {
     fn default() -> Self {
         Self {
             texture_type: TextureType::TwoDimensional,
+            format: TextureFormat::A8_UNORM,
             width: 0,
             height: 0,
             depth: 0,
@@ -43,6 +45,7 @@ pub extern "C" fn physis_texture_parse(
     if let Some(mut texture) = Texture::from_existing(platform, data) {
         let tex = physis_Texture {
             texture_type: texture.texture_type,
+            format: texture.format,
             width: texture.width,
             height: texture.height,
             depth: texture.depth,
