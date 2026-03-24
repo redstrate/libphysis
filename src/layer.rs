@@ -180,7 +180,7 @@ pub struct physis_LineVFXInstanceObject {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_TreasureInstanceObject {
-    nonpop_init_zone: u8,
+    base_id: u32,
 }
 
 #[repr(C)]
@@ -358,7 +358,7 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             line_style: line_vfx.line_style,
         }),
         Treasure(treasure) => physis_LayerEntry::Treasure(physis_TreasureInstanceObject {
-            nonpop_init_zone: treasure.nonpop_init_zone,
+            base_id: treasure.base_id as u32,
         }),
         TargetMarker(target_marker) => {
             physis_LayerEntry::TargetMarker(physis_TargetMarkerInstanceObject {

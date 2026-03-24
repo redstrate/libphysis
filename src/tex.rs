@@ -4,8 +4,8 @@
 use crate::physis_Buffer;
 use physis::Platform;
 use physis::ReadableFile;
-use physis::tex::{Texture, TextureFormat};
 use physis::tex::TextureType;
+use physis::tex::{Texture, TextureFormat};
 use std::ptr::null_mut;
 use std::{mem, slice};
 
