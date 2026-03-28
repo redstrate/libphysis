@@ -1,26 +1,26 @@
 // SPDX-FileCopyrightText: 2026 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::scn::{physis_ScnSection, to_c_section};
-use crate::{ffi_to_c_string, physis_Buffer};
+use crate::scn::{drop_section, physis_ScnSection, to_c_section};
+use crate::{ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
 use physis::lvb::Lvb;
 use std::ffi::c_char;
-use std::ptr::null;
+use std::ptr::{null, null_mut};
 use std::slice;
 
 #[repr(C)]
 pub struct physis_Lvb {
     section_count: u32,
-    sections: *const physis_ScnSection,
+    sections: *mut physis_ScnSection,
 }
 
 impl Default for physis_Lvb {
     fn default() -> Self {
         Self {
             section_count: 0,
-            sections: null(),
+            sections: null_mut(),
         }
     }
 }
@@ -38,7 +38,7 @@ pub extern "C" fn physis_lvb_parse(platform: Platform, buffer: physis_Buffer) ->
 
         let lvb = physis_Lvb {
             section_count: c_sections.len() as u32,
-            sections: c_sections.as_ptr(),
+            sections: c_sections.as_mut_ptr(),
         };
 
         std::mem::forget(c_sections);
@@ -61,4 +61,17 @@ pub unsafe extern "C" fn physis_lvb_debug(
     } else {
         null()
     }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_lvb_free(lvb: &physis_Lvb) {
+    if lvb.sections.is_null() {
+        return;
+    }
+
+    let data = ffi_to_vec(lvb.sections, lvb.section_count);
+    for section in &data {
+        drop_section(section);
+    }
+    drop(data);
 }

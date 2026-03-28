@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::ffi_to_c_string;
-use crate::layer::{physis_Layer, to_c_layer};
-use crate::tmb::{physis_Tmb, to_c_tmb};
+use crate::layer::{free_layer, physis_Layer, to_c_layer};
+use crate::tmb::{physis_Tmb, physis_tmb_free, to_c_tmb};
+use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec};
 use physis::scn::ScnSGActionControllerDescriptor;
 use physis::scn::{ScnLayerGroup, ScnSection, ScnTimeline, ScnTimelineInstance};
 use std::ffi::c_char;
@@ -11,13 +11,13 @@ use std::ffi::c_char;
 #[repr(C)]
 pub struct physis_ScnSection {
     num_layer_groups: u32,
-    layer_groups: *const physis_ScnLayerGroup,
+    layer_groups: *mut physis_ScnLayerGroup,
 
     general: physis_ScnGeneralSection,
     timelines: physis_ScnTimelinesSection,
 
     num_lgb_paths: u32,
-    lgb_paths: *const *const c_char,
+    lgb_paths: *mut *const c_char,
 
     action_descriptors: physis_ScnSGActionDescriptors,
 }
@@ -30,7 +30,7 @@ pub struct physis_ScnGeneralSection {
 #[repr(C)]
 pub struct physis_ScnTimelinesSection {
     timeline_count: u32,
-    timelines: *const physis_ScnTimeline,
+    timelines: *mut physis_ScnTimeline,
 }
 
 #[repr(C)]
@@ -39,7 +39,7 @@ pub struct physis_ScnTimeline {
     animation_type: *const c_char,
     tmb: physis_Tmb,
     instance_count: u32,
-    instances: *const ScnTimelineInstance,
+    instances: *mut ScnTimelineInstance,
 }
 
 #[repr(C)]
@@ -53,7 +53,7 @@ pub struct physis_ScnLayerGroup {
 #[repr(C)]
 pub struct physis_ScnSGActionDescriptors {
     descriptor_count: u32,
-    descriptors: *const ScnSGActionControllerDescriptor,
+    descriptors: *mut ScnSGActionControllerDescriptor,
 }
 
 pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
@@ -78,23 +78,23 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
 
     let timelines = physis_ScnTimelinesSection {
         timeline_count: c_timelines.len() as u32,
-        timelines: c_timelines.as_ptr(),
+        timelines: c_timelines.as_mut_ptr(),
     };
 
-    let c_descriptors = section.action_descriptors.descriptors.clone();
+    let mut c_descriptors = section.action_descriptors.descriptors.clone();
 
     let action_descriptors = physis_ScnSGActionDescriptors {
         descriptor_count: c_descriptors.len() as u32,
-        descriptors: c_descriptors.as_ptr(),
+        descriptors: c_descriptors.as_mut_ptr(),
     };
 
     let scn = physis_ScnSection {
         num_layer_groups: c_layer_groups.len() as u32,
-        layer_groups: c_layer_groups.as_ptr(),
+        layer_groups: c_layer_groups.as_mut_ptr(),
         general,
         timelines,
         num_lgb_paths: c_lgb_paths.len() as u32,
-        lgb_paths: c_lgb_paths.as_ptr(),
+        lgb_paths: c_lgb_paths.as_mut_ptr(),
         action_descriptors,
     };
 
@@ -126,17 +126,59 @@ pub fn to_c_layer_group(section: &ScnLayerGroup) -> physis_ScnLayerGroup {
 }
 
 pub fn to_c_timeline(timeline: &ScnTimeline) -> physis_ScnTimeline {
-    let c_instances = timeline.instances.clone();
+    let mut c_instances = timeline.instances.clone();
 
     let c_timeline = physis_ScnTimeline {
         sub_id: timeline.sub_id,
         animation_type: ffi_to_c_string(&timeline.animation_type.value),
         tmb: to_c_tmb(&timeline.tmb),
         instance_count: c_instances.len() as u32,
-        instances: c_instances.as_ptr(),
+        instances: c_instances.as_mut_ptr(),
     };
 
     std::mem::forget(c_instances);
 
     c_timeline
+}
+
+pub(crate) fn drop_section(section: &physis_ScnSection) {
+    let data = ffi_to_vec(section.layer_groups, section.num_layer_groups);
+    for group in &data {
+        ffi_free_string(group.name);
+
+        let data = ffi_to_vec(group.layers, group.layer_count);
+        for layer in &data {
+            free_layer(layer);
+        }
+        drop(data);
+    }
+    drop(data);
+
+    ffi_free_string(section.general.bg_path);
+
+    let data = ffi_to_vec(
+        section.timelines.timelines,
+        section.timelines.timeline_count,
+    );
+    for timeline in &data {
+        ffi_free_string(timeline.animation_type);
+
+        physis_tmb_free(&timeline.tmb);
+
+        let data = ffi_to_vec(timeline.instances, timeline.instance_count);
+        drop(data);
+    }
+    drop(data);
+
+    let data = ffi_to_vec(section.lgb_paths, section.num_lgb_paths);
+    for path in &data {
+        ffi_free_string(*path);
+    }
+    drop(data);
+
+    let data = ffi_to_vec(
+        section.action_descriptors.descriptors,
+        section.action_descriptors.descriptor_count,
+    );
+    drop(data);
 }

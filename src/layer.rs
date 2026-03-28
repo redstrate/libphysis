@@ -3,7 +3,7 @@
 
 use std::os::raw::c_char;
 
-use crate::ffi_to_c_string;
+use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec};
 use physis::layer::LayerEntryData::*;
 use physis::layer::*;
 
@@ -394,4 +394,56 @@ pub(crate) fn to_c_layer(layer: &Layer) -> physis_Layer {
     std::mem::forget(c_objects);
 
     layer
+}
+
+pub(crate) fn free_layer(layer: &physis_Layer) {
+    let data = ffi_to_vec(layer.objects, layer.num_objects);
+    for object in &data {
+        ffi_free_string(object.name);
+
+        match &object.data {
+            physis_LayerEntry::None => {}
+            physis_LayerEntry::BG(bg) => {
+                ffi_free_string(bg.asset_path);
+                ffi_free_string(bg.collision_asset_path);
+            }
+            physis_LayerEntry::LayLight(_) => {}
+            physis_LayerEntry::Vfx(vfx) => {
+                ffi_free_string(vfx.asset_path);
+            }
+            physis_LayerEntry::EventObject(_) => {}
+            physis_LayerEntry::PopRange(_) => {}
+            physis_LayerEntry::EventNPC(_) => {}
+            physis_LayerEntry::MapRange(_) => {}
+            physis_LayerEntry::SharedGroup(sgb) => {
+                ffi_free_string(sgb.asset_path);
+            }
+            physis_LayerEntry::Aetheryte(_) => {}
+            physis_LayerEntry::ExitRange(_) => {}
+            physis_LayerEntry::EventRange(_) => {}
+            physis_LayerEntry::ChairMarker(_) => {}
+            physis_LayerEntry::PrefetchRange(_) => {}
+            physis_LayerEntry::EnvSet(env_set) => {
+                ffi_free_string(env_set.asset_path);
+                ffi_free_string(env_set.sound_asset_path);
+            }
+            physis_LayerEntry::EnvLocation(env_location) => {
+                ffi_free_string(env_location.ambient_light_asset_path);
+                ffi_free_string(env_location.env_map_asset_path);
+            }
+            physis_LayerEntry::Sound(sound) => {
+                ffi_free_string(sound.asset_path);
+            }
+            physis_LayerEntry::CollisionBox(collision_box) => {
+                ffi_free_string(collision_box.collision_asset_path);
+            }
+            physis_LayerEntry::DoorRange(_) => {}
+            physis_LayerEntry::LineVFX(_) => {}
+            physis_LayerEntry::Treasure(_) => {}
+            physis_LayerEntry::TargetMarker(_) => {}
+        }
+    }
+    drop(data);
+
+    ffi_free_string(layer.name);
 }

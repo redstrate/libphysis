@@ -94,6 +94,10 @@ pub extern "C" fn physis_read_file(path: *const c_char) -> physis_Buffer {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_free_file(buffer: &physis_Buffer) {
+    if buffer.data.is_null() {
+        return;
+    }
+
     let bytes = ffi_to_vec(buffer.data, buffer.size);
     drop(bytes);
 }

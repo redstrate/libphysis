@@ -212,3 +212,8 @@ pub unsafe extern "C" fn physis_tmb_debug(
         null()
     }
 }
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_tmb_free(_tmb: &physis_Tmb) {
+    // TODO: stub
+}

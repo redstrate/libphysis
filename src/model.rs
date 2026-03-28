@@ -20,7 +20,7 @@ pub struct physis_Part {
     num_vertices: u32,
     vertices: *mut Vertex,
 
-    streams: *mut *const u8,
+    streams: *mut *mut u8,
     stream_sizes: *mut usize,
     stream_strides: *mut usize,
     num_streams: usize,
@@ -164,8 +164,8 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
             }
 
             for stream in &part.vertex_streams {
-                let c_stream = stream.clone();
-                c_streams.push(c_stream.as_ptr());
+                let mut c_stream = stream.clone();
+                c_streams.push(c_stream.as_mut_ptr());
                 c_stream_sizes.push(c_stream.len());
 
                 mem::forget(c_stream);
@@ -291,6 +291,10 @@ pub extern "C" fn physis_mdl_free(mdl: &physis_MDL) {
                 drop(vertices);
 
                 let streams = ffi_to_vec(part.streams, part.num_streams as u32);
+                for (i, stream) in streams.iter().enumerate() {
+                    let stream_data = ffi_to_vec(*stream, part.stream_sizes.add(i) as u32);
+                    drop(stream_data);
+                }
                 drop(streams);
 
                 let stream_sizes = ffi_to_vec(part.stream_sizes, part.num_streams as u32);

@@ -1,33 +1,33 @@
 // SPDX-FileCopyrightText: 2026 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::layer::{physis_Layer, to_c_layer};
-use crate::{ffi_to_c_string, physis_Buffer};
+use crate::layer::{free_layer, physis_Layer, to_c_layer};
+use crate::{ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
 use physis::lgb::Lgb;
 use std::ffi::c_char;
-use std::ptr::null;
+use std::ptr::{null, null_mut};
 use std::slice;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_LayerChunk {
-    layers: *const physis_Layer,
+    layers: *mut physis_Layer,
     num_layers: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_LayerGroup {
-    chunks: *const physis_LayerChunk,
+    chunks: *mut physis_LayerChunk,
     num_chunks: u32,
 }
 
 impl Default for physis_LayerGroup {
     fn default() -> Self {
         Self {
-            chunks: null(),
+            chunks: null_mut(),
             num_chunks: 0,
         }
     }
@@ -48,7 +48,7 @@ pub extern "C" fn physis_lgb_parse(platform: Platform, buffer: physis_Buffer) ->
             }
 
             c_chunks.push(physis_LayerChunk {
-                layers: c_layers.as_ptr(),
+                layers: c_layers.as_mut_ptr(),
                 num_layers: c_layers.len() as u32,
             });
 
@@ -56,7 +56,7 @@ pub extern "C" fn physis_lgb_parse(platform: Platform, buffer: physis_Buffer) ->
         }
 
         let lgb = physis_LayerGroup {
-            chunks: c_chunks.as_ptr(),
+            chunks: c_chunks.as_mut_ptr(),
             num_chunks: c_chunks.len() as u32,
         };
 
@@ -80,4 +80,21 @@ pub unsafe extern "C" fn physis_lgb_debug(
     } else {
         null()
     }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_lgb_free(lgb: &physis_LayerGroup) {
+    if lgb.chunks.is_null() {
+        return;
+    }
+
+    let data = ffi_to_vec(lgb.chunks, lgb.num_chunks);
+    for chunk in &data {
+        let data = ffi_to_vec(chunk.layers, chunk.num_layers);
+        for layer in &data {
+            free_layer(layer);
+        }
+        drop(data);
+    }
+    drop(data);
 }
