@@ -18,6 +18,7 @@ pub struct physis_BGInstanceObject {
 #[derive(Clone, Copy)]
 pub struct physis_LightInstanceObject {
     light_type: LightType,
+    diffuse_color_hdri: ColorHDRI,
 }
 
 #[repr(C)]
@@ -262,6 +263,7 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         }),
         LayLight(light) => physis_LayerEntry::LayLight(physis_LightInstanceObject {
             light_type: light.light_type,
+            diffuse_color_hdri: light.diffuse_color_hdri,
         }),
         Vfx(vfx) => physis_LayerEntry::Vfx(physis_VfxInstanceObject {
             asset_path: ffi_to_c_string(&vfx.asset_path.value),
