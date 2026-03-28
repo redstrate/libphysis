@@ -103,7 +103,7 @@ pub extern "C" fn physis_sqpack_read(
 #[repr(C)]
 pub struct physis_ExcelSheetPage {
     pub entry_count: c_uint,
-    pub entries: *const physis_ExcelEntry,
+    pub entries: *mut physis_ExcelEntry,
     pub column_count: c_uint,
 }
 
@@ -143,7 +143,7 @@ pub extern "C" fn physis_excel_page_free_rows(
 pub struct physis_ExcelSheet {
     p_ptr: *mut Sheet,
     page_count: u32,
-    pages: *const physis_ExcelSheetPage,
+    pages: *mut physis_ExcelSheetPage,
 }
 
 impl Default for physis_ExcelSheet {
@@ -151,7 +151,7 @@ impl Default for physis_ExcelSheet {
         Self {
             p_ptr: null_mut(),
             page_count: 0,
-            pages: null(),
+            pages: null_mut(),
         }
     }
 }
@@ -229,7 +229,7 @@ pub unsafe extern "C" fn physis_sqpack_read_excel_sheet(
                 let page = physis_ExcelSheetPage {
                     column_count: (*exh.p_ptr).column_definitions.len() as c_uint,
                     entry_count: page.entries.len() as u32,
-                    entries: c_entries.as_ptr(),
+                    entries: c_entries.as_mut_ptr(),
                 };
 
                 mem::forget(c_entries);
@@ -240,7 +240,7 @@ pub unsafe extern "C" fn physis_sqpack_read_excel_sheet(
             let exd = physis_ExcelSheet {
                 p_ptr: Box::leak(exd),
                 page_count: c_pages.len() as u32,
-                pages: c_pages.as_ptr(),
+                pages: c_pages.as_mut_ptr(),
             };
 
             mem::forget(c_pages);
@@ -254,8 +254,32 @@ pub unsafe extern "C" fn physis_sqpack_read_excel_sheet(
 
 #[unsafe(no_mangle)]
 pub extern "C" fn physis_sqpack_free_excel_sheet(sheet: &physis_ExcelSheet) {
+    if sheet.p_ptr.is_null() {
+        return;
+    }
+
     unsafe {
-        drop(Box::from_raw(sheet.p_ptr)); // TODO: free other things
+        let data = ffi_to_vec(sheet.pages, sheet.page_count);
+        for page in &data {
+            let data = ffi_to_vec(page.entries, page.entry_count);
+            for entry in &data {
+                let data = ffi_to_vec(entry.subrows, entry.subrow_count);
+                for subrow in &data {
+                    let data = ffi_to_vec(subrow.columns, page.column_count);
+                    for column in &data {
+                        if let physis_Field::String(string) = &column {
+                            ffi_free_string(*string)
+                        }
+                    }
+                    drop(data);
+                }
+                drop(data);
+            }
+            drop(data);
+        }
+        drop(data);
+
+        drop(Box::from_raw(sheet.p_ptr));
     }
 }
 
@@ -286,6 +310,23 @@ pub unsafe extern "C" fn physis_excel_get_subrow(
     }
 
     physis_ExcelRow::default()
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_free_row(row: &physis_ExcelRow, column_count: u32) {
+    if row.columns.is_null() {
+        return;
+    }
+
+    let data = ffi_to_vec(row.columns, column_count);
+
+    for field in &data {
+        if let physis_Field::String(string) = *field {
+            ffi_free_string(string)
+        }
+    }
+
+    drop(data)
 }
 
 // TODO: not final API, this sucks
@@ -330,6 +371,17 @@ pub extern "C" fn physis_sqpack_get_all_sheet_names(
     mem::forget(c_repo_names);
 
     repositories
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_sqpack_free_all_sheet_names(names: physis_SheetNames) {
+    let data = ffi_to_vec(names.names, names.name_count);
+
+    for name in &data {
+        ffi_free_string(*name);
+    }
+
+    drop(data)
 }
 
 #[unsafe(no_mangle)]
@@ -380,13 +432,6 @@ pub extern "C" fn physis_sqpack_find_offset(
         (*resource.p_ptr)
             .find_offset(CStr::from_ptr(path).to_string_lossy().as_ref())
             .unwrap_or_default()
-    }
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn physis_sqpack_free_sheet_header(exh: *mut physis_EXH) {
-    unsafe {
-        drop(Box::from_raw(exh));
     }
 }
 

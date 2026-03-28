@@ -51,6 +51,11 @@ pub extern "C" fn physis_get_libphysis_version() -> *const c_char {
     ffi_to_c_string(&env!("CARGO_PKG_VERSION").to_string())
 }
 
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_free_string(string: *const c_char) {
+    ffi_free_string(string);
+}
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_Buffer {

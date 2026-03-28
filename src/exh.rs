@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{ffi_to_c_string, physis_Buffer};
+use crate::{ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::ReadableFile;
 use physis::exh::{ColumnDataType, EXH};
 use physis::{Language, Platform};
@@ -111,9 +111,22 @@ pub extern "C" fn physis_exh_parse(platform: Platform, buffer: physis_Buffer) ->
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_exh_free(exh: &mut physis_EXH) {
+pub extern "C" fn physis_exh_free(exh: &physis_EXH) {
+    if exh.p_ptr.is_null() {
+        return;
+    }
+
     unsafe {
-        drop(Box::from_raw(exh.p_ptr)); // TODO: free other things
+        let data = ffi_to_vec(exh.column_definitions, exh.column_count);
+        drop(data);
+
+        let data = ffi_to_vec(exh.languages, exh.language_count);
+        drop(data);
+
+        let data = ffi_to_vec(exh.pages, exh.page_count);
+        drop(data);
+
+        drop(Box::from_raw(exh.p_ptr));
     }
 }
 
