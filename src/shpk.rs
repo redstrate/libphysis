@@ -9,7 +9,7 @@ use std::ffi::c_char;
 use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
-use crate::{ffi_from_c_string, ffi_to_c_string, physis_Buffer};
+use crate::{ffi_free_string, ffi_from_c_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -223,6 +223,104 @@ pub extern "C" fn physis_shpk_parse(platform: Platform, buffer: physis_Buffer) -
         mat
     } else {
         physis_SHPK::default()
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_shpk_free(shpk: &physis_SHPK) {
+    if shpk.p_ptr.is_null() {
+        return;
+    }
+
+    unsafe {
+        let data = ffi_to_vec(shpk.texture_parameters, shpk.num_texture_parameters);
+        for parameter in &data {
+            ffi_free_string(parameter.name);
+        }
+        drop(data);
+
+        let data = ffi_to_vec(shpk.scalar_parameters, shpk.num_scalar_parameters);
+        for parameter in &data {
+            ffi_free_string(parameter.name);
+        }
+        drop(data);
+
+        let data = ffi_to_vec(shpk.nodes, shpk.num_nodes);
+        for node in &data {
+            let data = ffi_to_vec(node.passes, node.pass_count);
+            drop(data);
+
+            let data = ffi_to_vec(node.subview_keys, node.subview_key_count);
+            drop(data);
+
+            let data = ffi_to_vec(node.material_keys, node.material_key_count);
+            drop(data);
+
+            let data = ffi_to_vec(node.scene_keys, node.scene_key_count);
+            drop(data);
+
+            let data = ffi_to_vec(node.system_keys, node.system_key_count);
+            drop(data);
+        }
+        drop(data);
+
+        let data = ffi_to_vec(
+            shpk.material_default_parameters,
+            shpk.material_default_parameters_size,
+        );
+        drop(data);
+
+        let data = ffi_to_vec(shpk.material_parameters, shpk.num_material_parameters);
+        drop(data);
+
+        let data = ffi_to_vec(shpk.material_keys, shpk.num_material_keys);
+        drop(data);
+
+        let data = ffi_to_vec(shpk.scene_keys, shpk.num_scene_keys);
+        drop(data);
+
+        let data = ffi_to_vec(shpk.system_keys, shpk.num_system_keys);
+        drop(data);
+
+        let data = ffi_to_vec(shpk.pixel_shaders, shpk.num_pixel_shaders);
+        for shader in &data {
+            let data = ffi_to_vec(shader.resource_parameters, shader.num_resource_parameters);
+            for parameter in &data {
+                ffi_free_string(parameter.name);
+            }
+            drop(data);
+
+            let data = ffi_to_vec(shader.scalar_parameters, shader.num_scalar_parameters);
+            for parameter in &data {
+                ffi_free_string(parameter.name);
+            }
+            drop(data);
+
+            let data = ffi_to_vec(shader.bytecode, shader.len);
+            drop(data);
+        }
+        drop(data);
+
+        let data = ffi_to_vec(shpk.vertex_shaders, shpk.num_vertex_shaders);
+        for shader in &data {
+            let data = ffi_to_vec(shader.resource_parameters, shader.num_resource_parameters);
+            for parameter in &data {
+                ffi_free_string(parameter.name);
+            }
+            drop(data);
+
+            let data = ffi_to_vec(shader.scalar_parameters, shader.num_scalar_parameters);
+            for parameter in &data {
+                ffi_free_string(parameter.name);
+            }
+            drop(data);
+
+            let data = ffi_to_vec(shader.bytecode, shader.len);
+            drop(data);
+        }
+        drop(data);
+
+        drop(Box::from_raw(shpk.p_ptr));
     }
 }
 

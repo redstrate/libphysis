@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{ffi_to_c_string, physis_Buffer};
+use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
 use physis::mtrl::Constant;
@@ -170,4 +170,44 @@ pub unsafe extern "C" fn physis_mtrl_debug(
     } else {
         null()
     }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_mtrl_free(mtrl: &physis_Material) {
+    if mtrl.shpk_name.is_null() {
+        return;
+    }
+
+    if !mtrl.dawntrail_color_table.rows.is_null() {
+        let data = ffi_to_vec(
+            mtrl.dawntrail_color_table.rows,
+            mtrl.dawntrail_color_table.num_rows,
+        );
+        drop(data);
+    }
+
+    if !mtrl.legacy_color_table.rows.is_null() {
+        let data = ffi_to_vec(
+            mtrl.legacy_color_table.rows,
+            mtrl.legacy_color_table.num_rows,
+        );
+        drop(data);
+    }
+
+    let data = ffi_to_vec(mtrl.samplers, mtrl.num_samplers);
+    drop(data);
+
+    let data = ffi_to_vec(mtrl.constants, mtrl.num_constants);
+    drop(data);
+
+    let data = ffi_to_vec(mtrl.shader_keys, mtrl.num_shader_keys);
+    drop(data);
+
+    let data = ffi_to_vec(mtrl.textures, mtrl.num_textures);
+    for texture in &data {
+        ffi_free_string(*texture);
+    }
+    drop(data);
+
+    ffi_free_string(mtrl.shpk_name);
 }

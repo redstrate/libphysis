@@ -101,3 +101,14 @@ pub unsafe extern "C" fn physis_pbd_debug(
         null()
     }
 }
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_pbd_free(pbd: &physis_PBD) {
+    if pbd.p_ptr.is_null() {
+        return;
+    }
+
+    unsafe {
+        drop(Box::from_raw(pbd.p_ptr));
+    }
+}

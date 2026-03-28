@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::physis_Buffer;
+use crate::{ffi_to_vec, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
 use physis::tex::TextureType;
@@ -59,4 +59,14 @@ pub extern "C" fn physis_texture_parse(
     } else {
         physis_Texture::default()
     }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_tex_free(tex: &physis_Texture) {
+    if tex.rgba.is_null() {
+        return;
+    }
+
+    let data = ffi_to_vec(tex.rgba, tex.rgba_size);
+    drop(data);
 }

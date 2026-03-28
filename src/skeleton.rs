@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{ffi_to_c_string, physis_Buffer};
+use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
 use physis::skeleton::Skeleton;
@@ -97,4 +97,17 @@ pub unsafe extern "C" fn physis_skeleton_debug(
     } else {
         null()
     }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_skeleton_free(skeleton: &physis_Skeleton) {
+    if skeleton.root_bone.is_null() {
+        return;
+    }
+
+    let data = ffi_to_vec(skeleton.bones, skeleton.num_bones);
+    for bone in &data {
+        ffi_free_string(bone.name);
+    }
+    drop(data);
 }
