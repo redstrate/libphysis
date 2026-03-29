@@ -11,12 +11,16 @@ use std::io::BufReader;
 use std::io::BufWriter;
 use std::io::Write;
 
-use cbindgen::Language;
+use cbindgen::{Config, Language};
 
 fn main() {
     let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
+    let mut config = Config::default();
+    config.macro_expansion.bitflags = true; // We use bitflags in physis
+
     cbindgen::Builder::new()
+        .with_config(config.clone())
         .with_crate(crate_dir.as_str())
         .with_parse_deps(true)
         .with_parse_include(&["physis"])
@@ -26,6 +30,7 @@ fn main() {
         .write_to_file("target/public/physis.h");
 
     cbindgen::Builder::new()
+        .with_config(config.clone())
         .with_crate(crate_dir.as_str())
         .with_parse_deps(true)
         .with_parse_include(&["physis"])
