@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use physis::TerritoryIntendedUse;
 use std::ffi::{CStr, CString};
 use std::fs::read;
 use std::mem;
@@ -101,6 +102,10 @@ pub extern "C" fn physis_free_file(buffer: &physis_Buffer) {
     let bytes = ffi_to_vec(buffer.data, buffer.size);
     drop(bytes);
 }
+
+// Dummy function to export TerritoryIntendedUse because... cbindgen
+#[unsafe(no_mangle)]
+pub extern "C" fn _physis_dummy_tiu(_: TerritoryIntendedUse) {}
 
 mod bootdata;
 

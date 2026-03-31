@@ -4,6 +4,7 @@
 use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
+use physis::race::{Gender, Race, Tribe};
 use physis::skeleton::Skeleton;
 use std::os::raw::c_char;
 use std::ptr::{null, null_mut};
@@ -110,4 +111,9 @@ pub extern "C" fn physis_skeleton_free(skeleton: &physis_Skeleton) {
         ffi_free_string(bone.name);
     }
     drop(data);
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_skeleton_path(race: Race, tribe: Tribe, gender: Gender) -> *const c_char {
+    ffi_to_c_string(&Skeleton::path(race, tribe, gender))
 }

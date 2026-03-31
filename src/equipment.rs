@@ -2,24 +2,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_from_c_string, ffi_to_c_string};
-use physis::equipment::{
-    CharacterCategory, Slot, build_character_path, build_ear_material_path, build_equipment_path,
-    build_face_material_path, build_gear_material_path, build_hair_material_path,
-    build_skin_material_path, build_tail_material_path, get_slot_abbreviation, get_slot_from_id,
-};
+use physis::equipment::{CharacterCategory, EquipSlotCategory};
+use physis::model::MDL;
+use physis::mtrl::Material;
 use physis::race::{Gender, Race, Tribe};
 use std::os::raw::c_char;
 use std::ptr::null;
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_slot_from_id(slot_id: i32) -> Slot {
-    get_slot_from_id(slot_id)
+pub extern "C" fn physis_slot_from_id(slot_id: i32) -> EquipSlotCategory {
+    EquipSlotCategory::from_repr(slot_id as u8).unwrap_or(EquipSlotCategory::Invalid)
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_get_slot_name(slot: Slot) -> *const c_char {
+pub extern "C" fn physis_get_slot_name(slot: EquipSlotCategory) -> *const c_char {
     // TODO: no need to dynamically allocate a new string
-    if let Some(abbr) = get_slot_abbreviation(slot) {
+    if let Some(abbr) = slot.abbreviation() {
         ffi_to_c_string(&abbr.to_string())
     } else {
         null()
@@ -32,9 +30,9 @@ pub extern "C" fn physis_build_equipment_path(
     race: Race,
     tribe: Tribe,
     gender: Gender,
-    slot: Slot,
+    slot: EquipSlotCategory,
 ) -> *const c_char {
-    ffi_to_c_string(&build_equipment_path(model_id, race, tribe, gender, slot))
+    ffi_to_c_string(&MDL::equipment_path(model_id, race, tribe, gender, slot))
 }
 
 #[unsafe(no_mangle)]
@@ -45,7 +43,7 @@ pub extern "C" fn physis_build_character_path(
     tribe: Tribe,
     gender: Gender,
 ) -> *const c_char {
-    ffi_to_c_string(&build_character_path(
+    ffi_to_c_string(&MDL::character_path(
         category, body_ver, race, tribe, gender,
     ))
 }
@@ -60,7 +58,7 @@ pub extern "C" fn physis_build_skin_material_path(
         return null();
     };
 
-    ffi_to_c_string(&build_skin_material_path(
+    ffi_to_c_string(&Material::skin_material_path(
         race_code,
         body_code,
         &r_material_name,
@@ -77,7 +75,7 @@ pub extern "C" fn physis_build_gear_material_path(
         return null();
     };
 
-    ffi_to_c_string(&build_gear_material_path(
+    ffi_to_c_string(&Material::gear_material_path(
         gear_id,
         gear_version,
         &r_material_name,
@@ -94,7 +92,7 @@ pub extern "C" fn physis_build_face_material_path(
         return null();
     };
 
-    ffi_to_c_string(&build_face_material_path(
+    ffi_to_c_string(&Material::face_material_path(
         race_code,
         face_code,
         &r_material_name,
@@ -111,7 +109,7 @@ pub extern "C" fn physis_build_hair_material_path(
         return null();
     };
 
-    ffi_to_c_string(&build_hair_material_path(
+    ffi_to_c_string(&Material::hair_material_path(
         race_code,
         hair_code,
         &r_material_name,
@@ -128,7 +126,7 @@ pub extern "C" fn physis_build_ear_material_path(
         return null();
     };
 
-    ffi_to_c_string(&build_ear_material_path(
+    ffi_to_c_string(&Material::ear_material_path(
         race_code,
         ear_code,
         &r_material_name,
@@ -145,7 +143,7 @@ pub extern "C" fn physis_build_tail_material_path(
         return null();
     };
 
-    ffi_to_c_string(&build_tail_material_path(
+    ffi_to_c_string(&Material::tail_material_path(
         race_code,
         tail_code,
         &r_material_name,
