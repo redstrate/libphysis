@@ -46,6 +46,9 @@ pub struct physis_EventInstanceObject {
 pub struct physis_PopRangeInstanceObject {
     pop_type: PopType,
     index: u8,
+    inner_radius_ratio: f32,
+    position_count: u32,
+    positions: *mut [f32; 3],
 }
 
 #[repr(C)]
@@ -273,10 +276,21 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             bound_instance_id: eobj.bound_instance_id,
             linked_instance_id: eobj.linked_instance_id,
         }),
-        PopRange(pop) => physis_LayerEntry::PopRange(physis_PopRangeInstanceObject {
-            pop_type: pop.pop_type,
-            index: pop.index,
-        }),
+        PopRange(pop) => {
+            let mut c_pos = pop.positions.clone();
+
+            let c_pop = physis_LayerEntry::PopRange(physis_PopRangeInstanceObject {
+                pop_type: pop.pop_type,
+                index: pop.index,
+                inner_radius_ratio: pop.inner_radius_ratio,
+                position_count: c_pos.len() as u32,
+                positions: c_pos.as_mut_ptr(),
+            });
+
+            std::mem::forget(c_pos);
+
+            c_pop
+        }
         EventNPC(enpc) => physis_LayerEntry::EventNPC(physis_ENPCInstanceObject {
             parent_data: physis_NPCInstanceObject {
                 parent_data: convert_gameinstanceobject(&enpc.parent_data.parent_data),
@@ -414,7 +428,7 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
                 ffi_free_string(vfx.asset_path);
             }
             physis_LayerEntry::EventObject(_) => {}
-            physis_LayerEntry::PopRange(_) => {}
+            physis_LayerEntry::PopRange(_) => {} // TODO: free relative positions
             physis_LayerEntry::EventNPC(_) => {}
             physis_LayerEntry::MapRange(_) => {}
             physis_LayerEntry::SharedGroup(sgb) => {
