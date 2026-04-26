@@ -292,8 +292,10 @@ pub extern "C" fn physis_mdl_free(mdl: &physis_MDL) {
 
                 let streams = ffi_to_vec(part.streams, part.num_streams as u32);
                 for (i, stream) in streams.iter().enumerate() {
-                    let stream_data = ffi_to_vec(*stream, part.stream_sizes.add(i) as u32);
-                    drop(stream_data);
+                    if *part.stream_sizes.add(i) as u32 > 0 {
+                        let stream_data = ffi_to_vec(*stream, *part.stream_sizes.add(i) as u32);
+                        drop(stream_data);
+                    }
                 }
                 drop(streams);
 
