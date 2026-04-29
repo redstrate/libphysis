@@ -32,9 +32,15 @@ pub struct physis_ZiPatchSqpkAddData {
 }
 
 #[repr(C)]
+pub struct physis_SqpkFileOperationData {
+    path: *const c_char,
+}
+
+#[repr(C)]
 #[allow(dead_code)]
 pub enum physis_ZiPatchSqpkOperation {
     AddData(physis_ZiPatchSqpkAddData),
+    FileOperation(physis_SqpkFileOperationData),
     TargetInfo(SqpkTargetInfo),
     Unknown,
 }
@@ -102,6 +108,11 @@ pub extern "C" fn physis_patch_parse(patch_path: *const c_char) -> physis_ZiPatc
                         std::mem::forget(c_data);
 
                         c_add_data
+                    }
+                    SqpkOperation::FileOperation(fop) => {
+                        physis_ZiPatchSqpkOperation::FileOperation(physis_SqpkFileOperationData {
+                            path: ffi_to_c_string(&fop.path),
+                        })
                     }
                     SqpkOperation::TargetInfo(target_info) => {
                         physis_ZiPatchSqpkOperation::TargetInfo(target_info.clone())
