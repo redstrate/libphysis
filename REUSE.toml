@@ -4,7 +4,7 @@ SPDX-PackageSupplier = "Joshua Goins <josh@redstrate.com>"
 SPDX-PackageDownloadLocation = "https://github.com/redstrate/libphysis"
 
 [[annotations]]
-path = ["README.md", ".build.yml", "deny.toml", "Cargo.toml", "Cargo.lock", ".github/**", "REUSE.toml"]
+path = ["README.md", ".build.yml", "deny.toml", "Cargo.toml", "Cargo.lock", ".github/**", "REUSE.toml", "CONTRIBUTING.md"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "Joshua Goins <josh@redstrate.com>"
 SPDX-License-Identifier = "CC0-1.0"
