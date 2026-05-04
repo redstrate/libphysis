@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::physis_Buffer;
-use crate::skeleton::physis_Skeleton;
 use physis::Platform;
-use physis::skeleton::Skeleton;
 use physis::sqpack::SqPackData;
 use std::io::Cursor;
 use std::{mem, slice};
