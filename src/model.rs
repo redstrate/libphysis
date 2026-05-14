@@ -12,7 +12,7 @@ use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::model::vertex_declarations::VertexElement;
 use physis::model::vertex_declarations::VertexType;
 use physis::model::vertex_declarations::get_vertex_type_size;
-use physis::model::{MDL, SubMesh, Vertex};
+use physis::model::{MDL, SubMesh, Vertex, BoundingBox};
 use physis::{ReadableFile, WritableFile};
 
 #[repr(C)]
@@ -60,6 +60,7 @@ pub struct physis_MDL {
     affected_bone_names: *mut *const c_char,
     num_material_names: u32,
     material_names: *mut *const c_char,
+    bounding_box: BoundingBox,
 }
 
 impl Default for physis_MDL {
@@ -72,6 +73,7 @@ impl Default for physis_MDL {
             affected_bone_names: null_mut(),
             num_material_names: 0,
             material_names: null_mut(),
+            bounding_box: BoundingBox::default(),
         }
     }
 }
@@ -100,6 +102,8 @@ pub extern "C" fn physis_mdl_parse(platform: Platform, buffer: physis_Buffer) ->
         c_material_names.push(ffi_to_c_string(bone_name));
     }
 
+    let bounding_box = mdl.model_data.bounding_box;
+
     let mdl = physis_MDL {
         p_ptr: Box::leak(mdl),
         num_lod: c_lods.len() as u32,
@@ -108,6 +112,7 @@ pub extern "C" fn physis_mdl_parse(platform: Platform, buffer: physis_Buffer) ->
         affected_bone_names: c_bone_names.as_mut_ptr(),
         num_material_names: c_material_names.len() as u32,
         material_names: c_material_names.as_mut_ptr(),
+        bounding_box: bounding_box,
     };
 
     mem::forget(c_bone_names);
