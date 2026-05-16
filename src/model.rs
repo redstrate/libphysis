@@ -12,7 +12,7 @@ use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::model::vertex_declarations::VertexElement;
 use physis::model::vertex_declarations::VertexType;
 use physis::model::vertex_declarations::get_vertex_type_size;
-use physis::model::{MDL, SubMesh, Vertex, BoundingBox};
+use physis::model::{BoundingBox, MDL, SubMesh, Vertex};
 use physis::{ReadableFile, WritableFile};
 
 #[repr(C)]

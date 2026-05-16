@@ -102,6 +102,8 @@ pub extern "C" fn physis_sqpack_read(
 
 #[repr(C)]
 pub struct physis_ExcelSheetPage {
+    p_ptr: *mut Sheet,
+    page_index: u32,
     pub entry_count: c_uint,
     pub entries: *mut physis_ExcelEntry,
     pub column_count: c_uint,
@@ -217,9 +219,11 @@ pub unsafe extern "C" fn physis_sqpack_read_excel_sheet(
 
         if let Ok(exd) = (*resource.p_ptr).read_excel_sheet(&*exh.p_ptr, &r_name, language) {
             let exd = Box::new(exd);
+            let pages = exd.pages.clone();
+            let p_ptr = Box::leak(exd);
 
             let mut c_pages = Vec::new();
-            for page in &exd.pages {
+            for (i, page) in pages.iter().enumerate() {
                 let mut c_entries = Vec::new();
 
                 for row in &page.entries {
@@ -227,6 +231,8 @@ pub unsafe extern "C" fn physis_sqpack_read_excel_sheet(
                 }
 
                 let page = physis_ExcelSheetPage {
+                    p_ptr,
+                    page_index: i as u32,
                     column_count: (*exh.p_ptr).column_definitions.len() as c_uint,
                     entry_count: page.entries.len() as u32,
                     entries: c_entries.as_mut_ptr(),
@@ -238,7 +244,7 @@ pub unsafe extern "C" fn physis_sqpack_read_excel_sheet(
             }
 
             let exd = physis_ExcelSheet {
-                p_ptr: Box::leak(exd),
+                p_ptr,
                 page_count: c_pages.len() as u32,
                 pages: c_pages.as_mut_ptr(),
             };
@@ -249,6 +255,77 @@ pub unsafe extern "C" fn physis_sqpack_read_excel_sheet(
         } else {
             physis_ExcelSheet::default()
         }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_sqpack_update_excel_sheet_page(
+    page: &mut physis_ExcelSheetPage,
+    row_id: u32,
+    subrow_id: u16,
+    column_index: usize,
+    new_field: &physis_Field,
+) {
+    unsafe {
+        for i in 0..page.entry_count {
+            let entry = page.entries.add(i as usize);
+            if (*entry).row_id == row_id {
+                for j in 0..(*entry).subrow_count {
+                    let subrow = (*entry).subrows.add(j as usize);
+                    if (*subrow).subrow_id == subrow_id {
+                        // Update the C++ model
+                        *(*subrow).columns.add(column_index) = (*new_field).clone();
+                        // Then update the Rust model
+                        if let Some(entry) = (*page.p_ptr).entry_mut(row_id) {
+                            for (id, subrow) in &mut entry.subrows {
+                                if *id == subrow_id {
+                                    let old_field = &mut subrow.columns[column_index];
+                                    *old_field = match new_field {
+                                        physis_Field::String(val) => {
+                                            Field::String(ffi_from_c_string(*val).unwrap())
+                                        }
+                                        physis_Field::Bool(val) => Field::Bool(*val),
+                                        physis_Field::Int8(val) => Field::Int8(*val),
+                                        physis_Field::UInt8(val) => Field::UInt8(*val),
+                                        physis_Field::Int16(val) => Field::Int16(*val),
+                                        physis_Field::UInt16(val) => Field::UInt16(*val),
+                                        physis_Field::Int32(val) => Field::Int32(*val),
+                                        physis_Field::UInt32(val) => Field::UInt32(*val),
+                                        physis_Field::Float32(val) => Field::Float32(*val),
+                                        physis_Field::Int64(val) => Field::Int64(*val),
+                                        physis_Field::UInt64(val) => Field::UInt64(*val),
+                                    };
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_sqpack_write_sheet_page_to_buffer(
+    page: &mut physis_ExcelSheetPage,
+    exh: &physis_EXH,
+) -> physis_Buffer {
+    unsafe {
+        if let Some(mut d) =
+            (&(*page.p_ptr)).pages[page.page_index as usize].write_to_buffer(&*exh.p_ptr)
+        {
+            let b = physis_Buffer {
+                size: d.len() as u32,
+                data: d.as_mut_ptr(),
+            };
+
+            mem::forget(d);
+
+            return b;
+        }
+
+        physis_Buffer::default()
     }
 }
 

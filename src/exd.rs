@@ -11,6 +11,7 @@ use std::slice;
 
 #[repr(C)]
 #[allow(dead_code)]
+#[derive(Clone)]
 pub enum physis_Field {
     String(*const c_char),
     Bool(bool),
