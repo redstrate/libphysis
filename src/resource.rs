@@ -8,10 +8,12 @@ use physis::excel::Field;
 use physis::excel::Row;
 use physis::excel::{Entry, Sheet};
 use physis::repository::RepositoryType;
-use physis::resource::{RepairAction, Resource, SqPackRelease, SqPackResource};
+use physis::resource::{
+    RepairAction, Resource, SqPackRelease, SqPackResource, generic_read_excel_sheet,
+};
 use physis::sqpack::Hash;
 use physis::{Language, Platform};
-use std::ffi::CStr;
+use std::ffi::{CStr, c_void};
 use std::mem;
 use std::os::raw::{c_char, c_uint};
 use std::path::Path;
@@ -218,6 +220,62 @@ pub unsafe extern "C" fn physis_sqpack_read_excel_sheet(
         };
 
         if let Ok(exd) = (*resource.p_ptr).read_excel_sheet(&*exh.p_ptr, &r_name, language) {
+            let exd = Box::new(exd);
+            let pages = exd.pages.clone();
+            let p_ptr = Box::leak(exd);
+
+            let mut c_pages = Vec::new();
+            for (i, page) in pages.iter().enumerate() {
+                let mut c_entries = Vec::new();
+
+                for row in &page.entries {
+                    c_entries.push(to_c_entry(row.id, row));
+                }
+
+                let page = physis_ExcelSheetPage {
+                    p_ptr,
+                    page_index: i as u32,
+                    column_count: (*exh.p_ptr).column_definitions.len() as c_uint,
+                    entry_count: page.entries.len() as u32,
+                    entries: c_entries.as_mut_ptr(),
+                };
+
+                mem::forget(c_entries);
+
+                c_pages.push(page);
+            }
+
+            let exd = physis_ExcelSheet {
+                p_ptr,
+                page_count: c_pages.len() as u32,
+                pages: c_pages.as_mut_ptr(),
+            };
+
+            mem::forget(c_pages);
+
+            exd
+        } else {
+            physis_ExcelSheet::default()
+        }
+    }
+}
+
+// TODO: is there some way to de-duplicate these functions?
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_custom_read_excel_sheet(
+    resource: &physis_CustomResource,
+    name: *const c_char,
+    exh: &physis_EXH,
+    language: Language,
+) -> physis_ExcelSheet {
+    unsafe {
+        let Some(r_name) = ffi_from_c_string(name) else {
+            return physis_ExcelSheet::default();
+        };
+
+        if let Ok(exd) =
+            generic_read_excel_sheet(&mut *resource.p_ptr, &*exh.p_ptr, &r_name, language)
+        {
             let exd = Box::new(exd);
             let pages = exd.pages.clone();
             let p_ptr = Box::leak(exd);
@@ -607,5 +665,62 @@ pub extern "C" fn physis_sqpack_repair(resource: &physis_SqPackResource) -> bool
         } else {
             true
         }
+    }
+}
+
+#[derive(Clone)]
+struct CustomResource {
+    user_data: *mut c_void,
+    read_func: extern "C" fn(*mut c_void, *const c_char) -> physis_Buffer,
+    exists_func: extern "C" fn(*mut c_void, *const c_char) -> bool,
+}
+
+// Erase safety woohoo
+unsafe impl Sync for CustomResource {}
+unsafe impl Send for CustomResource {}
+
+impl Resource for CustomResource {
+    fn read(&mut self, path: &str) -> Option<physis::ByteBuffer> {
+        // TODO: free string
+        let data = (self.read_func)(self.user_data, ffi_to_c_string(&path.to_string()));
+        if data.size == 0 {
+            return None;
+        }
+
+        // This ensures the callee still owns the memory and we don't accidentally free it
+        let original = ffi_to_vec(data.data, data.size);
+        let clone = original.clone();
+        std::mem::forget(original);
+
+        Some(clone)
+    }
+
+    fn exists(&mut self, path: &str) -> bool {
+        // TODO: free string
+        (self.exists_func)(self.user_data, ffi_to_c_string(&path.to_string()))
+    }
+}
+
+#[repr(C)]
+pub struct physis_CustomResource {
+    p_ptr: *mut CustomResource,
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_custom_initialize(
+    user_data: *mut c_void,
+    read_func: extern "C" fn(*mut c_void, *const c_char) -> physis_Buffer,
+    exists_func: extern "C" fn(*mut c_void, *const c_char) -> bool,
+) -> physis_CustomResource {
+    let resource = CustomResource {
+        user_data,
+        read_func,
+        exists_func,
+    };
+
+    let boxed = Box::new(resource);
+
+    physis_CustomResource {
+        p_ptr: Box::leak(boxed),
     }
 }
