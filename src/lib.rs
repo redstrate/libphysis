@@ -204,3 +204,7 @@ mod fdt;
 mod sqpack;
 
 mod phyb;
+
+mod atch;
+
+mod eid;
