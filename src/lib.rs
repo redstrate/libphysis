@@ -11,7 +11,7 @@ use std::ptr::{null, null_mut};
 /// Convert from a C string to a proper Rust string
 fn ffi_from_c_string(ptr: *const c_char) -> Option<String> {
     unsafe {
-        if let Ok(str) = CStr::from_ptr(ptr as *mut i8).to_str() {
+        if let Ok(str) = CStr::from_ptr(ptr as *mut c_char).to_str() {
             Some(str.to_string())
         } else {
             None
@@ -37,7 +37,7 @@ fn ffi_to_vec<T>(ptr: *mut T, count: u32) -> Vec<T> {
 /// Free a C string
 fn ffi_free_string(ptr: *const c_char) {
     unsafe {
-        let str = CString::from_raw(ptr as *mut i8);
+        let str = CString::from_raw(ptr as *mut c_char);
         drop(str);
     }
 }
