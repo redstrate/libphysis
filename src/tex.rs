@@ -47,7 +47,7 @@ pub extern "C" fn physis_texture_parse(
 ) -> physis_Texture {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(texture) = Texture::from_existing(platform, data) {
+    if let Ok(texture) = Texture::from_existing(platform, data) {
         let mut texture = Box::new(texture);
 
         let mut tex = physis_Texture {

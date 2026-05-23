@@ -25,7 +25,7 @@ impl Default for physis_PBD {
 pub extern "C" fn physis_pbd_parse(platform: Platform, buffer: physis_Buffer) -> physis_PBD {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(pbd) = PreBoneDeformer::from_existing(platform, data) {
+    if let Ok(pbd) = PreBoneDeformer::from_existing(platform, data) {
         physis_PBD {
             p_ptr: Box::leak(Box::new(pbd)),
         }
@@ -95,7 +95,7 @@ pub unsafe extern "C" fn physis_pbd_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(pbd) = PreBoneDeformer::from_existing(platform, data) {
+    if let Ok(pbd) = PreBoneDeformer::from_existing(platform, data) {
         ffi_to_c_string(&format!("{pbd:#?}"))
     } else {
         null()

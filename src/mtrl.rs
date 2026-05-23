@@ -86,7 +86,7 @@ pub extern "C" fn physis_material_parse(
 ) -> physis_Material {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(material) = Material::from_existing(platform, data) {
+    if let Ok(material) = Material::from_existing(platform, data) {
         let mut c_strings = vec![];
 
         for tex in &material.texture_paths {
@@ -165,7 +165,7 @@ pub unsafe extern "C" fn physis_mtrl_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(mtrl) = Material::from_existing(platform, data) {
+    if let Ok(mtrl) = Material::from_existing(platform, data) {
         ffi_to_c_string(&format!("{mtrl:#?}"))
     } else {
         null()

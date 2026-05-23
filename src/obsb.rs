@@ -16,7 +16,7 @@ pub unsafe extern "C" fn physis_obsb_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(obsb) = Obsb::from_existing(platform, data) {
+    if let Ok(obsb) = Obsb::from_existing(platform, data) {
         ffi_to_c_string(&format!("{obsb:#?}"))
     } else {
         null()

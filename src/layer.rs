@@ -158,7 +158,6 @@ pub struct physis_EnvLocationObject {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_SoundInstanceObject {
-    sound_effect_param: i32,
     asset_path: *const c_char,
 }
 
@@ -358,7 +357,6 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             env_map_asset_path: ffi_to_c_string(&env_location.env_map_asset_path.value),
         }),
         Sound(sound) => physis_LayerEntry::Sound(physis_SoundInstanceObject {
-            sound_effect_param: sound.sound_effect_param,
             asset_path: ffi_to_c_string(&sound.asset_path.value),
         }),
         CollisionBox(collision_box) => {

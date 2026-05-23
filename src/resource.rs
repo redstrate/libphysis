@@ -86,8 +86,7 @@ pub extern "C" fn physis_sqpack_read(
     path: *const c_char,
 ) -> physis_Buffer {
     unsafe {
-        if let Some(mut d) = (*resource.p_ptr).read(CStr::from_ptr(path).to_string_lossy().as_ref())
-        {
+        if let Ok(mut d) = (*resource.p_ptr).read(CStr::from_ptr(path).to_string_lossy().as_ref()) {
             let b = physis_Buffer {
                 size: d.len() as u32,
                 data: d.as_mut_ptr(),
@@ -540,7 +539,7 @@ pub extern "C" fn physis_sqpack_read_from_hash(
     hash: Hash,
 ) -> physis_Buffer {
     unsafe {
-        if let Some(mut d) = (*resource.p_ptr).read_from_hash(
+        if let Ok(mut d) = (*resource.p_ptr).read_from_hash(
             Path::new(CStr::from_ptr(index_path).to_string_lossy().as_ref()),
             hash,
         ) {
@@ -680,11 +679,14 @@ unsafe impl Sync for CustomResource {}
 unsafe impl Send for CustomResource {}
 
 impl Resource for CustomResource {
-    fn read(&mut self, path: &str) -> Option<physis::ByteBuffer> {
+    fn read(&mut self, path: &str) -> physis::Result<physis::ByteBuffer> {
         // TODO: free string
-        let data = (self.read_func)(self.user_data, ffi_to_c_string(&path.to_string()));
+        let c_path = ffi_to_c_string(&path.to_string());
+        let data = (self.read_func)(self.user_data, c_path);
         if data.size == 0 {
-            return None;
+            return Err(physis::Error::FileNotFound {
+                path: path.to_string(),
+            });
         }
 
         // This ensures the callee still owns the memory and we don't accidentally free it
@@ -692,7 +694,7 @@ impl Resource for CustomResource {
         let clone = original.clone();
         std::mem::forget(original);
 
-        Some(clone)
+        Ok(clone)
     }
 
     fn exists(&mut self, path: &str) -> bool {

@@ -120,7 +120,7 @@ fn physis_get_shader_parameter_array(
 pub extern "C" fn physis_shpk_parse(platform: Platform, buffer: physis_Buffer) -> physis_SHPK {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(shpk) = ShaderPackage::from_existing(platform, data) {
+    if let Ok(shpk) = ShaderPackage::from_existing(platform, data) {
         let mut c_vertex_shaders = vec![];
         let mut c_fragment_shaders = vec![];
 
@@ -447,7 +447,7 @@ pub unsafe extern "C" fn physis_shpk_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(shpk) = ShaderPackage::from_existing(platform, data) {
+    if let Ok(shpk) = ShaderPackage::from_existing(platform, data) {
         ffi_to_c_string(&format!("{shpk:#?}"))
     } else {
         null()

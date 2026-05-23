@@ -16,7 +16,7 @@ pub unsafe extern "C" fn physis_phyb_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(phyb) = Phyb::from_existing(platform, data) {
+    if let Ok(phyb) = Phyb::from_existing(platform, data) {
         ffi_to_c_string(&format!("{phyb:#?}"))
     } else {
         null()

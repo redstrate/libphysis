@@ -33,7 +33,7 @@ impl Default for physis_EXL {
 pub extern "C" fn physis_exl_parse(platform: Platform, buffer: physis_Buffer) -> physis_EXL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(exl) = EXL::from_existing(platform, data) {
+    if let Ok(exl) = EXL::from_existing(platform, data) {
         let mut c_keys = vec![];
         let mut c_values = vec![];
 

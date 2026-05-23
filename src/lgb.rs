@@ -37,7 +37,7 @@ impl Default for physis_LayerGroup {
 pub extern "C" fn physis_lgb_parse(platform: Platform, buffer: physis_Buffer) -> physis_LayerGroup {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(lgb) = Lgb::from_existing(platform, data) {
+    if let Ok(lgb) = Lgb::from_existing(platform, data) {
         let mut c_chunks = vec![];
 
         for chunk in &lgb.chunks {
@@ -75,7 +75,7 @@ pub unsafe extern "C" fn physis_lgb_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(lgb) = Lgb::from_existing(platform, data) {
+    if let Ok(lgb) = Lgb::from_existing(platform, data) {
         ffi_to_c_string(&format!("{lgb:#?}"))
     } else {
         null()

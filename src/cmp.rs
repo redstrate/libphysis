@@ -26,7 +26,7 @@ impl Default for physis_CMP {
 pub extern "C" fn physis_cmp_parse(platform: Platform, buffer: physis_Buffer) -> physis_CMP {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(cmp) = CMP::from_existing(platform, data) {
+    if let Ok(cmp) = CMP::from_existing(platform, data) {
         physis_CMP {
             p_ptr: Box::leak(Box::new(cmp)),
         }
@@ -73,7 +73,7 @@ pub unsafe extern "C" fn physis_cmp_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(cmp) = CMP::from_existing(platform, data) {
+    if let Ok(cmp) = CMP::from_existing(platform, data) {
         ffi_to_c_string(&format!("{cmp:#?}"))
     } else {
         null()

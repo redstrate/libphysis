@@ -31,7 +31,7 @@ impl Default for physis_SHCD {
 pub extern "C" fn physis_shcd_parse(platform: Platform, buffer: physis_Buffer) -> physis_SHCD {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(shcd) = SHCD::from_existing(platform, data) {
+    if let Ok(shcd) = SHCD::from_existing(platform, data) {
         let mut c_bytecode = shcd.bytecode.clone();
 
         let shcd = physis_SHCD {
@@ -55,7 +55,7 @@ pub unsafe extern "C" fn physis_shcd_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(shcd) = SHCD::from_existing(platform, data) {
+    if let Ok(shcd) = SHCD::from_existing(platform, data) {
         ffi_to_c_string(&format!("{shcd:#?}"))
     } else {
         null()

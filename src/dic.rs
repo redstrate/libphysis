@@ -32,7 +32,7 @@ pub extern "C" fn physis_dictionary_parse(
 ) -> physis_Dictionary {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(dic) = Dictionary::from_existing(platform, data) {
+    if let Ok(dic) = Dictionary::from_existing(platform, data) {
         let mut c_words = vec![];
 
         for word in &dic.words {
@@ -59,7 +59,7 @@ pub unsafe extern "C" fn physis_dic_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(dic) = Dictionary::from_existing(platform, data) {
+    if let Ok(dic) = Dictionary::from_existing(platform, data) {
         ffi_to_c_string(&format!("{dic:#?}"))
     } else {
         null()

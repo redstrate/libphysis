@@ -82,7 +82,7 @@ impl Default for physis_MDL {
 pub extern "C" fn physis_mdl_parse(platform: Platform, buffer: physis_Buffer) -> physis_MDL {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    let Some(mdl_d) = MDL::from_existing(platform, data) else {
+    let Ok(mdl_d) = MDL::from_existing(platform, data) else {
         return physis_MDL::default();
     };
 
@@ -112,7 +112,7 @@ pub extern "C" fn physis_mdl_parse(platform: Platform, buffer: physis_Buffer) ->
         affected_bone_names: c_bone_names.as_mut_ptr(),
         num_material_names: c_material_names.len() as u32,
         material_names: c_material_names.as_mut_ptr(),
-        bounding_box: bounding_box,
+        bounding_box,
     };
 
     mem::forget(c_bone_names);
@@ -354,7 +354,7 @@ pub unsafe extern "C" fn physis_mdl_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(mdl) = MDL::from_existing(platform, data) {
+    if let Ok(mdl) = MDL::from_existing(platform, data) {
         ffi_to_c_string(&format!("{mdl:#?}"))
     } else {
         null()

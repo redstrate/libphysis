@@ -16,7 +16,7 @@ pub unsafe extern "C" fn physis_eid_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(eid) = Eid::from_existing(platform, data) {
+    if let Ok(eid) = Eid::from_existing(platform, data) {
         ffi_to_c_string(&format!("{eid:#?}"))
     } else {
         null()

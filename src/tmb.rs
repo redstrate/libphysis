@@ -192,7 +192,7 @@ fn to_c_tmfc_data(data: &TmfcData) -> physis_TmfcData {
 pub extern "C" fn physis_tmb_parse(platform: Platform, buffer: physis_Buffer) -> physis_Tmb {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(tmb) = Tmb::from_existing(platform, data) {
+    if let Ok(tmb) = Tmb::from_existing(platform, data) {
         to_c_tmb(&tmb)
     } else {
         physis_Tmb::default()
@@ -206,7 +206,7 @@ pub unsafe extern "C" fn physis_tmb_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(tmb) = Tmb::from_existing(platform, data) {
+    if let Ok(tmb) = Tmb::from_existing(platform, data) {
         ffi_to_c_string(&format!("{tmb:#?}"))
     } else {
         null()

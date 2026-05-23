@@ -79,7 +79,7 @@ pub extern "C" fn physis_skeleton_parse(
 ) -> physis_Skeleton {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(skeleton) = Skeleton::from_existing(platform, data) {
+    if let Ok(skeleton) = Skeleton::from_existing(platform, data) {
         convert_skeleton(&skeleton)
     } else {
         physis_Skeleton::default()
@@ -93,7 +93,7 @@ pub unsafe extern "C" fn physis_skeleton_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(sklb) = Skeleton::from_existing(platform, data) {
+    if let Ok(sklb) = Skeleton::from_existing(platform, data) {
         ffi_to_c_string(&format!("{sklb:#?}"))
     } else {
         null()

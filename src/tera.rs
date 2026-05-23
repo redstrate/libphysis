@@ -39,7 +39,7 @@ pub extern "C" fn physis_terrain_parse(
 ) -> physis_Terrain {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(tera) = Terrain::from_existing(platform, data) {
+    if let Ok(tera) = Terrain::from_existing(platform, data) {
         let mut c_plates = vec![];
 
         for (i, plate) in tera.plates.iter().enumerate() {
@@ -69,7 +69,7 @@ pub unsafe extern "C" fn physis_tera_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(tera) = Terrain::from_existing(platform, data) {
+    if let Ok(tera) = Terrain::from_existing(platform, data) {
         ffi_to_c_string(&format!("{tera:#?}"))
     } else {
         null()

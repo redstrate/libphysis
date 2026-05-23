@@ -25,7 +25,7 @@ impl Default for physis_HWC {
 pub extern "C" fn physis_hwc_parse(platform: Platform, buffer: physis_Buffer) -> physis_HWC {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Some(hwc) = Hwc::from_existing(platform, data) {
+    if let Ok(hwc) = Hwc::from_existing(platform, data) {
         let c_hwc = physis_HWC {
             rgba: hwc.rgba.as_ptr(),
         };
