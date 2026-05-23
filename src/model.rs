@@ -123,9 +123,9 @@ pub extern "C" fn physis_mdl_parse(platform: Platform, buffer: physis_Buffer) ->
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_mdl_write(mdl: &physis_MDL) -> physis_Buffer {
+pub extern "C" fn physis_mdl_write(platform: Platform, mdl: &physis_MDL) -> physis_Buffer {
     unsafe {
-        let mut buffer = (*mdl.p_ptr).write_to_buffer(Platform::Win32).unwrap();
+        let mut buffer = (*mdl.p_ptr).write_to_buffer(platform).unwrap();
 
         let leak_buffer = physis_Buffer {
             size: buffer.len() as u32,
