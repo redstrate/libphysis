@@ -2,11 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::layer::{
-    free_layer, physis_InstanceObject, physis_Layer, physis_LayerEntry, to_c_layer,
+    free_layer, physis_GameInstanceObject, physis_InstanceObject, physis_Layer, physis_LayerEntry,
+    to_c_layer,
 };
 use crate::{ffi_from_c_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::ReadableFile;
-use physis::layer::{InstanceObject, Layer, LayerEntryData, LayerHeader, SharedGroupInstance};
+use physis::layer::{
+    BGInstanceObject, EventInstanceObject, GameInstanceObject, InstanceObject, Layer,
+    LayerEntryData, LayerHeader, LightInstanceObject, SharedGroupInstance,
+    VFXInstanceObject,
+};
 use physis::lgb::{LayerChunk, Lgb};
 use physis::{Platform, WritableFile};
 use std::ffi::c_char;
@@ -106,33 +111,41 @@ pub extern "C" fn physis_lgb_free(lgb: &physis_LayerGroup) {
     drop(data);
 }
 
+fn to_rust_parent_data_game(parent_data: physis_GameInstanceObject) -> GameInstanceObject {
+    GameInstanceObject {
+        base_id: parent_data.base_id,
+    }
+}
+
 fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
     let data = match object.data {
-        physis_LayerEntry::None => LayerEntryData::None,
-        physis_LayerEntry::BG(_) => todo!(),
-        physis_LayerEntry::LayLight(_) => todo!(),
-        physis_LayerEntry::Vfx(_) => todo!(),
-        physis_LayerEntry::EventObject(_) => todo!(),
-        physis_LayerEntry::PopRange(_) => todo!(),
-        physis_LayerEntry::EventNPC(_) => todo!(),
-        physis_LayerEntry::MapRange(_) => todo!(),
+        physis_LayerEntry::BG(bg) => LayerEntryData::BG(BGInstanceObject {
+            asset_path: ffi_from_c_string(bg.asset_path).unwrap().as_str().into(),
+            collision_asset_path: ffi_from_c_string(bg.collision_asset_path)
+                .unwrap()
+                .as_str()
+                .into(),
+            ..Default::default()
+        }),
+        physis_LayerEntry::LayLight(light) => LayerEntryData::LayLight(LightInstanceObject {
+            light_type: light.light_type,
+            diffuse_color_hdri: light.diffuse_color_hdri,
+            ..Default::default()
+        }),
+        physis_LayerEntry::Vfx(vfx) => LayerEntryData::Vfx(VFXInstanceObject {
+            asset_path: ffi_from_c_string(vfx.asset_path).unwrap().as_str().into(),
+            ..Default::default()
+        }),
+        physis_LayerEntry::EventObject(eobj) => LayerEntryData::EventObject(EventInstanceObject {
+            parent_data: to_rust_parent_data_game(eobj.parent_data),
+            bound_instance_id: eobj.bound_instance_id,
+            linked_instance_id: eobj.linked_instance_id,
+        }),
         physis_LayerEntry::SharedGroup(sgb) => LayerEntryData::SharedGroup(SharedGroupInstance {
             asset_path: ffi_from_c_string(sgb.asset_path).unwrap().as_str().into(),
             ..Default::default()
         }),
-        physis_LayerEntry::Aetheryte(_) => todo!(),
-        physis_LayerEntry::ExitRange(_) => todo!(),
-        physis_LayerEntry::EventRange(_) => todo!(),
-        physis_LayerEntry::ChairMarker(_) => todo!(),
-        physis_LayerEntry::PrefetchRange(_) => todo!(),
-        physis_LayerEntry::EnvSet(_) => todo!(),
-        physis_LayerEntry::EnvLocation(_) => todo!(),
-        physis_LayerEntry::Sound(_) => todo!(),
-        physis_LayerEntry::CollisionBox(_) => todo!(),
-        physis_LayerEntry::DoorRange(_) => todo!(),
-        physis_LayerEntry::LineVFX(_) => todo!(),
-        physis_LayerEntry::Treasure(_) => todo!(),
-        physis_LayerEntry::TargetMarker(_) => todo!(),
+        _ => LayerEntryData::None, // TODO
     };
 
     InstanceObject {

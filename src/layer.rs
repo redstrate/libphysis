@@ -10,86 +10,86 @@ use physis::layer::*;
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_BGInstanceObject {
-    asset_path: *const c_char,
-    collision_asset_path: *const c_char,
+    pub asset_path: *const c_char,
+    pub collision_asset_path: *const c_char,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_LightInstanceObject {
-    light_type: LightType,
-    diffuse_color_hdri: ColorHDRI,
+    pub light_type: LightType,
+    pub diffuse_color_hdri: ColorHDRI,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_VfxInstanceObject {
-    asset_path: *const c_char,
+    pub asset_path: *const c_char,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_GameInstanceObject {
-    base_id: u32,
+    pub base_id: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_EventInstanceObject {
-    parent_data: physis_GameInstanceObject,
-    bound_instance_id: u32,
-    linked_instance_id: u32,
+    pub parent_data: physis_GameInstanceObject,
+    pub bound_instance_id: u32,
+    pub linked_instance_id: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_PopRangeInstanceObject {
-    pop_type: PopType,
-    index: u8,
-    inner_radius_ratio: f32,
-    position_count: u32,
-    positions: *mut [f32; 3],
+    pub pop_type: PopType,
+    pub index: u8,
+    pub inner_radius_ratio: f32,
+    pub position_count: u32,
+    pub positions: *mut [f32; 3],
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_NPCInstanceObject {
-    parent_data: physis_GameInstanceObject,
-    pop_weather: u32,
-    pop_time_start: u8,
-    pop_time_end: u8,
-    move_ai: u32,
-    wandering_range: u8,
-    route: u8,
-    event_group: u16,
+    pub parent_data: physis_GameInstanceObject,
+    pub pop_weather: u32,
+    pub pop_time_start: u8,
+    pub pop_time_end: u8,
+    pub move_ai: u32,
+    pub wandering_range: u8,
+    pub route: u8,
+    pub event_group: u16,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_ENPCInstanceObject {
-    parent_data: physis_NPCInstanceObject,
-    behavior: u32,
+    pub parent_data: physis_NPCInstanceObject,
+    pub behavior: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_TriggerBoxInstanceObject {
-    trigger_box_shape: TriggerBoxShape,
-    priority: i16,
-    enabled: bool,
+    pub trigger_box_shape: TriggerBoxShape,
+    pub priority: i16,
+    pub enabled: bool,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_MapRangeInstanceObject {
-    parent_data: physis_TriggerBoxInstanceObject,
-    place_name_block: u32,
-    place_name_spot: u32,
-    rest_bonus_effective: bool,
-    discovery_id: u8,
-    place_name_enabled: bool,
-    discovery_enabled: bool,
-    rest_bonus_enabled: bool,
+    pub parent_data: physis_TriggerBoxInstanceObject,
+    pub place_name_block: u32,
+    pub place_name_spot: u32,
+    pub rest_bonus_effective: bool,
+    pub discovery_id: u8,
+    pub place_name_enabled: bool,
+    pub discovery_enabled: bool,
+    pub rest_bonus_enabled: bool,
 }
 
 #[repr(C)]
@@ -101,25 +101,25 @@ pub struct physis_SharedGroupInstanceObject {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_AetheryteInstanceObject {
-    parent_data: physis_GameInstanceObject,
-    bound_instance_id: u32,
+    pub parent_data: physis_GameInstanceObject,
+    pub bound_instance_id: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_ExitRangeInstanceObject {
-    parent_data: physis_TriggerBoxInstanceObject,
-    exit_type: ExitType,
-    zone_id: u16,
-    territory_type: u16,
-    destination_instance_id: u32,
-    return_instance_id: u32,
+    pub parent_data: physis_TriggerBoxInstanceObject,
+    pub exit_type: ExitType,
+    pub zone_id: u16,
+    pub territory_type: u16,
+    pub destination_instance_id: u32,
+    pub return_instance_id: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_EventRangeInstanceObject {
-    parent_data: physis_TriggerBoxInstanceObject,
+    pub parent_data: physis_TriggerBoxInstanceObject,
 }
 
 #[repr(C)]
@@ -129,68 +129,68 @@ pub struct physis_ChairMarkerInstanceObject {}
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_PrefetchRangeInstanceObject {
-    parent_data: physis_TriggerBoxInstanceObject,
-    bound_instance_id: u32,
+    pub parent_data: physis_TriggerBoxInstanceObject,
+    pub bound_instance_id: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_EnvSetInstanceObject {
-    asset_path: *const c_char,
-    bound_instance_id: u32,
-    shape: EnvSetShape,
-    is_env_map_shooting_point: bool,
-    priority: u8,
-    effective_range: f32,
-    interpolation_time: i32,
-    reverb: f32,
-    filter: f32,
-    sound_asset_path: *const c_char,
+    pub asset_path: *const c_char,
+    pub bound_instance_id: u32,
+    pub shape: EnvSetShape,
+    pub is_env_map_shooting_point: bool,
+    pub priority: u8,
+    pub effective_range: f32,
+    pub interpolation_time: i32,
+    pub reverb: f32,
+    pub filter: f32,
+    pub sound_asset_path: *const c_char,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_EnvLocationObject {
-    ambient_light_asset_path: *const c_char,
-    env_map_asset_path: *const c_char,
+    pub ambient_light_asset_path: *const c_char,
+    pub env_map_asset_path: *const c_char,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_SoundInstanceObject {
-    asset_path: *const c_char,
+    pub asset_path: *const c_char,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_CollisionBoxInstanceObject {
-    parent_data: physis_TriggerBoxInstanceObject,
-    collision_asset_path: *const c_char,
+    pub parent_data: physis_TriggerBoxInstanceObject,
+    pub collision_asset_path: *const c_char,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_DoorRangeInstanceObject {
-    parent_data: physis_TriggerBoxInstanceObject,
+    pub parent_data: physis_TriggerBoxInstanceObject,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_LineVFXInstanceObject {
-    line_style: LineStyle,
+    pub line_style: LineStyle,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_TreasureInstanceObject {
-    base_id: u32,
+    pub base_id: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_TargetMarkerInstanceObject {
-    nameplate_offset_y: f32,
-    target_market_type: TargetMarkerType,
+    pub nameplate_offset_y: f32,
+    pub target_market_type: TargetMarkerType,
 }
 
 #[repr(C)]
