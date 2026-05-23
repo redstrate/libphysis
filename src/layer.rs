@@ -95,7 +95,7 @@ pub struct physis_MapRangeInstanceObject {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_SharedGroupInstanceObject {
-    asset_path: *const c_char,
+    pub asset_path: *const c_char,
 }
 
 #[repr(C)]
