@@ -9,8 +9,7 @@ use crate::{ffi_from_c_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::ReadableFile;
 use physis::layer::{
     BGInstanceObject, EventInstanceObject, GameInstanceObject, InstanceObject, Layer,
-    LayerEntryData, LayerHeader, LightInstanceObject, SharedGroupInstance,
-    VFXInstanceObject,
+    LayerEntryData, LayerHeader, LightInstanceObject, SharedGroupInstance, VFXInstanceObject,
 };
 use physis::lgb::{LayerChunk, Lgb};
 use physis::{Platform, WritableFile};

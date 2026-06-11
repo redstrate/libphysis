@@ -83,13 +83,29 @@ pub struct physis_TriggerBoxInstanceObject {
 #[derive(Clone, Copy)]
 pub struct physis_MapRangeInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
+    pub map: u32,
     pub place_name_block: u32,
     pub place_name_spot: u32,
+    pub weather: u32,
+    pub bgm: u32,
+    pub unk1: u8,
+    pub unk2: u8,
+    pub housing_block_id: u8,
     pub rest_bonus_effective: bool,
     pub discovery_id: u8,
+    pub map_enabled: bool,
     pub place_name_enabled: bool,
     pub discovery_enabled: bool,
+    pub bgm_enabled: bool,
+    pub weather_enabled: bool,
     pub rest_bonus_enabled: bool,
+    pub bgm_play_zone_in_only: bool,
+    pub lift_enabled: bool,
+    pub housing_enabled: bool,
+    pub unk3: bool,
+    pub unk4: bool,
+    pub mounts_and_ornaments_disabled: bool,
+    pub lalafells_only: bool,
 }
 
 #[repr(C)]
@@ -195,6 +211,26 @@ pub struct physis_TargetMarkerInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_PathControlPoint {
+    pub position: [f32; 3],
+    pub point_id: u16,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_PathInstanceObject {
+    pub control_point_count: u32,
+    pub control_points: *mut physis_PathControlPoint,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ClientPathInstanceObject {
+    pub parent_data: physis_PathInstanceObject,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     None, // NOTE: a thing until every layer entry is supported
@@ -219,6 +255,7 @@ pub enum physis_LayerEntry {
     LineVFX(physis_LineVFXInstanceObject),
     Treasure(physis_TreasureInstanceObject),
     TargetMarker(physis_TargetMarkerInstanceObject),
+    ClientPath(physis_ClientPathInstanceObject),
 }
 
 #[repr(C)]
@@ -305,13 +342,29 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         }),
         MapRange(map_range) => physis_LayerEntry::MapRange(physis_MapRangeInstanceObject {
             parent_data: convert_triggerboxinstanceobject(&map_range.parent_data),
+            map: map_range.map,
             place_name_block: map_range.place_name_block,
             place_name_spot: map_range.place_name_spot,
+            weather: map_range.weather,
+            bgm: map_range.bgm,
+            unk1: map_range.unk1,
+            unk2: map_range.unk2,
+            housing_block_id: map_range.housing_block_id,
             rest_bonus_effective: map_range.rest_bonus_effective,
             discovery_id: map_range.discovery_id,
+            map_enabled: map_range.map_enabled,
             place_name_enabled: map_range.place_name_enabled,
             discovery_enabled: map_range.discovery_enabled,
+            bgm_enabled: map_range.bgm_enabled,
+            weather_enabled: map_range.weather_enabled,
             rest_bonus_enabled: map_range.rest_bonus_enabled,
+            bgm_play_zone_in_only: map_range.bgm_play_zone_in_only,
+            lift_enabled: map_range.lift_enabled,
+            housing_enabled: map_range.housing_enabled,
+            unk3: map_range.unk3,
+            unk4: map_range.unk4,
+            mounts_and_ornaments_disabled: map_range.mounts_and_ornaments_disabled,
+            lalafells_only: map_range.lalafells_only,
         }),
         SharedGroup(shared_group) => {
             physis_LayerEntry::SharedGroup(physis_SharedGroupInstanceObject {
@@ -379,6 +432,26 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                 nameplate_offset_y: target_marker.nameplate_offset_y,
                 target_market_type: target_marker.target_marker_type,
             })
+        }
+        ClientPath(client_path) => {
+            let mut c_points = Vec::new();
+            for point in &client_path.parent_data.control_points {
+                c_points.push(physis_PathControlPoint {
+                    position: point.position,
+                    point_id: point.point_id,
+                });
+            }
+
+            let object = physis_LayerEntry::ClientPath(physis_ClientPathInstanceObject {
+                parent_data: physis_PathInstanceObject {
+                    control_point_count: c_points.len() as u32,
+                    control_points: c_points.as_mut_ptr(),
+                },
+            });
+
+            std::mem::forget(c_points);
+
+            object
         }
         _ => physis_LayerEntry::None,
     }
@@ -455,6 +528,7 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
             physis_LayerEntry::LineVFX(_) => {}
             physis_LayerEntry::Treasure(_) => {}
             physis_LayerEntry::TargetMarker(_) => {}
+            physis_LayerEntry::ClientPath(_) => {}
         }
     }
     drop(data);
