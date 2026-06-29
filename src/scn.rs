@@ -25,6 +25,7 @@ pub struct physis_ScnSection {
 #[repr(C)]
 pub struct physis_ScnGeneralSection {
     bg_path: *const c_char,
+    lcb_path: *const c_char,
 }
 
 #[repr(C)]
@@ -69,6 +70,7 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
 
     let general = physis_ScnGeneralSection {
         bg_path: ffi_to_c_string(&section.general.bg_path.value),
+        lcb_path: ffi_to_c_string(&section.general.lcb_path.value),
     };
 
     let mut c_timelines = Vec::new();

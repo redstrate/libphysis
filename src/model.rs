@@ -49,6 +49,7 @@ pub struct physis_LOD {
     vertex_elements: *mut VertexElement,
     num_parts: u32,
     parts: *mut physis_Part,
+    model_lod_range: f32,
 }
 
 #[repr(C)]
@@ -61,6 +62,7 @@ pub struct physis_MDL {
     num_material_names: u32,
     material_names: *mut *const c_char,
     bounding_box: BoundingBox,
+    model_clip_out_of_distance: f32,
 }
 
 impl Default for physis_MDL {
@@ -74,6 +76,7 @@ impl Default for physis_MDL {
             num_material_names: 0,
             material_names: null_mut(),
             bounding_box: BoundingBox::default(),
+            model_clip_out_of_distance: 0.0,
         }
     }
 }
@@ -103,6 +106,7 @@ pub extern "C" fn physis_mdl_parse(platform: Platform, buffer: physis_Buffer) ->
     }
 
     let bounding_box = mdl.model_data.bounding_box;
+    let model_clip_out_of_distance = mdl.model_data.header.model_clip_out_of_distance;
 
     let mdl = physis_MDL {
         p_ptr: Box::leak(mdl),
@@ -113,6 +117,7 @@ pub extern "C" fn physis_mdl_parse(platform: Platform, buffer: physis_Buffer) ->
         num_material_names: c_material_names.len() as u32,
         material_names: c_material_names.as_mut_ptr(),
         bounding_box,
+        model_clip_out_of_distance,
     };
 
     mem::forget(c_bone_names);
@@ -206,6 +211,7 @@ fn physis_mdl_update_vertices(mdl: &MDL) -> Vec<physis_LOD> {
             vertex_elements: c_decls.as_mut_ptr(),
             num_parts: c_parts.len() as u32,
             parts: c_parts.as_mut_ptr(),
+            model_lod_range: lod.model_lod_range,
         });
 
         mem::forget(c_decls);
