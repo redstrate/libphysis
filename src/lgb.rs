@@ -118,7 +118,7 @@ fn to_rust_parent_data_game(parent_data: physis_GameInstanceObject) -> GameInsta
 
 fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
     let data = match object.data {
-        physis_LayerEntry::BG(bg) => LayerEntryData::BG(BGInstanceObject {
+        physis_LayerEntry::BG(bg) => LayerEntryData::BgPart(BGInstanceObject {
             asset_path: ffi_from_c_string(bg.asset_path).unwrap().as_str().into(),
             collision_asset_path: ffi_from_c_string(bg.collision_asset_path)
                 .unwrap()
@@ -126,7 +126,7 @@ fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
                 .into(),
             ..Default::default()
         }),
-        physis_LayerEntry::LayLight(light) => LayerEntryData::LayLight(LightInstanceObject {
+        physis_LayerEntry::LayLight(light) => LayerEntryData::Light(LightInstanceObject {
             light_type: light.light_type,
             diffuse_color_hdri: light.diffuse_color_hdri,
             ..Default::default()

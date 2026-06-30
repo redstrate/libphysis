@@ -19,7 +19,7 @@ pub struct physis_Texture {
     width: u16,
     height: u16,
     depth: u16,
-    mip_levels: u16,
+    mip_levels: u8,
     data_size: u32,
     data: *mut u8,
 }

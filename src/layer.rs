@@ -183,7 +183,7 @@ pub struct physis_SoundInstanceObject {
 #[derive(Clone, Copy)]
 pub struct physis_CollisionBoxInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
-    pub collision_asset_path: *const c_char,
+    pub collision_asset_path_crc: u32,
 }
 
 #[repr(C)]
@@ -318,11 +318,11 @@ fn convert_triggerboxinstanceobject(
 
 pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
     match data {
-        BG(bg) => physis_LayerEntry::BG(physis_BGInstanceObject {
+        BgPart(bg) => physis_LayerEntry::BG(physis_BGInstanceObject {
             asset_path: ffi_to_c_string(&bg.asset_path.value),
             collision_asset_path: ffi_to_c_string(&bg.collision_asset_path.value),
         }),
-        LayLight(light) => physis_LayerEntry::LayLight(physis_LightInstanceObject {
+        Light(light) => physis_LayerEntry::LayLight(physis_LightInstanceObject {
             light_type: light.light_type,
             diffuse_color_hdri: light.diffuse_color_hdri,
             attenuation: light.attenuation,
@@ -417,7 +417,7 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                 bound_instance_id: prefetch_range.bound_instance_id,
             })
         }
-        EnvSet(env_set) => physis_LayerEntry::EnvSet(physis_EnvSetInstanceObject {
+        EnvSpace(env_set) => physis_LayerEntry::EnvSet(physis_EnvSetInstanceObject {
             asset_path: ffi_to_c_string(&env_set.asset_path.value),
             bound_instance_id: env_set.bound_instance_id,
             shape: env_set.shape,
@@ -439,7 +439,7 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         CollisionBox(collision_box) => {
             physis_LayerEntry::CollisionBox(physis_CollisionBoxInstanceObject {
                 parent_data: convert_triggerboxinstanceobject(&collision_box.parent_data),
-                collision_asset_path: ffi_to_c_string(&collision_box.collision_asset_path.value),
+                collision_asset_path_crc: collision_box.collision_asset_path_crc,
             })
         }
         DoorRange(door_range) => physis_LayerEntry::DoorRange(physis_DoorRangeInstanceObject {
@@ -569,9 +569,7 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
             physis_LayerEntry::Sound(sound) => {
                 ffi_free_string(sound.asset_path);
             }
-            physis_LayerEntry::CollisionBox(collision_box) => {
-                ffi_free_string(collision_box.collision_asset_path);
-            }
+            physis_LayerEntry::CollisionBox(_) => {}
             physis_LayerEntry::DoorRange(_) => {}
             physis_LayerEntry::LineVFX(_) => {}
             physis_LayerEntry::Treasure(_) => {}
