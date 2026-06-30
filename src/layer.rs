@@ -280,6 +280,8 @@ pub struct physis_Layer {
     pub festival_phase_id: u16,
     pub layer_set_referenced_list: physis_LayerSetReferencedList,
     pub visible: bool,
+    pub object_set_referenced_count: u32,
+    pub object_set_referenced: *mut physis_ObjectSetReferenced,
 }
 
 #[repr(C)]
@@ -288,6 +290,14 @@ pub struct physis_LayerSetReferencedList {
     pub referenced_type: LayerSetReferencedType,
     pub layer_set_id_count: u32,
     pub layer_set_ids: *mut u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ObjectSetReferenced {
+    pub asset_type: LayerEntryType,
+    pub instance_id: u32,
+    pub obsb_path: *const c_char,
 }
 
 fn convert_gameinstanceobject(obj: &GameInstanceObject) -> physis_GameInstanceObject {
@@ -493,6 +503,15 @@ pub(crate) fn to_c_layer(layer: &Layer) -> physis_Layer {
 
     std::mem::forget(c_layer_sets);
 
+    let mut c_obsb = Vec::new();
+    for obsb in &layer.header.object_set_referenced {
+        c_obsb.push(physis_ObjectSetReferenced {
+            asset_type: obsb.asset_type,
+            instance_id: obsb.instance_id,
+            obsb_path: ffi_to_c_string(&obsb.obsb_path.value),
+        });
+    }
+
     let layer = physis_Layer {
         objects: c_objects.as_mut_ptr(),
         num_objects: c_objects.len() as u32,
@@ -502,9 +521,12 @@ pub(crate) fn to_c_layer(layer: &Layer) -> physis_Layer {
         festival_phase_id: layer.header.festival_phase_id,
         layer_set_referenced_list,
         visible: layer.header.visible,
+        object_set_referenced_count: c_obsb.len() as u32,
+        object_set_referenced: c_obsb.as_mut_ptr(),
     };
 
     std::mem::forget(c_objects);
+    std::mem::forget(c_obsb);
 
     layer
 }
