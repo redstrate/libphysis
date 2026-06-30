@@ -104,7 +104,7 @@ pub struct physis_MapRangeInstanceObject {
     pub bgm_play_zone_in_only: bool,
     pub lift_enabled: bool,
     pub housing_enabled: bool,
-    pub unk3: bool,
+    pub log_flying_height_max_err: bool,
     pub unk4: bool,
     pub mounts_and_ornaments_disabled: bool,
     pub lalafells_only: bool,
@@ -278,6 +278,16 @@ pub struct physis_Layer {
     pub id: u32,
     pub festival_id: u16,
     pub festival_phase_id: u16,
+    pub layer_set_referenced_list: physis_LayerSetReferencedList,
+    pub visible: bool,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_LayerSetReferencedList {
+    pub referenced_type: LayerSetReferencedType,
+    pub layer_set_id_count: u32,
+    pub layer_set_ids: *mut u32,
 }
 
 fn convert_gameinstanceobject(obj: &GameInstanceObject) -> physis_GameInstanceObject {
@@ -365,7 +375,7 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             bgm_play_zone_in_only: map_range.bgm_play_zone_in_only,
             lift_enabled: map_range.lift_enabled,
             housing_enabled: map_range.housing_enabled,
-            unk3: map_range.unk3,
+            log_flying_height_max_err: map_range.log_flying_height_max_err,
             unk4: map_range.unk4,
             mounts_and_ornaments_disabled: map_range.mounts_and_ornaments_disabled,
             lalafells_only: map_range.lalafells_only,
@@ -473,6 +483,16 @@ pub(crate) fn to_c_layer(layer: &Layer) -> physis_Layer {
         });
     }
 
+    let mut c_layer_sets = layer.header.layer_set_referenced_list.layer_set_ids.clone();
+
+    let layer_set_referenced_list = physis_LayerSetReferencedList {
+        referenced_type: layer.header.layer_set_referenced_list.referenced_type,
+        layer_set_id_count: c_layer_sets.len() as u32,
+        layer_set_ids: c_layer_sets.as_mut_ptr(),
+    };
+
+    std::mem::forget(c_layer_sets);
+
     let layer = physis_Layer {
         objects: c_objects.as_mut_ptr(),
         num_objects: c_objects.len() as u32,
@@ -480,6 +500,8 @@ pub(crate) fn to_c_layer(layer: &Layer) -> physis_Layer {
         id: layer.header.layer_id,
         festival_id: layer.header.festival_id,
         festival_phase_id: layer.header.festival_phase_id,
+        layer_set_referenced_list,
+        visible: layer.header.visible,
     };
 
     std::mem::forget(c_objects);

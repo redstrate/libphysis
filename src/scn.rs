@@ -15,6 +15,7 @@ pub struct physis_ScnSection {
 
     general: physis_ScnGeneralSection,
     timelines: physis_ScnTimelinesSection,
+    layer_sets: physis_ScnLayerSetsSection,
 
     num_lgb_paths: u32,
     lgb_paths: *mut *const c_char,
@@ -57,6 +58,19 @@ pub struct physis_ScnSGActionDescriptors {
     descriptors: *mut ScnSGActionControllerDescriptor,
 }
 
+#[repr(C)]
+pub struct physis_ScnLayerSetsSection {
+    layer_set_count: u32,
+    layer_sets: *mut physis_ScnLayerSet,
+}
+
+#[repr(C)]
+pub struct physis_ScnLayerSet {
+    id: i32,
+    territory_type_id: u16,
+    content_finder_condition_id: u16,
+}
+
 pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
     let mut c_layer_groups = Vec::new();
     for layer_group in &section.layer_groups {
@@ -90,6 +104,20 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
         descriptors: c_descriptors.as_mut_ptr(),
     };
 
+    let mut c_layer_sets = Vec::new();
+    for layer_set in &section.layer_sets.layer_sets {
+        c_layer_sets.push(physis_ScnLayerSet {
+            id: layer_set.id,
+            territory_type_id: layer_set.territory_type_id,
+            content_finder_condition_id: layer_set.content_finder_condition_id,
+        });
+    }
+
+    let layer_sets = physis_ScnLayerSetsSection {
+        layer_set_count: c_layer_sets.len() as u32,
+        layer_sets: c_layer_sets.as_mut_ptr(),
+    };
+
     let scn = physis_ScnSection {
         num_layer_groups: c_layer_groups.len() as u32,
         layer_groups: c_layer_groups.as_mut_ptr(),
@@ -98,8 +126,10 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
         num_lgb_paths: c_lgb_paths.len() as u32,
         lgb_paths: c_lgb_paths.as_mut_ptr(),
         action_descriptors,
+        layer_sets,
     };
 
+    std::mem::forget(c_layer_sets);
     std::mem::forget(c_layer_groups);
     std::mem::forget(c_lgb_paths);
     std::mem::forget(c_timelines);
