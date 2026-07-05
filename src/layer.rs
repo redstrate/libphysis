@@ -13,15 +13,28 @@ pub struct physis_BgPartInstanceObject {
     pub asset_path: *const c_char,
     pub collision_asset_path: *const c_char,
     pub collision_type: ModelCollisionType,
+    pub visible: bool,
+    pub world_light_shadow_mode: ShadowMode,
+    pub object_light_shadow_mode: ShadowMode,
+    pub fade_out_distance: f32,
+    pub bounding_sphere_size: f32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_LightInstanceObject {
-    pub light_type: LightType,
-    pub diffuse_color_hdri: ColorHDRI,
+    pub shape: LightShape,
     pub attenuation: f32,
-    pub range_rate: f32,
+    pub range: f32,
+    pub attenuation_cone_coefficient: f32,
+    pub spot_angle: f32,
+    pub texture_path: *const c_char,
+    pub color: ColorHDRI,
+    pub enable_specular_highlights: bool,
+    pub enable_bg_parts_shadows: bool,
+    pub enable_character_shadows: bool,
+    pub shadow_plane_near: f32,
+    pub flat_light_skew_angle: [f32; 2],
 }
 
 #[repr(C)]
@@ -343,12 +356,25 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             asset_path: ffi_to_c_string(&bg.asset_path.value),
             collision_asset_path: ffi_to_c_string(&bg.collision_asset_path.value),
             collision_type: bg.collision_type,
+            visible: bg.visible,
+            world_light_shadow_mode: bg.world_light_shadow_mode,
+            object_light_shadow_mode: bg.object_light_shadow_mode,
+            fade_out_distance: bg.fade_out_distance,
+            bounding_sphere_size: bg.bounding_sphere_size,
         }),
         Light(light) => physis_LayerEntry::Light(physis_LightInstanceObject {
-            light_type: light.light_type,
-            diffuse_color_hdri: light.diffuse_color_hdri,
+            shape: light.shape,
+            color: light.color,
             attenuation: light.attenuation,
-            range_rate: light.range_rate,
+            range: light.range,
+            attenuation_cone_coefficient: light.attenuation_cone_coefficient,
+            spot_angle: light.spot_angle,
+            texture_path: ffi_to_c_string(&light.texture_path.value),
+            enable_specular_highlights: light.enable_specular_highlights,
+            enable_bg_parts_shadows: light.enable_bg_part_shadows,
+            enable_character_shadows: light.enable_character_shadows,
+            shadow_plane_near: light.shadow_plane_near,
+            flat_light_skew_angle: light.flat_light_skew_angle,
         }),
         Vfx(vfx) => physis_LayerEntry::Vfx(physis_VfxInstanceObject {
             asset_path: ffi_to_c_string(&vfx.asset_path.value),

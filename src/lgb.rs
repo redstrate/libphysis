@@ -130,8 +130,8 @@ fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
             ..Default::default()
         }),
         physis_LayerEntry::Light(light) => LayerEntryData::Light(LightInstanceObject {
-            light_type: light.light_type,
-            diffuse_color_hdri: light.diffuse_color_hdri,
+            shape: light.shape,
+            color: light.color,
             ..Default::default()
         }),
         physis_LayerEntry::Vfx(vfx) => LayerEntryData::Vfx(VFXInstanceObject {
