@@ -35,35 +35,14 @@ pub extern "C" fn physis_cmp_parse(platform: Platform, buffer: physis_Buffer) ->
     }
 }
 
-// adapted from https://github.com/xivdev/Penumbra/blob/master/Penumbra/Meta/Files/CmpFile.cs#L50
-fn get_rsp_index(tribe: Tribe) -> i32 {
-    match tribe {
-        Tribe::Midlander => 0,
-        Tribe::Highlander => 1,
-        Tribe::Wildwood => 10,
-        Tribe::Duskwight => 11,
-        Tribe::Plainsfolk => 20,
-        Tribe::Dunesfolk => 21,
-        Tribe::Seeker => 30,
-        Tribe::Keeper => 31,
-        Tribe::SeaWolf => 40,
-        Tribe::Hellsguard => 41,
-        Tribe::Raen => 50,
-        Tribe::Xaela => 51,
-        Tribe::Hellion => 60,
-        Tribe::Lost => 61,
-        Tribe::Rava => 70,
-        Tribe::Veena => 71,
-    }
-}
-
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn physis_cmp_get_racial_scaling_parameters(
     cmp: physis_CMP,
     _: Race,
     tribe: Tribe,
 ) -> RacialScalingParameters {
-    unsafe { (&(*cmp.p_ptr).parameters)[get_rsp_index(tribe) as usize] }
+    let index = tribe as usize - 1;
+    unsafe { (&(*cmp.p_ptr).scales)[index >> 1][index & 1] }
 }
 
 #[unsafe(no_mangle)]

@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::layer::{
-    free_layer, physis_GameInstanceObject, physis_InstanceObject, physis_Layer, physis_LayerEntry,
-    to_c_layer,
+    free_layer, physis_GameObjectInstanceObject, physis_InstanceObject, physis_Layer,
+    physis_LayerEntry, to_c_layer,
 };
 use crate::{ffi_from_c_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::ReadableFile;
 use physis::layer::{
-    BGInstanceObject, EventInstanceObject, GameInstanceObject, InstanceObject, Layer,
-    LayerEntryData, LayerHeader, LightInstanceObject, SharedGroupInstance, VFXInstanceObject,
+    BgPartInstanceObject, EventObjectInstanceObject, GameObjectInstanceObject, InstanceObject,
+    Layer, LayerEntryData, LayerHeader, LightInstanceObject, SharedGroupInstance,
+    VFXInstanceObject,
 };
 use physis::lgb::{LayerChunk, Lgb};
 use physis::{Platform, WritableFile};
@@ -110,15 +111,17 @@ pub extern "C" fn physis_lgb_free(lgb: &physis_LayerGroup) {
     drop(data);
 }
 
-fn to_rust_parent_data_game(parent_data: physis_GameInstanceObject) -> GameInstanceObject {
-    GameInstanceObject {
+fn to_rust_parent_data_game(
+    parent_data: physis_GameObjectInstanceObject,
+) -> GameObjectInstanceObject {
+    GameObjectInstanceObject {
         base_id: parent_data.base_id,
     }
 }
 
 fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
     let data = match object.data {
-        physis_LayerEntry::BG(bg) => LayerEntryData::BgPart(BGInstanceObject {
+        physis_LayerEntry::BgPart(bg) => LayerEntryData::BgPart(BgPartInstanceObject {
             asset_path: ffi_from_c_string(bg.asset_path).unwrap().as_str().into(),
             collision_asset_path: ffi_from_c_string(bg.collision_asset_path)
                 .unwrap()
@@ -126,7 +129,7 @@ fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
                 .into(),
             ..Default::default()
         }),
-        physis_LayerEntry::LayLight(light) => LayerEntryData::Light(LightInstanceObject {
+        physis_LayerEntry::Light(light) => LayerEntryData::Light(LightInstanceObject {
             light_type: light.light_type,
             diffuse_color_hdri: light.diffuse_color_hdri,
             ..Default::default()
@@ -135,11 +138,13 @@ fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
             asset_path: ffi_from_c_string(vfx.asset_path).unwrap().as_str().into(),
             ..Default::default()
         }),
-        physis_LayerEntry::EventObject(eobj) => LayerEntryData::EventObject(EventInstanceObject {
-            parent_data: to_rust_parent_data_game(eobj.parent_data),
-            bound_instance_id: eobj.bound_instance_id,
-            linked_instance_id: eobj.linked_instance_id,
-        }),
+        physis_LayerEntry::EventObject(eobj) => {
+            LayerEntryData::EventObject(EventObjectInstanceObject {
+                parent_data: to_rust_parent_data_game(eobj.parent_data),
+                bound_instance_id: eobj.bound_instance_id,
+                unk1: 0, // TODO
+            })
+        }
         physis_LayerEntry::SharedGroup(sgb) => LayerEntryData::SharedGroup(SharedGroupInstance {
             asset_path: ffi_from_c_string(sgb.asset_path).unwrap().as_str().into(),
             ..Default::default()

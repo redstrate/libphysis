@@ -3,6 +3,7 @@
 
 use crate::{ffi_to_c_string, physis_Buffer};
 use physis::savedata::chardat::{CharacterData, CustomizeData};
+use physis::{Platform, ReadableFile};
 use std::ffi::c_char;
 use std::slice;
 
@@ -18,7 +19,7 @@ pub struct physis_CharacterData {
 pub extern "C" fn physis_chardat_parse(buffer: physis_Buffer) -> physis_CharacterData {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    let chardat = CharacterData::from_existing(data).unwrap();
+    let chardat = CharacterData::from_existing(Platform::Win32, data).unwrap();
 
     physis_CharacterData {
         version: chardat.version,

@@ -9,9 +9,10 @@ use physis::layer::*;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_BGInstanceObject {
+pub struct physis_BgPartInstanceObject {
     pub asset_path: *const c_char,
     pub collision_asset_path: *const c_char,
+    pub collision_type: ModelCollisionType,
 }
 
 #[repr(C)]
@@ -31,23 +32,21 @@ pub struct physis_VfxInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_GameInstanceObject {
+pub struct physis_GameObjectInstanceObject {
     pub base_id: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_EventInstanceObject {
-    pub parent_data: physis_GameInstanceObject,
+pub struct physis_EventObjectInstanceObject {
+    pub parent_data: physis_GameObjectInstanceObject,
     pub bound_instance_id: u32,
-    pub linked_instance_id: u32,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_PopRangeInstanceObject {
     pub pop_type: PopType,
-    pub index: u8,
     pub inner_radius_ratio: f32,
     pub position_count: u32,
     pub positions: *mut [f32; 3],
@@ -55,22 +54,14 @@ pub struct physis_PopRangeInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_NPCInstanceObject {
-    pub parent_data: physis_GameInstanceObject,
-    pub pop_weather: u32,
-    pub pop_time_start: u8,
-    pub pop_time_end: u8,
-    pub move_ai: u32,
-    pub wandering_range: u8,
-    pub route: u8,
-    pub event_group: u16,
+pub struct physis_CharacterInstanceObject {
+    pub parent_data: physis_GameObjectInstanceObject,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_ENPCInstanceObject {
-    pub parent_data: physis_NPCInstanceObject,
-    pub behavior: u32,
+pub struct physis_EventNpcInstanceObject {
+    pub parent_data: physis_CharacterInstanceObject,
 }
 
 #[repr(C)]
@@ -119,7 +110,7 @@ pub struct physis_SharedGroupInstanceObject {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_AetheryteInstanceObject {
-    pub parent_data: physis_GameInstanceObject,
+    pub parent_data: physis_GameObjectInstanceObject,
     pub bound_instance_id: u32,
 }
 
@@ -130,6 +121,7 @@ pub struct physis_ExitRangeInstanceObject {
     pub exit_type: ExitType,
     pub zone_id: u16,
     pub territory_type: u16,
+    pub index: i32,
     pub destination_instance_id: u32,
     pub return_instance_id: u32,
 }
@@ -142,7 +134,12 @@ pub struct physis_EventRangeInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_ChairMarkerInstanceObject {}
+pub struct physis_ChairMarkerInstanceObject {
+    left_enable: bool,
+    right_enable: bool,
+    back_enable: bool,
+    chair_type: ChairType,
+}
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -183,14 +180,18 @@ pub struct physis_SoundInstanceObject {
 #[derive(Clone, Copy)]
 pub struct physis_CollisionBoxInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
-    pub collision_asset_path_crc: u32,
+    pub collision_asset_path: *const c_char,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_DoorRangeInstanceObject {
-    pub parent_data: physis_TriggerBoxInstanceObject,
+    pub parent_data: physis_RangeInstanceObject,
 }
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_RangeInstanceObject {}
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -201,7 +202,7 @@ pub struct physis_LineVFXInstanceObject {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_TreasureInstanceObject {
-    pub base_id: u32,
+    pub parent_data: physis_GameObjectInstanceObject,
 }
 
 #[repr(C)]
@@ -233,15 +234,25 @@ pub struct physis_ClientPathInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+
+pub struct physis_CullingBoxInstanceObject {}
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ClickableRangeInstanceObject {
+    pub parent_data: physis_RangeInstanceObject,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
-    None, // NOTE: a thing until every layer entry is supported
-    BG(physis_BGInstanceObject),
-    LayLight(physis_LightInstanceObject),
+    None,
+    BgPart(physis_BgPartInstanceObject),
+    Light(physis_LightInstanceObject),
     Vfx(physis_VfxInstanceObject),
-    EventObject(physis_EventInstanceObject),
+    EventObject(physis_EventObjectInstanceObject),
     PopRange(physis_PopRangeInstanceObject),
-    EventNPC(physis_ENPCInstanceObject),
+    EventNpc(physis_EventNpcInstanceObject),
     MapRange(physis_MapRangeInstanceObject),
     SharedGroup(physis_SharedGroupInstanceObject),
     Aetheryte(physis_AetheryteInstanceObject),
@@ -258,6 +269,8 @@ pub enum physis_LayerEntry {
     Treasure(physis_TreasureInstanceObject),
     TargetMarker(physis_TargetMarkerInstanceObject),
     ClientPath(physis_ClientPathInstanceObject),
+    CullingBox(physis_CullingBoxInstanceObject),
+    ClickableRange(physis_ClickableRangeInstanceObject),
 }
 
 #[repr(C)]
@@ -300,8 +313,8 @@ pub struct physis_ObjectSetReferenced {
     pub obsb_path: *const c_char,
 }
 
-fn convert_gameinstanceobject(obj: &GameInstanceObject) -> physis_GameInstanceObject {
-    physis_GameInstanceObject {
+fn convert_gameinstanceobject(obj: &GameObjectInstanceObject) -> physis_GameObjectInstanceObject {
+    physis_GameObjectInstanceObject {
         base_id: obj.base_id,
     }
 }
@@ -318,11 +331,12 @@ fn convert_triggerboxinstanceobject(
 
 pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
     match data {
-        BgPart(bg) => physis_LayerEntry::BG(physis_BGInstanceObject {
+        BgPart(bg) => physis_LayerEntry::BgPart(physis_BgPartInstanceObject {
             asset_path: ffi_to_c_string(&bg.asset_path.value),
             collision_asset_path: ffi_to_c_string(&bg.collision_asset_path.value),
+            collision_type: bg.collision_type,
         }),
-        Light(light) => physis_LayerEntry::LayLight(physis_LightInstanceObject {
+        Light(light) => physis_LayerEntry::Light(physis_LightInstanceObject {
             light_type: light.light_type,
             diffuse_color_hdri: light.diffuse_color_hdri,
             attenuation: light.attenuation,
@@ -331,17 +345,15 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         Vfx(vfx) => physis_LayerEntry::Vfx(physis_VfxInstanceObject {
             asset_path: ffi_to_c_string(&vfx.asset_path.value),
         }),
-        EventObject(eobj) => physis_LayerEntry::EventObject(physis_EventInstanceObject {
+        EventObject(eobj) => physis_LayerEntry::EventObject(physis_EventObjectInstanceObject {
             parent_data: convert_gameinstanceobject(&eobj.parent_data),
             bound_instance_id: eobj.bound_instance_id,
-            linked_instance_id: eobj.linked_instance_id,
         }),
         PopRange(pop) => {
             let mut c_pos = pop.positions.clone();
 
             let c_pop = physis_LayerEntry::PopRange(physis_PopRangeInstanceObject {
                 pop_type: pop.pop_type,
-                index: pop.index,
                 inner_radius_ratio: pop.inner_radius_ratio,
                 position_count: c_pos.len() as u32,
                 positions: c_pos.as_mut_ptr(),
@@ -351,18 +363,10 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
 
             c_pop
         }
-        EventNPC(enpc) => physis_LayerEntry::EventNPC(physis_ENPCInstanceObject {
-            parent_data: physis_NPCInstanceObject {
+        EventNPC(enpc) => physis_LayerEntry::EventNpc(physis_EventNpcInstanceObject {
+            parent_data: physis_CharacterInstanceObject {
                 parent_data: convert_gameinstanceobject(&enpc.parent_data.parent_data),
-                pop_weather: enpc.parent_data.pop_weather,
-                pop_time_start: enpc.parent_data.pop_time_start,
-                pop_time_end: enpc.parent_data.pop_time_end,
-                move_ai: enpc.parent_data.move_ai,
-                wandering_range: enpc.parent_data.wandering_range,
-                route: enpc.parent_data.route,
-                event_group: enpc.parent_data.event_group,
             },
-            behavior: enpc.behavior,
         }),
         MapRange(map_range) => physis_LayerEntry::MapRange(physis_MapRangeInstanceObject {
             parent_data: convert_triggerboxinstanceobject(&map_range.parent_data),
@@ -406,11 +410,19 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             territory_type: exit_range.territory_type,
             destination_instance_id: exit_range.destination_instance_id,
             return_instance_id: exit_range.return_instance_id,
+            index: exit_range.index,
         }),
         EventRange(event_range) => physis_LayerEntry::EventRange(physis_EventRangeInstanceObject {
             parent_data: convert_triggerboxinstanceobject(&event_range.parent_data),
         }),
-        ChairMarker(_) => physis_LayerEntry::ChairMarker(physis_ChairMarkerInstanceObject {}),
+        ChairMarker(chair_marker) => {
+            physis_LayerEntry::ChairMarker(physis_ChairMarkerInstanceObject {
+                back_enable: chair_marker.back_enable,
+                left_enable: chair_marker.left_enable,
+                right_enable: chair_marker.right_enable,
+                chair_type: chair_marker.chair_type,
+            })
+        }
         PrefetchRange(prefetch_range) => {
             physis_LayerEntry::PrefetchRange(physis_PrefetchRangeInstanceObject {
                 parent_data: convert_triggerboxinstanceobject(&prefetch_range.parent_data),
@@ -439,17 +451,17 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         CollisionBox(collision_box) => {
             physis_LayerEntry::CollisionBox(physis_CollisionBoxInstanceObject {
                 parent_data: convert_triggerboxinstanceobject(&collision_box.parent_data),
-                collision_asset_path_crc: collision_box.collision_asset_path_crc,
+                collision_asset_path: ffi_to_c_string(&collision_box.collision_asset_path.value),
             })
         }
-        DoorRange(door_range) => physis_LayerEntry::DoorRange(physis_DoorRangeInstanceObject {
-            parent_data: convert_triggerboxinstanceobject(&door_range.parent_data),
+        DoorRange(_) => physis_LayerEntry::DoorRange(physis_DoorRangeInstanceObject {
+            parent_data: physis_RangeInstanceObject {},
         }),
         LineVFX(line_vfx) => physis_LayerEntry::LineVFX(physis_LineVFXInstanceObject {
             line_style: line_vfx.line_style,
         }),
         Treasure(treasure) => physis_LayerEntry::Treasure(physis_TreasureInstanceObject {
-            base_id: treasure.base_id as u32,
+            parent_data: convert_gameinstanceobject(&treasure.parent_data),
         }),
         TargetMarker(target_marker) => {
             physis_LayerEntry::TargetMarker(physis_TargetMarkerInstanceObject {
@@ -476,6 +488,12 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             std::mem::forget(c_points);
 
             object
+        }
+        CullingBox(_) => physis_LayerEntry::CullingBox(physis_CullingBoxInstanceObject {}),
+        ClickableRange(_) => {
+            physis_LayerEntry::ClickableRange(physis_ClickableRangeInstanceObject {
+                parent_data: physis_RangeInstanceObject {},
+            })
         }
         _ => physis_LayerEntry::None,
     }
@@ -538,17 +556,17 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
 
         match &object.data {
             physis_LayerEntry::None => {}
-            physis_LayerEntry::BG(bg) => {
+            physis_LayerEntry::BgPart(bg) => {
                 ffi_free_string(bg.asset_path);
                 ffi_free_string(bg.collision_asset_path);
             }
-            physis_LayerEntry::LayLight(_) => {}
+            physis_LayerEntry::Light(_) => {}
             physis_LayerEntry::Vfx(vfx) => {
                 ffi_free_string(vfx.asset_path);
             }
             physis_LayerEntry::EventObject(_) => {}
             physis_LayerEntry::PopRange(_) => {} // TODO: free relative positions
-            physis_LayerEntry::EventNPC(_) => {}
+            physis_LayerEntry::EventNpc(_) => {}
             physis_LayerEntry::MapRange(_) => {}
             physis_LayerEntry::SharedGroup(sgb) => {
                 ffi_free_string(sgb.asset_path);
@@ -575,6 +593,8 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
             physis_LayerEntry::Treasure(_) => {}
             physis_LayerEntry::TargetMarker(_) => {}
             physis_LayerEntry::ClientPath(_) => {}
+            physis_LayerEntry::CullingBox(_) => {}
+            physis_LayerEntry::ClickableRange(_) => {}
         }
     }
     drop(data);
