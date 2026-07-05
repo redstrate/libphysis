@@ -244,6 +244,13 @@ pub struct physis_ClickableRangeInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_BattleNpcInstanceObject {
+    pub parent_data: physis_CharacterInstanceObject,
+    pub name_id: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     None,
@@ -271,6 +278,7 @@ pub enum physis_LayerEntry {
     ClientPath(physis_ClientPathInstanceObject),
     CullingBox(physis_CullingBoxInstanceObject),
     ClickableRange(physis_ClickableRangeInstanceObject),
+    BattleNpc(physis_BattleNpcInstanceObject),
 }
 
 #[repr(C)]
@@ -495,6 +503,12 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                 parent_data: physis_RangeInstanceObject {},
             })
         }
+        BattleNPC(bnpc) => physis_LayerEntry::BattleNpc(physis_BattleNpcInstanceObject {
+            parent_data: physis_CharacterInstanceObject {
+                parent_data: convert_gameinstanceobject(&bnpc.parent_data.parent_data),
+            },
+            name_id: bnpc.name_id,
+        }),
         _ => physis_LayerEntry::None,
     }
 }
@@ -595,6 +609,7 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
             physis_LayerEntry::ClientPath(_) => {}
             physis_LayerEntry::CullingBox(_) => {}
             physis_LayerEntry::ClickableRange(_) => {}
+            physis_LayerEntry::BattleNpc(_) => {}
         }
     }
     drop(data);
