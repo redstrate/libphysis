@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{ffi_from_c_string, ffi_to_c_string};
+use crate::{ffi_free_string, ffi_from_c_string, ffi_to_c_string, ffi_to_vec};
 use physis::patch::{ChunkType, SqpkOperation, SqpkTargetInfo, ZiPatch};
 use std::ffi::c_char;
 use std::ptr::null_mut;
@@ -149,4 +149,28 @@ pub extern "C" fn physis_patch_index_path(
             .unwrap()
             .to_string(),
     )
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_patch_free(patch: *mut physis_ZiPatch) {
+    unsafe {
+        let data = ffi_to_vec((*patch).chunks, (*patch).num_chunks);
+        for chunk in &data {
+            match &chunk.chunk_type {
+                physis_ZiPatchChunkType::Sqpk(sqpk) => match &sqpk.operation {
+                    physis_ZiPatchSqpkOperation::AddData(add_data) => {
+                        let block_data = ffi_to_vec(add_data.block_data, add_data.block_data_size);
+                        drop(block_data);
+                    }
+                    physis_ZiPatchSqpkOperation::FileOperation(fop) => {
+                        ffi_free_string(fop.path);
+                    }
+                    physis_ZiPatchSqpkOperation::TargetInfo(_) => {}
+                    physis_ZiPatchSqpkOperation::Unknown => {}
+                },
+                physis_ZiPatchChunkType::Unknown => {}
+            }
+        }
+        drop(data);
+    }
 }

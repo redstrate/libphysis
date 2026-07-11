@@ -4,12 +4,12 @@
 use std::mem;
 use std::os::raw::c_char;
 use std::path::Path;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 
 use physis::Platform;
 use physis::sqpack::{Hash, SqPackIndex};
 
-use crate::ffi_from_c_string;
+use crate::{ffi_from_c_string, ffi_to_vec};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -17,7 +17,7 @@ pub struct physis_IndexEntries {
     p_ptr: *mut SqPackIndex,
 
     num_hashes: u32,
-    hashes: *const Hash,
+    hashes: *mut Hash,
 }
 
 impl Default for physis_IndexEntries {
@@ -25,7 +25,7 @@ impl Default for physis_IndexEntries {
         Self {
             p_ptr: null_mut(),
             num_hashes: 0,
-            hashes: null(),
+            hashes: null_mut(),
         }
     }
 }
@@ -79,5 +79,15 @@ pub extern "C" fn physis_index_hash_from_offset(entries: physis_IndexEntries, of
         } else {
             Hash::FullPath(0)
         }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_index_free(index: *mut physis_IndexEntries) {
+    unsafe {
+        let data = ffi_to_vec((*index).hashes, (*index).num_hashes);
+        drop(data);
+
+        drop(Box::from_raw((*index).p_ptr));
     }
 }

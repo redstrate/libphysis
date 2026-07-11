@@ -726,3 +726,10 @@ pub extern "C" fn physis_custom_initialize(
         p_ptr: Box::leak(boxed),
     }
 }
+
+#[unsafe(no_mangle)]
+pub extern "C" fn physis_custom_free(resource: *mut physis_CustomResource) {
+    unsafe {
+        drop(Box::from_raw((*resource).p_ptr));
+    }
+}
