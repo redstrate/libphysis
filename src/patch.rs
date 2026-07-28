@@ -4,19 +4,25 @@
 use crate::{ffi_free_string, ffi_from_c_string, ffi_to_c_string, ffi_to_vec};
 use physis::patch::{ChunkType, SqpkOperation, SqpkTargetInfo, ZiPatch};
 use std::ffi::c_char;
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_patch_apply(data_dir: *const c_char, patch_path: *const c_char) -> bool {
+pub extern "C" fn physis_patch_apply(
+    data_dir: *const c_char,
+    patch_path: *const c_char,
+) -> *const c_char {
     let Some(data_dir) = ffi_from_c_string(data_dir) else {
-        return false;
+        return null();
     };
 
     let Some(patch_path) = ffi_from_c_string(patch_path) else {
-        return false;
+        return null();
     };
 
-    ZiPatch::apply(&data_dir, &patch_path).is_ok()
+    match ZiPatch::apply(&data_dir, &patch_path) {
+        Ok(()) => null(),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
+    }
 }
 
 #[repr(C)]
