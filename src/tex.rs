@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::physis_Buffer;
+use crate::{ffi_to_c_string, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
 use physis::tex::TextureAttribute;
 use physis::tex::{Texture, TextureFormat};
-use std::ptr::null_mut;
+use std::ffi::c_char;
+use std::ptr::{null, null_mut};
 use std::{mem, slice};
 
 #[repr(C)]
@@ -111,5 +112,19 @@ pub extern "C" fn physis_tex_free(tex: &physis_Texture) {
 
     unsafe {
         drop(Box::from_raw(tex.p_ptr));
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn physis_tex_debug(
+    platform: Platform,
+    buffer: physis_Buffer,
+) -> *const c_char {
+    let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
+
+    if let Ok(tex) = Texture::from_existing(platform, data) {
+        ffi_to_c_string(&format!("{tex:#?}"))
+    } else {
+        null()
     }
 }
