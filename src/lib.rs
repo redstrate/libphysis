@@ -208,3 +208,9 @@ mod phyb;
 mod atch;
 
 mod eid;
+
+mod ggd;
+
+mod gzd;
+
+mod spm;

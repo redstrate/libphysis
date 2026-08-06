@@ -149,7 +149,7 @@ fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
             asset_path: ffi_from_c_string(sgb.asset_path).unwrap().as_str().into(),
             ..Default::default()
         }),
-        _ => LayerEntryData::None, // TODO
+        _ => LayerEntryData::Unknown,
     };
 
     InstanceObject {
