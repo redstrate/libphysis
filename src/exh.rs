@@ -6,7 +6,7 @@ use physis::ReadableFile;
 use physis::exh::{ColumnDataType, EXH};
 use physis::{Language, Platform};
 use std::ffi::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::{mem, slice};
 
 // TODO: re-use from Physis since their struct is also simple
@@ -137,9 +137,8 @@ pub unsafe extern "C" fn physis_exh_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(pcb) = EXH::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{pcb:#?}"))
-    } else {
-        null()
+    match EXH::from_existing(platform, data) {
+        Ok(exh) => ffi_to_c_string(&format!("{exh:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

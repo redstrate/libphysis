@@ -59,9 +59,8 @@ pub unsafe extern "C" fn physis_dic_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(dic) = Dictionary::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{dic:#?}"))
-    } else {
-        null()
+    match Dictionary::from_existing(platform, data) {
+        Ok(dic) => ffi_to_c_string(&format!("{dic:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

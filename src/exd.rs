@@ -85,9 +85,8 @@ pub unsafe extern "C" fn physis_exd_debug(
 ) -> *const std::ffi::c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(exd) = EXD::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{exd:#?}"))
-    } else {
-        null()
+    match EXD::from_existing(platform, data) {
+        Ok(exd) => ffi_to_c_string(&format!("{exd:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

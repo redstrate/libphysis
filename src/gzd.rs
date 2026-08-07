@@ -6,7 +6,6 @@ use physis::Platform;
 use physis::ReadableFile;
 use physis::gzd::GrassZoneData;
 use std::ffi::c_char;
-use std::ptr::null;
 use std::slice;
 
 #[unsafe(no_mangle)]
@@ -16,9 +15,8 @@ pub unsafe extern "C" fn physis_gzd_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(gzd) = GrassZoneData::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{gzd:#?}"))
-    } else {
-        null()
+    match GrassZoneData::from_existing(platform, data) {
+        Ok(gzd) => ffi_to_c_string(&format!("{gzd:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

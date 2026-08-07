@@ -6,7 +6,6 @@ use physis::Platform;
 use physis::ReadableFile;
 use physis::essb::Essb;
 use std::ffi::c_char;
-use std::ptr::null;
 use std::slice;
 
 #[unsafe(no_mangle)]
@@ -16,9 +15,8 @@ pub unsafe extern "C" fn physis_essb_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(essb) = Essb::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{essb:#?}"))
-    } else {
-        null()
+    match Essb::from_existing(platform, data) {
+        Ok(essb) => ffi_to_c_string(&format!("{essb:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

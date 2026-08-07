@@ -7,7 +7,7 @@ use physis::ReadableFile;
 use physis::race::{Gender, Race, Tribe};
 use physis::skeleton::Skeleton;
 use std::os::raw::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::{mem, slice};
 
 #[repr(C)]
@@ -93,10 +93,9 @@ pub unsafe extern "C" fn physis_skeleton_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(sklb) = Skeleton::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{sklb:#?}"))
-    } else {
-        null()
+    match Skeleton::from_existing(platform, data) {
+        Ok(sklb) => ffi_to_c_string(&format!("{sklb:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }
 

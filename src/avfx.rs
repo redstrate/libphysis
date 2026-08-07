@@ -6,7 +6,7 @@ use physis::Platform;
 use physis::ReadableFile;
 use physis::avfx::{Avfx, DrawVertex};
 use std::ffi::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::slice;
 
 #[repr(C)]
@@ -94,9 +94,8 @@ pub unsafe extern "C" fn physis_avfx_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(avfx) = Avfx::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{avfx:#?}"))
-    } else {
-        null()
+    match Avfx::from_existing(platform, data) {
+        Ok(avfx) => ffi_to_c_string(&format!("{avfx:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

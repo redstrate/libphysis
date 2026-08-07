@@ -165,10 +165,9 @@ pub unsafe extern "C" fn physis_mtrl_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(mtrl) = Material::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{mtrl:#?}"))
-    } else {
-        null()
+    match Material::from_existing(platform, data) {
+        Ok(mtrl) => ffi_to_c_string(&format!("{mtrl:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }
 

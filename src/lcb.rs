@@ -6,7 +6,7 @@ use physis::Platform;
 use physis::ReadableFile;
 use physis::lcb::{Lcb, LccEntry};
 use std::ffi::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::{mem, slice};
 
 #[repr(C)]
@@ -71,9 +71,8 @@ pub unsafe extern "C" fn physis_lcb_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(lcb) = Lcb::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{lcb:#?}"))
-    } else {
-        null()
+    match Lcb::from_existing(platform, data) {
+        Ok(lcb) => ffi_to_c_string(&format!("{lcb:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

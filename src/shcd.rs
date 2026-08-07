@@ -6,7 +6,7 @@ use physis::shcd::SHCD;
 use physis::shcd::ShaderStage;
 use physis::{Platform, ReadableFile};
 use std::ffi::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::slice;
 
 #[repr(C)]
@@ -55,9 +55,8 @@ pub unsafe extern "C" fn physis_shcd_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(shcd) = SHCD::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{shcd:#?}"))
-    } else {
-        null()
+    match SHCD::from_existing(platform, data) {
+        Ok(shcd) => ffi_to_c_string(&format!("{shcd:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

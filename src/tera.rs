@@ -6,7 +6,7 @@ use physis::Platform;
 use physis::ReadableFile;
 use physis::tera::Terrain;
 use std::os::raw::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::{mem, slice};
 
 #[repr(C)]
@@ -69,9 +69,8 @@ pub unsafe extern "C" fn physis_tera_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(tera) = Terrain::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{tera:#?}"))
-    } else {
-        null()
+    match Terrain::from_existing(platform, data) {
+        Ok(tera) => ffi_to_c_string(&format!("{tera:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

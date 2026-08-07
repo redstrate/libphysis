@@ -7,7 +7,7 @@ use physis::ReadableFile;
 use physis::tex::TextureAttribute;
 use physis::tex::{Texture, TextureFormat};
 use std::ffi::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::{mem, slice};
 
 #[repr(C)]
@@ -122,9 +122,8 @@ pub unsafe extern "C" fn physis_tex_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(tex) = Texture::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{tex:#?}"))
-    } else {
-        null()
+    match Texture::from_existing(platform, data) {
+        Ok(tex) => ffi_to_c_string(&format!("{tex:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

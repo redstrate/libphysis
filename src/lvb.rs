@@ -7,7 +7,7 @@ use physis::Platform;
 use physis::ReadableFile;
 use physis::lvb::Lvb;
 use std::ffi::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::slice;
 
 #[repr(C)]
@@ -56,10 +56,9 @@ pub unsafe extern "C" fn physis_lvb_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(lvb) = Lvb::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{lvb:#?}"))
-    } else {
-        null()
+    match Lvb::from_existing(platform, data) {
+        Ok(lvb) => ffi_to_c_string(&format!("{lvb:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }
 

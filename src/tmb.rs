@@ -206,10 +206,9 @@ pub unsafe extern "C" fn physis_tmb_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(tmb) = Tmb::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{tmb:#?}"))
-    } else {
-        null()
+    match Tmb::from_existing(platform, data) {
+        Ok(tmb) => ffi_to_c_string(&format!("{tmb:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }
 

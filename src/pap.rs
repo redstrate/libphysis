@@ -6,7 +6,6 @@ use physis::Platform;
 use physis::ReadableFile;
 use physis::pap::Pap;
 use std::ffi::c_char;
-use std::ptr::null;
 use std::slice;
 
 #[unsafe(no_mangle)]
@@ -16,9 +15,8 @@ pub unsafe extern "C" fn physis_pap_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(pap) = Pap::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{pap:#?}"))
-    } else {
-        null()
+    match Pap::from_existing(platform, data) {
+        Ok(pap) => ffi_to_c_string(&format!("{pap:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }

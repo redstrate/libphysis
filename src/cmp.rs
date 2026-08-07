@@ -7,7 +7,7 @@ use physis::ReadableFile;
 use physis::cmp::{CMP, RacialScalingParameters};
 use physis::race::{Race, Tribe};
 use std::ffi::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::slice;
 
 #[repr(C)]
@@ -52,9 +52,8 @@ pub unsafe extern "C" fn physis_cmp_debug(
 ) -> *const c_char {
     let data = unsafe { slice::from_raw_parts(buffer.data, buffer.size as usize) };
 
-    if let Ok(cmp) = CMP::from_existing(platform, data) {
-        ffi_to_c_string(&format!("{cmp:#?}"))
-    } else {
-        null()
+    match CMP::from_existing(platform, data) {
+        Ok(cmp) => ffi_to_c_string(&format!("{cmp:#?}")),
+        Err(err) => ffi_to_c_string(&format!("{err:#?}")),
     }
 }
