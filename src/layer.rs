@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use std::os::raw::c_char;
-
 use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec};
+use physis::Color;
 use physis::layer::LayerEntryData::*;
 use physis::layer::*;
+use std::os::raw::c_char;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -29,7 +29,8 @@ pub struct physis_LightInstanceObject {
     pub attenuation_cone_coefficient: f32,
     pub spot_angle: f32,
     pub texture_path: *const c_char,
-    pub color: ColorHDRI,
+    pub color: Color,
+    pub intensity: f32,
     pub enable_specular_highlights: bool,
     pub enable_bg_parts_shadows: bool,
     pub enable_character_shadows: bool,
@@ -365,6 +366,7 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         Light(light) => physis_LayerEntry::Light(physis_LightInstanceObject {
             shape: light.shape,
             color: light.color,
+            intensity: light.intensity,
             attenuation: light.attenuation,
             range: light.range,
             attenuation_cone_coefficient: light.attenuation_cone_coefficient,
