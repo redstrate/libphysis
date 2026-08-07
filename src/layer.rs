@@ -138,6 +138,9 @@ pub struct physis_ExitRangeInstanceObject {
     pub index: i32,
     pub destination_instance_id: u32,
     pub return_instance_id: u32,
+    pub player_running_direction: f32,
+    pub unk9c: u16,
+    pub unk_instance_id: u32,
 }
 
 #[repr(C)]
@@ -447,6 +450,9 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             destination_instance_id: exit_range.destination_instance_id,
             return_instance_id: exit_range.return_instance_id,
             index: exit_range.index,
+            player_running_direction: exit_range.player_running_direction,
+            unk9c: exit_range.unk9c,
+            unk_instance_id: exit_range.unk_instance_id,
         }),
         EventRange(event_range) => physis_LayerEntry::EventRange(physis_EventRangeInstanceObject {
             parent_data: convert_triggerboxinstanceobject(&event_range.parent_data),
