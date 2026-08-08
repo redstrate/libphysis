@@ -13,8 +13,7 @@ pub struct physis_BgPartInstanceObject {
     pub asset_path: *const c_char,
     pub collision_asset_path: *const c_char,
     pub collision_type: ModelCollisionType,
-    pub collision_material_id: u64,
-    pub collision_material_mask: u64,
+    pub collision_attributes: CollisionAttributes,
     pub visible: bool,
     pub world_light_shadow_mode: ShadowMode,
     pub object_light_shadow_mode: ShadowMode,
@@ -199,8 +198,7 @@ pub struct physis_SoundInstanceObject {
 #[derive(Clone, Copy)]
 pub struct physis_CollisionBoxInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
-    pub collision_material_id: u64,
-    pub collision_material_mask: u64,
+    pub collision_attributes: CollisionAttributes,
     pub layer_mask_is_43h: bool,
     pub collision_asset_path: *const c_char,
 }
@@ -411,8 +409,7 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             asset_path: ffi_to_c_string(&bg.asset_path.value),
             collision_asset_path: ffi_to_c_string(&bg.collision_asset_path.value),
             collision_type: bg.collision_type,
-            collision_material_id: bg.collision_material_id,
-            collision_material_mask: bg.collision_material_mask,
+            collision_attributes: bg.collision_attributes,
             visible: bg.visible,
             world_light_shadow_mode: bg.world_light_shadow_mode,
             object_light_shadow_mode: bg.object_light_shadow_mode,
@@ -546,8 +543,7 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         CollisionBox(collision_box) => {
             physis_LayerEntry::CollisionBox(physis_CollisionBoxInstanceObject {
                 parent_data: convert_triggerboxinstanceobject(&collision_box.parent_data),
-                collision_material_id: collision_box.collision_material_id,
-                collision_material_mask: collision_box.collision_material_mask,
+                collision_attributes: collision_box.collision_attributes,
                 layer_mask_is_43h: collision_box.layer_mask_is_43h,
                 collision_asset_path: ffi_to_c_string(&collision_box.collision_asset_path.value),
             })
