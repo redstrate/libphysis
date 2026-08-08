@@ -13,6 +13,8 @@ pub struct physis_BgPartInstanceObject {
     pub asset_path: *const c_char,
     pub collision_asset_path: *const c_char,
     pub collision_type: ModelCollisionType,
+    pub collision_material_id: u64,
+    pub collision_material_mask: u64,
     pub visible: bool,
     pub world_light_shadow_mode: ShadowMode,
     pub object_light_shadow_mode: ShadowMode,
@@ -197,6 +199,9 @@ pub struct physis_SoundInstanceObject {
 #[derive(Clone, Copy)]
 pub struct physis_CollisionBoxInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
+    pub collision_material_id: u64,
+    pub collision_material_mask: u64,
+    pub layer_mask_is_43h: bool,
     pub collision_asset_path: *const c_char,
 }
 
@@ -268,9 +273,48 @@ pub struct physis_BattleNpcInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_DecalInstanceObject {
+    pub asset_path: *const c_char,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_VolumetricCloudInstanceObject {
+    pub asset_path: *const c_char,
+    pub color: Color,
+    pub intensity: f32,
+    pub active: bool,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ColliderLayer8InstanceObject {
+    pub parent_data: physis_TriggerBoxInstanceObject,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ColliderLayer10InstanceObject {
+    pub parent_data: physis_TriggerBoxInstanceObject,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ColliderLayer7InstanceObject {
+    pub parent_data: physis_TriggerBoxInstanceObject,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct physis_ColliderLayer9InstanceObject {
+    pub parent_data: physis_TriggerBoxInstanceObject,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
-    None,
+    Unknown,
     BgPart(physis_BgPartInstanceObject),
     Light(physis_LightInstanceObject),
     Vfx(physis_VfxInstanceObject),
@@ -296,6 +340,13 @@ pub enum physis_LayerEntry {
     CullingBox(physis_CullingBoxInstanceObject),
     ClickableRange(physis_ClickableRangeInstanceObject),
     BattleNpc(physis_BattleNpcInstanceObject),
+    Decal(physis_DecalInstanceObject),
+    VolumetricCloud(physis_VolumetricCloudInstanceObject),
+    ColliderLayer8(physis_ColliderLayer8InstanceObject),
+    ColliderLayer10(physis_ColliderLayer10InstanceObject),
+    ColliderLayer7(physis_ColliderLayer7InstanceObject),
+    ColliderLayer9(physis_ColliderLayer9InstanceObject),
+    FateRange(),
 }
 
 #[repr(C)]
@@ -360,6 +411,8 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             asset_path: ffi_to_c_string(&bg.asset_path.value),
             collision_asset_path: ffi_to_c_string(&bg.collision_asset_path.value),
             collision_type: bg.collision_type,
+            collision_material_id: bg.collision_material_id,
+            collision_material_mask: bg.collision_material_mask,
             visible: bg.visible,
             world_light_shadow_mode: bg.world_light_shadow_mode,
             object_light_shadow_mode: bg.object_light_shadow_mode,
@@ -493,6 +546,9 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         CollisionBox(collision_box) => {
             physis_LayerEntry::CollisionBox(physis_CollisionBoxInstanceObject {
                 parent_data: convert_triggerboxinstanceobject(&collision_box.parent_data),
+                collision_material_id: collision_box.collision_material_id,
+                collision_material_mask: collision_box.collision_material_mask,
+                layer_mask_is_43h: collision_box.layer_mask_is_43h,
                 collision_asset_path: ffi_to_c_string(&collision_box.collision_asset_path.value),
             })
         }
@@ -543,7 +599,39 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             },
             name_id: bnpc.name_id,
         }),
-        _ => physis_LayerEntry::None,
+        Decal(decal) => physis_LayerEntry::Decal(physis_DecalInstanceObject {
+            asset_path: ffi_to_c_string(&decal.asset_path.value),
+        }),
+        VolumetricCloud(cloud) => {
+            physis_LayerEntry::VolumetricCloud(physis_VolumetricCloudInstanceObject {
+                asset_path: ffi_to_c_string(&cloud.asset_path.value),
+                color: cloud.color,
+                intensity: cloud.intensity,
+                active: cloud.active,
+            })
+        }
+        ColliderLayer8(collider) => {
+            physis_LayerEntry::ColliderLayer8(physis_ColliderLayer8InstanceObject {
+                parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
+            })
+        }
+        ColliderLayer10(collider) => {
+            physis_LayerEntry::ColliderLayer10(physis_ColliderLayer10InstanceObject {
+                parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
+            })
+        }
+        ColliderLayer7(collider) => {
+            physis_LayerEntry::ColliderLayer7(physis_ColliderLayer7InstanceObject {
+                parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
+            })
+        }
+        ColliderLayer9(collider) => {
+            physis_LayerEntry::ColliderLayer9(physis_ColliderLayer9InstanceObject {
+                parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
+            })
+        }
+        FateRange(_) => physis_LayerEntry::FateRange(),
+        _ => physis_LayerEntry::Unknown,
     }
 }
 
@@ -603,7 +691,7 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
         ffi_free_string(object.name);
 
         match &object.data {
-            physis_LayerEntry::None => {}
+            physis_LayerEntry::Unknown => {}
             physis_LayerEntry::BgPart(bg) => {
                 ffi_free_string(bg.asset_path);
                 ffi_free_string(bg.collision_asset_path);
@@ -644,6 +732,17 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
             physis_LayerEntry::CullingBox(_) => {}
             physis_LayerEntry::ClickableRange(_) => {}
             physis_LayerEntry::BattleNpc(_) => {}
+            physis_LayerEntry::Decal(decal) => {
+                ffi_free_string(decal.asset_path);
+            }
+            physis_LayerEntry::VolumetricCloud(cloud) => {
+                ffi_free_string(cloud.asset_path);
+            }
+            physis_LayerEntry::ColliderLayer8(_) => {}
+            physis_LayerEntry::ColliderLayer10(_) => {}
+            physis_LayerEntry::ColliderLayer7(_) => {}
+            physis_LayerEntry::ColliderLayer9(_) => {}
+            physis_LayerEntry::FateRange() => {}
         }
     }
     drop(data);

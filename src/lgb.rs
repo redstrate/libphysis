@@ -126,6 +126,14 @@ fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
                 .unwrap()
                 .as_str()
                 .into(),
+            collision_type: bg.collision_type,
+            collision_material_id: bg.collision_material_id,
+            collision_material_mask: bg.collision_material_mask,
+            visible: bg.visible,
+            world_light_shadow_mode: bg.world_light_shadow_mode,
+            object_light_shadow_mode: bg.object_light_shadow_mode,
+            fade_out_distance: bg.fade_out_distance,
+            bounding_sphere_size: bg.bounding_sphere_size,
             ..Default::default()
         }),
         physis_LayerEntry::Light(light) => LayerEntryData::Light(LightInstanceObject {
