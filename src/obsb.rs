@@ -35,7 +35,7 @@ pub struct physis_Envs {
 
 #[repr(C)]
 pub struct physis_EnvChildSection {
-    weather_id: u32,
+    owner_id: u32,
     timeline_count: u32,
     timelines: *mut physis_EnvTimelineElement,
 }
@@ -92,7 +92,7 @@ pub extern "C" fn physis_obsb_parse(platform: Platform, buffer: physis_Buffer) -
                 }
 
                 let c_section = physis_EnvChildSection {
-                    weather_id: section.weather_id,
+                    owner_id: section.owner_id,
                     timeline_count: c_timelines.len() as u32,
                     timelines: c_timelines.as_mut_ptr(),
                 };
