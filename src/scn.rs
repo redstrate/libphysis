@@ -21,12 +21,16 @@ pub struct physis_ScnSection {
     lgb_paths: *mut *const c_char,
 
     action_descriptors: physis_ScnSGActionDescriptors,
+
+    num_env_spaces: u32,
+    env_spaces: *mut physis_ScnEnvSpace,
 }
 
 #[repr(C)]
 pub struct physis_ScnGeneralSection {
     bg_path: *const c_char,
     lcb_path: *const c_char,
+    svb_path: *const c_char,
 }
 
 #[repr(C)]
@@ -71,6 +75,14 @@ pub struct physis_ScnLayerSet {
     content_finder_condition_id: u16,
 }
 
+#[repr(C)]
+pub struct physis_ScnEnvSpace {
+    pub envb_path: *const c_char,
+    pub index: i32,
+    pub env_location_instance_id: i32,
+    pub essb_path: *const c_char,
+}
+
 pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
     let mut c_layer_groups = Vec::new();
     for layer_group in &section.layer_groups {
@@ -85,6 +97,7 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
     let general = physis_ScnGeneralSection {
         bg_path: ffi_to_c_string(&section.general.bg_path.value),
         lcb_path: ffi_to_c_string(&section.general.lcb_path.value),
+        svb_path: ffi_to_c_string(&section.general.svb_path.value),
     };
 
     let mut c_timelines = Vec::new();
@@ -118,6 +131,16 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
         layer_sets: c_layer_sets.as_mut_ptr(),
     };
 
+    let mut c_env_spaces = Vec::new();
+    for env_space in &section.general.env_spaces {
+        c_env_spaces.push(physis_ScnEnvSpace {
+            envb_path: ffi_to_c_string(&env_space.envb_path.value),
+            index: env_space.index,
+            env_location_instance_id: env_space.env_location_instance_id,
+            essb_path: ffi_to_c_string(&env_space.essb_path.value),
+        });
+    }
+
     let scn = physis_ScnSection {
         num_layer_groups: c_layer_groups.len() as u32,
         layer_groups: c_layer_groups.as_mut_ptr(),
@@ -127,6 +150,8 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
         lgb_paths: c_lgb_paths.as_mut_ptr(),
         action_descriptors,
         layer_sets,
+        num_env_spaces: c_env_spaces.len() as u32,
+        env_spaces: c_env_spaces.as_mut_ptr(),
     };
 
     std::mem::forget(c_layer_sets);
@@ -134,6 +159,7 @@ pub fn to_c_section(section: &ScnSection) -> physis_ScnSection {
     std::mem::forget(c_lgb_paths);
     std::mem::forget(c_timelines);
     std::mem::forget(c_descriptors);
+    std::mem::forget(c_env_spaces);
 
     scn
 }
@@ -212,5 +238,12 @@ pub(crate) fn drop_section(section: &physis_ScnSection) {
         section.action_descriptors.descriptors,
         section.action_descriptors.descriptor_count,
     );
+    drop(data);
+
+    let data = ffi_to_vec(section.env_spaces, section.num_env_spaces);
+    for env_space in &data {
+        ffi_free_string(env_space.essb_path);
+        ffi_free_string(env_space.envb_path);
+    }
     drop(data);
 }

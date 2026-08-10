@@ -42,15 +42,15 @@ pub struct physis_EnvChildSection {
 
 #[repr(C)]
 pub enum physis_EnvTimelineElement {
-    ChangeVisibility {
+    ObjectVisibility {
         point_count: u32,
-        points: *mut physis_EnvChangeVisibility,
+        points: *mut physis_EnvObjectVisibility,
     },
     Unknown,
 }
 
 #[repr(C)]
-pub struct physis_EnvChangeVisibility {
+pub struct physis_EnvObjectVisibility {
     time: f32,
     visible: bool,
 }
@@ -67,16 +67,16 @@ pub extern "C" fn physis_obsb_parse(platform: Platform, buffer: physis_Buffer) -
                 let mut c_timelines = Vec::new();
                 for timeline in &section.timelines {
                     let c_timeline = match &timeline.data {
-                        EnvTimelineElement::ChangeVisibility(elements) => {
+                        EnvTimelineElement::ObjectVisibility(elements) => {
                             let mut c_points = Vec::new();
                             for element in elements {
-                                c_points.push(physis_EnvChangeVisibility {
+                                c_points.push(physis_EnvObjectVisibility {
                                     time: element.time,
                                     visible: element.visible,
                                 });
                             }
 
-                            let c_element = physis_EnvTimelineElement::ChangeVisibility {
+                            let c_element = physis_EnvTimelineElement::ObjectVisibility {
                                 point_count: c_points.len() as u32,
                                 points: c_points.as_mut_ptr(),
                             };
