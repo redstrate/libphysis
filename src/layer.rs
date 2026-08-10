@@ -284,25 +284,25 @@ pub struct physis_VolumetricCloudInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_ColliderLayer8InstanceObject {
+pub struct physis_ShowHideRangeInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_ColliderLayer10InstanceObject {
+pub struct physis_EventEffectRangeInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_ColliderLayer7InstanceObject {
+pub struct physis_WaterRangeInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_ColliderLayer9InstanceObject {
+pub struct physis_GameContentsRangeInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
 }
 
@@ -338,10 +338,10 @@ pub enum physis_LayerEntry {
     BattleNpc(physis_BattleNpcInstanceObject),
     Decal(physis_DecalInstanceObject),
     VolumetricCloud(physis_VolumetricCloudInstanceObject),
-    ColliderLayer8(physis_ColliderLayer8InstanceObject),
-    ColliderLayer10(physis_ColliderLayer10InstanceObject),
-    ColliderLayer7(physis_ColliderLayer7InstanceObject),
-    ColliderLayer9(physis_ColliderLayer9InstanceObject),
+    ShowHideRange(physis_ShowHideRangeInstanceObject),
+    EventEffectRange(physis_EventEffectRangeInstanceObject),
+    WaterRange(physis_WaterRangeInstanceObject),
+    GameContentsRange(physis_GameContentsRangeInstanceObject),
     FateRange(),
 }
 
@@ -602,23 +602,21 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                 active: cloud.active,
             })
         }
-        ColliderLayer8(collider) => {
-            physis_LayerEntry::ColliderLayer8(physis_ColliderLayer8InstanceObject {
+        ShowHideRange(collider) => {
+            physis_LayerEntry::ShowHideRange(physis_ShowHideRangeInstanceObject {
                 parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
             })
         }
-        ColliderLayer10(collider) => {
-            physis_LayerEntry::ColliderLayer10(physis_ColliderLayer10InstanceObject {
+        EventEffectRange(collider) => {
+            physis_LayerEntry::EventEffectRange(physis_EventEffectRangeInstanceObject {
                 parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
             })
         }
-        ColliderLayer7(collider) => {
-            physis_LayerEntry::ColliderLayer7(physis_ColliderLayer7InstanceObject {
-                parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
-            })
-        }
-        ColliderLayer9(collider) => {
-            physis_LayerEntry::ColliderLayer9(physis_ColliderLayer9InstanceObject {
+        WaterRange(collider) => physis_LayerEntry::WaterRange(physis_WaterRangeInstanceObject {
+            parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
+        }),
+        GameContentsRange(collider) => {
+            physis_LayerEntry::GameContentsRange(physis_GameContentsRangeInstanceObject {
                 parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
             })
         }
@@ -730,10 +728,10 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
             physis_LayerEntry::VolumetricCloud(cloud) => {
                 ffi_free_string(cloud.asset_path);
             }
-            physis_LayerEntry::ColliderLayer8(_) => {}
-            physis_LayerEntry::ColliderLayer10(_) => {}
-            physis_LayerEntry::ColliderLayer7(_) => {}
-            physis_LayerEntry::ColliderLayer9(_) => {}
+            physis_LayerEntry::ShowHideRange(_) => {}
+            physis_LayerEntry::EventEffectRange(_) => {}
+            physis_LayerEntry::WaterRange(_) => {}
+            physis_LayerEntry::GameContentsRange(_) => {}
             physis_LayerEntry::FateRange() => {}
         }
     }
