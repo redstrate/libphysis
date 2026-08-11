@@ -10,7 +10,7 @@ use physis::ReadableFile;
 use physis::layer::{
     BgPartInstanceObject, EventObjectInstanceObject, GameObjectInstanceObject, InstanceObject,
     Layer, LayerEntryData, LayerHeader, LightInstanceObject, SharedGroupInstance,
-    VFXInstanceObject,
+    VfxInstanceObject,
 };
 use physis::lgb::{LayerChunk, Lgb};
 use physis::{Platform, WritableFile};
@@ -140,7 +140,7 @@ fn to_rust_object(object: &physis_InstanceObject) -> InstanceObject {
             color: light.color,
             ..Default::default()
         }),
-        physis_LayerEntry::Vfx(vfx) => LayerEntryData::Vfx(VFXInstanceObject {
+        physis_LayerEntry::Vfx(vfx) => LayerEntryData::Vfx(VfxInstanceObject {
             asset_path: ffi_from_c_string(vfx.asset_path).unwrap().as_str().into(),
             ..Default::default()
         }),

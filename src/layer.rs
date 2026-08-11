@@ -210,7 +210,9 @@ pub struct physis_DoorRangeInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct physis_RangeInstanceObject {}
+pub struct physis_RangeInstanceObject {
+    pub shape: RangeShape,
+}
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -227,7 +229,6 @@ pub struct physis_TreasureInstanceObject {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_TargetMarkerInstanceObject {
-    pub nameplate_offset_y: f32,
     pub target_market_type: TargetMarkerType,
 }
 
@@ -298,6 +299,8 @@ pub struct physis_EventEffectRangeInstanceObject {
 #[derive(Clone, Copy)]
 pub struct physis_WaterRangeInstanceObject {
     pub parent_data: physis_TriggerBoxInstanceObject,
+    pub enabled: bool,
+    pub unk2: bool,
 }
 
 #[repr(C)]
@@ -545,8 +548,10 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                 collision_asset_path: ffi_to_c_string(&collision_box.collision_asset_path.value),
             })
         }
-        DoorRange(_) => physis_LayerEntry::DoorRange(physis_DoorRangeInstanceObject {
-            parent_data: physis_RangeInstanceObject {},
+        DoorRange(door_range) => physis_LayerEntry::DoorRange(physis_DoorRangeInstanceObject {
+            parent_data: physis_RangeInstanceObject {
+                shape: door_range.parent_data.shape,
+            },
         }),
         LineVFX(line_vfx) => physis_LayerEntry::LineVFX(physis_LineVFXInstanceObject {
             line_style: line_vfx.line_style,
@@ -556,7 +561,6 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         }),
         TargetMarker(target_marker) => {
             physis_LayerEntry::TargetMarker(physis_TargetMarkerInstanceObject {
-                nameplate_offset_y: target_marker.nameplate_offset_y,
                 target_market_type: target_marker.target_marker_type,
             })
         }
@@ -581,9 +585,11 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             object
         }
         CullingBox(_) => physis_LayerEntry::CullingBox(physis_CullingBoxInstanceObject {}),
-        ClickableRange(_) => {
+        ClickableRange(clickable_range) => {
             physis_LayerEntry::ClickableRange(physis_ClickableRangeInstanceObject {
-                parent_data: physis_RangeInstanceObject {},
+                parent_data: physis_RangeInstanceObject {
+                    shape: clickable_range.parent_data.shape,
+                },
             })
         }
         BattleNPC(bnpc) => physis_LayerEntry::BattleNpc(physis_BattleNpcInstanceObject {
@@ -614,6 +620,8 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         }
         WaterRange(collider) => physis_LayerEntry::WaterRange(physis_WaterRangeInstanceObject {
             parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
+            enabled: collider.enabled,
+            unk2: collider.unk2,
         }),
         GameContentsRange(collider) => {
             physis_LayerEntry::GameContentsRange(physis_GameContentsRangeInstanceObject {
