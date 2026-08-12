@@ -237,6 +237,7 @@ pub struct physis_TargetMarkerInstanceObject {
 pub struct physis_PathControlPoint {
     pub position: [f32; 3],
     pub point_id: u16,
+    pub select: bool,
 }
 
 #[repr(C)]
@@ -250,6 +251,9 @@ pub struct physis_PathInstanceObject {
 #[derive(Clone, Copy)]
 pub struct physis_ClientPathInstanceObject {
     pub parent_data: physis_PathInstanceObject,
+    pub unk1: bool,
+    pub unk2: bool,
+    pub unk3: bool,
 }
 
 #[repr(C)]
@@ -311,6 +315,13 @@ pub struct physis_GameContentsRangeInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_FateRangeInstanceObject {
+    pub parent_data: physis_RangeInstanceObject,
+    pub fate_layout_label_id: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     Unknown,
@@ -345,7 +356,8 @@ pub enum physis_LayerEntry {
     EventEffectRange(physis_EventEffectRangeInstanceObject),
     WaterRange(physis_WaterRangeInstanceObject),
     GameContentsRange(physis_GameContentsRangeInstanceObject),
-    FateRange(),
+    FateRange(physis_FateRangeInstanceObject),
+    SphereCastRange(),
 }
 
 #[repr(C)]
@@ -570,6 +582,7 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                 c_points.push(physis_PathControlPoint {
                     position: point.position,
                     point_id: point.point_id,
+                    select: point.select,
                 });
             }
 
@@ -578,6 +591,9 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                     control_point_count: c_points.len() as u32,
                     control_points: c_points.as_mut_ptr(),
                 },
+                unk1: client_path.unk1,
+                unk2: client_path.unk2,
+                unk3: client_path.unk3,
             });
 
             std::mem::forget(c_points);
@@ -628,7 +644,13 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
                 parent_data: convert_triggerboxinstanceobject(&collider.parent_data),
             })
         }
-        FateRange(_) => physis_LayerEntry::FateRange(),
+        FateRange(range) => physis_LayerEntry::FateRange(physis_FateRangeInstanceObject {
+            parent_data: physis_RangeInstanceObject {
+                shape: range.parent_data.shape,
+            },
+            fate_layout_label_id: range.fate_layout_label_id,
+        }),
+        SphereCastRange() => physis_LayerEntry::SphereCastRange(),
         _ => physis_LayerEntry::Unknown,
     }
 }
@@ -740,7 +762,8 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
             physis_LayerEntry::EventEffectRange(_) => {}
             physis_LayerEntry::WaterRange(_) => {}
             physis_LayerEntry::GameContentsRange(_) => {}
-            physis_LayerEntry::FateRange() => {}
+            physis_LayerEntry::FateRange(_) => {}
+            physis_LayerEntry::SphereCastRange() => {}
         }
     }
     drop(data);
