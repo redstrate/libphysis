@@ -21,6 +21,7 @@ pub struct physis_PlateModel {
 pub struct physis_Terrain {
     num_plates: i32,
     plates: *mut physis_PlateModel,
+    clip_distance: f32,
 }
 
 impl Default for physis_Terrain {
@@ -28,6 +29,7 @@ impl Default for physis_Terrain {
         Self {
             num_plates: 0,
             plates: null_mut(),
+            clip_distance: 0.0,
         }
     }
 }
@@ -52,6 +54,7 @@ pub extern "C" fn physis_terrain_parse(
         let mat = physis_Terrain {
             num_plates: c_plates.len() as i32,
             plates: c_plates.as_mut_ptr(),
+            clip_distance: tera.clip_distance,
         };
 
         mem::forget(c_plates);
