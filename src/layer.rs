@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec};
-use physis::ColorIntensity;
 use physis::layer::LayerEntryData::*;
 use physis::layer::*;
+use physis::{Color, ColorIntensity};
 use std::os::raw::c_char;
 
 #[repr(C)]
@@ -42,6 +42,17 @@ pub struct physis_LightInstanceObject {
 #[derive(Clone, Copy)]
 pub struct physis_VfxInstanceObject {
     pub asset_path: *const c_char,
+    pub soft_particle_fade_range: f32,
+    pub color: Color,
+    pub active: bool,
+    pub unk1: bool,
+    pub unk2: bool,
+    pub fade_near_start: f32,
+    pub fade_near_end: f32,
+    pub fade_far_start: f32,
+    pub fade_far_end: f32,
+    pub z_correct: f32,
+    pub unk3: f32,
 }
 
 #[repr(C)]
@@ -445,6 +456,17 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
         }),
         Vfx(vfx) => physis_LayerEntry::Vfx(physis_VfxInstanceObject {
             asset_path: ffi_to_c_string(&vfx.asset_path.value),
+            soft_particle_fade_range: vfx.soft_particle_fade_range,
+            color: vfx.color,
+            active: vfx.active,
+            unk1: vfx.unk1,
+            unk2: vfx.unk2,
+            fade_near_start: vfx.fade_near_start,
+            fade_near_end: vfx.fade_near_end,
+            fade_far_start: vfx.fade_far_start,
+            fade_far_end: vfx.fade_far_end,
+            z_correct: vfx.z_correct,
+            unk3: vfx.unk3,
         }),
         EventObject(eobj) => physis_LayerEntry::EventObject(physis_EventObjectInstanceObject {
             parent_data: convert_gameinstanceobject(&eobj.parent_data),
