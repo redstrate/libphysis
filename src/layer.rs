@@ -333,6 +333,14 @@ pub struct physis_FateRangeInstanceObject {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct physis_WeaponInstanceObject {
+    pub weapon_id: u32,
+    pub animation_variant: u32,
+    pub visible: bool,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum physis_LayerEntry {
     Unknown,
@@ -369,6 +377,7 @@ pub enum physis_LayerEntry {
     GameContentsRange(physis_GameContentsRangeInstanceObject),
     FateRange(physis_FateRangeInstanceObject),
     SphereCastRange(),
+    Weapon(physis_WeaponInstanceObject),
 }
 
 #[repr(C)]
@@ -673,6 +682,11 @@ pub(crate) fn convert_data(data: &LayerEntryData) -> physis_LayerEntry {
             fate_layout_label_id: range.fate_layout_label_id,
         }),
         SphereCastRange() => physis_LayerEntry::SphereCastRange(),
+        Weapon(weapon) => physis_LayerEntry::Weapon(physis_WeaponInstanceObject {
+            weapon_id: weapon.weapon_id,
+            animation_variant: weapon.animation_variant,
+            visible: weapon.visible,
+        }),
         _ => physis_LayerEntry::Unknown,
     }
 }
@@ -786,6 +800,7 @@ pub(crate) fn free_layer(layer: &physis_Layer) {
             physis_LayerEntry::GameContentsRange(_) => {}
             physis_LayerEntry::FateRange(_) => {}
             physis_LayerEntry::SphereCastRange() => {}
+            physis_LayerEntry::Weapon(_) => {}
         }
     }
     drop(data);
