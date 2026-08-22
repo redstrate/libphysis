@@ -132,7 +132,7 @@ pub unsafe extern "C" fn physis_tex_debug(
 }
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct physis_TextureMipData {
     width: u16,
     height: u16,
@@ -140,23 +140,12 @@ pub struct physis_TextureMipData {
     end: usize,
 }
 
-impl Default for physis_TextureMipData {
-    fn default() -> Self {
-        Self {
-            width: 0,
-            height: 0,
-            start: 0,
-            end: 0,
-        }
-    }
-}
-
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn physis_tex_mip_data(
     texture: &physis_Texture,
     level: u8,
 ) -> physis_TextureMipData {
-    if texture.p_ptr == null_mut() {
+    if texture.p_ptr.is_null() {
         return physis_TextureMipData::default();
     }
 
