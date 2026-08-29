@@ -21,7 +21,7 @@ use std::{mem, slice};
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct physis_LayerChunk {
-    layer_group_id: i32,
+    layer_group_id: u32,
     name: *const c_char,
     layers: *mut physis_Layer,
     num_layers: u32,
