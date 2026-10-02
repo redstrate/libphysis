@@ -27,7 +27,7 @@ pub extern "C" fn physis_pbd_parse(platform: Platform, buffer: physis_Buffer) ->
 
     if let Ok(pbd) = PreBoneDeformer::from_existing(platform, data) {
         physis_PBD {
-            p_ptr: Box::leak(Box::new(pbd)),
+            p_ptr: Box::into_raw(Box::new(pbd)),
         }
     } else {
         physis_PBD::default()

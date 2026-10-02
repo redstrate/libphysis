@@ -51,7 +51,7 @@ pub extern "C" fn physis_sqpack_initialize(path: *const c_char) -> physis_SqPack
     let boxed = Box::new(resource);
 
     physis_SqPackResource {
-        p_ptr: Box::leak(boxed),
+        p_ptr: Box::into_raw(boxed),
         platform,
         release,
     }
@@ -221,7 +221,7 @@ pub unsafe extern "C" fn physis_sqpack_read_excel_sheet(
         if let Ok(exd) = (*resource.p_ptr).read_excel_sheet(&*exh.p_ptr, &r_name, language) {
             let exd = Box::new(exd);
             let pages = exd.pages.clone();
-            let p_ptr = Box::leak(exd);
+            let p_ptr = Box::into_raw(exd);
 
             let mut c_pages = Vec::new();
             for (i, page) in pages.iter().enumerate() {
@@ -277,7 +277,7 @@ pub unsafe extern "C" fn physis_custom_read_excel_sheet(
         {
             let exd = Box::new(exd);
             let pages = exd.pages.clone();
-            let p_ptr = Box::leak(exd);
+            let p_ptr = Box::into_raw(exd);
 
             let mut c_pages = Vec::new();
             for (i, page) in pages.iter().enumerate() {
@@ -723,7 +723,7 @@ pub extern "C" fn physis_custom_initialize(
     let boxed = Box::new(resource);
 
     physis_CustomResource {
-        p_ptr: Box::leak(boxed),
+        p_ptr: Box::into_raw(boxed),
     }
 }
 

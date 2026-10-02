@@ -21,7 +21,7 @@ pub extern "C" fn physis_bootdata_initialize(path: *const c_char) -> *mut BootDa
     let boot_data = BootData::from_existing(&r_path);
     let boxed = Box::new(boot_data);
 
-    Box::leak(boxed)
+    Box::into_raw(boxed)
 }
 
 #[unsafe(no_mangle)]

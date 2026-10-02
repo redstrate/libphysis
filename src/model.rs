@@ -109,7 +109,7 @@ pub extern "C" fn physis_mdl_parse(platform: Platform, buffer: physis_Buffer) ->
     let model_clip_out_of_distance = mdl.model_data.header.model_clip_out_of_distance;
 
     let mdl = physis_MDL {
-        p_ptr: Box::leak(mdl),
+        p_ptr: Box::into_raw(mdl),
         num_lod: c_lods.len() as u32,
         lods: c_lods.as_mut_ptr(),
         num_affected_bones: c_bone_names.len() as u32,

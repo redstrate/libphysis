@@ -49,7 +49,7 @@ pub extern "C" fn physis_index_parse(
         let boxed = Box::new(idx_file);
 
         let mat = physis_IndexEntries {
-            p_ptr: Box::leak(boxed),
+            p_ptr: Box::into_raw(boxed),
             num_hashes: c_hashes.len() as u32,
             hashes: c_hashes.as_mut_ptr(),
         };

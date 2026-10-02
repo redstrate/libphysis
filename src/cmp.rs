@@ -28,7 +28,7 @@ pub extern "C" fn physis_cmp_parse(platform: Platform, buffer: physis_Buffer) ->
 
     if let Ok(cmp) = CMP::from_existing(platform, data) {
         physis_CMP {
-            p_ptr: Box::leak(Box::new(cmp)),
+            p_ptr: Box::into_raw(Box::new(cmp)),
         }
     } else {
         physis_CMP::default()

@@ -208,7 +208,7 @@ pub extern "C" fn physis_shpk_parse(platform: Platform, buffer: physis_Buffer) -
             scalar_parameters: scalar_params,
             num_texture_parameters: num_texture_params,
             texture_parameters: texture_params,
-            p_ptr: Box::leak(Box::new(shpk)),
+            p_ptr: Box::into_raw(Box::new(shpk)),
         };
 
         mem::forget(c_vertex_shaders);

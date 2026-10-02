@@ -27,7 +27,7 @@ pub extern "C" fn physis_cfg_parse(buffer: physis_Buffer) -> physis_ConfigFile {
     // TODO: don't hardcode Platform
     if let Ok(cfg) = ConfigFile::from_existing(Platform::Win32, data) {
         physis_ConfigFile {
-            p_ptr: Box::leak(Box::new(cfg)),
+            p_ptr: Box::into_raw(Box::new(cfg)),
         }
     } else {
         physis_ConfigFile::default()

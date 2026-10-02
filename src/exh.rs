@@ -93,7 +93,7 @@ pub extern "C" fn physis_exh_parse(platform: Platform, buffer: physis_Buffer) ->
     let column_count = exh.column_definitions.len() as u32;
 
     let repositories = physis_EXH {
-        p_ptr: Box::leak(exh),
+        p_ptr: Box::into_raw(exh),
         page_count: page_len,
         language_count: c_languages.len() as u32,
         languages: c_languages.as_mut_ptr(),
