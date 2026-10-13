@@ -182,7 +182,9 @@ fn to_c_row(subrow_id: u16, row: &Row) -> physis_ExcelRow {
 
     for col_data in &row.columns {
         match &col_data {
-            Field::String(s) => c_col_data.push(physis_Field::String(ffi_to_c_string(s))),
+            Field::String(s) => {
+                c_col_data.push(physis_Field::String(ffi_to_c_string(&s.to_string())))
+            } // TODO: Expose SeString?
             Field::Bool(b) => c_col_data.push(physis_Field::Bool(*b)),
             Field::Int8(i) => c_col_data.push(physis_Field::Int8(*i)),
             Field::UInt8(i) => c_col_data.push(physis_Field::UInt8(*i)),
@@ -339,7 +341,9 @@ pub unsafe extern "C" fn physis_sqpack_update_excel_sheet_page(
                                     let old_field = &mut subrow.columns[column_index];
                                     *old_field = match new_field {
                                         physis_Field::String(val) => {
-                                            Field::String(ffi_from_c_string(*val).unwrap())
+                                            Field::String(
+                                                ffi_from_c_string(*val).unwrap().as_str().into(),
+                                            ) // TODO: expose SeString?
                                         }
                                         physis_Field::Bool(val) => Field::Bool(*val),
                                         physis_Field::Int8(val) => Field::Int8(*val),
