@@ -4,8 +4,7 @@
 use crate::{ffi_to_c_string, physis_Buffer};
 use physis::Platform;
 use physis::ReadableFile;
-use physis::tex::TextureAttribute;
-use physis::tex::{Texture, TextureFormat};
+use physis::tex::{Texture, TextureAttribute, TextureFormat, TextureSlice};
 use std::ffi::c_char;
 use std::ptr::null_mut;
 use std::{mem, slice};
@@ -78,6 +77,8 @@ pub extern "C" fn physis_texture_parse(
 pub struct physis_TextureRgba {
     rgba_size: u32,
     rgba: *mut u8,
+    width: u16,
+    height: u16,
 }
 
 impl Default for physis_TextureRgba {
@@ -85,17 +86,25 @@ impl Default for physis_TextureRgba {
         Self {
             rgba_size: 0,
             rgba: null_mut(),
+            width: 0,
+            height: 0,
         }
     }
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn physis_texture_to_rgba(texture: physis_Texture) -> physis_TextureRgba {
+pub extern "C" fn physis_texture_decode(
+    texture: physis_Texture,
+    level: u8,
+    layer: u8,
+) -> physis_TextureRgba {
     unsafe {
-        if let Some(mut parsed) = (*texture.p_ptr).to_rgba() {
+        if let Some(mut parsed) = (*texture.p_ptr).decode(level, layer) {
             let rgba = physis_TextureRgba {
-                rgba_size: parsed.len() as u32,
-                rgba: parsed.as_mut_ptr(),
+                rgba_size: parsed.data.len() as u32,
+                rgba: parsed.data.as_mut_ptr(),
+                width: parsed.width,
+                height: parsed.height,
             };
 
             mem::forget(parsed);
@@ -131,36 +140,15 @@ pub unsafe extern "C" fn physis_tex_debug(
     }
 }
 
-#[repr(C)]
-#[derive(Clone, Copy, Default)]
-pub struct physis_TextureMipData {
-    width: u16,
-    height: u16,
-    start: usize,
-    end: usize,
-}
-
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn physis_tex_mip_data(
+pub unsafe extern "C" fn physis_tex_slice(
     texture: &physis_Texture,
     level: u8,
-) -> physis_TextureMipData {
+    layer: u8,
+) -> TextureSlice {
     if texture.p_ptr.is_null() {
-        return physis_TextureMipData::default();
+        return TextureSlice::default();
     }
 
-    unsafe {
-        if let Some((start, end)) = (*texture.p_ptr).mip_data(level) {
-            let (width, height) = (*texture.p_ptr).mip_size(level);
-
-            physis_TextureMipData {
-                width,
-                height,
-                start,
-                end,
-            }
-        } else {
-            physis_TextureMipData::default()
-        }
-    }
+    unsafe { (*texture.p_ptr).slice(level, layer).unwrap_or_default() }
 }
