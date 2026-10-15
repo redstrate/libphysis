@@ -107,8 +107,6 @@ pub extern "C" fn physis_free_file(buffer: &physis_Buffer) {
 #[unsafe(no_mangle)]
 pub extern "C" fn _physis_dummy_tiu(_: TerritoryIntendedUse) {}
 
-mod bootdata;
-
 mod model;
 
 mod race;
