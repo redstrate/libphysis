@@ -3,10 +3,10 @@
 
 use std::mem;
 use std::os::raw::c_char;
-use std::path::Path;
 use std::ptr::null_mut;
 
 use physis::Platform;
+use physis::ReadableFile;
 use physis::sqpack::{Hash, SqPackIndex};
 
 use crate::{ffi_from_c_string, ffi_to_vec};
@@ -39,7 +39,7 @@ pub extern "C" fn physis_index_parse(
         return physis_IndexEntries::default();
     };
 
-    if let Some(idx_file) = SqPackIndex::from_existing(platform, Path::new(&r_path)) {
+    if let Ok(idx_file) = SqPackIndex::from_existing(platform, &std::fs::read(&r_path).unwrap()) {
         let mut c_hashes = Vec::new();
 
         for entry in &idx_file.entries {

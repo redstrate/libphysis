@@ -16,7 +16,7 @@ pub extern "C" fn physis_sqpack_read_block(
 
     let mut cursor = Cursor::new(data);
 
-    if let Ok(mut buffer) = SqPackData::read_from_reader(&mut cursor, platform) {
+    if let Ok(mut buffer) = SqPackData::read_from_reader(platform, &mut cursor, 0) {
         let leak_buffer = physis_Buffer {
             size: buffer.len() as u32,
             data: buffer.as_mut_ptr(),
