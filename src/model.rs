@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2024 Joshua Goins <josh@redstrate.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use physis::Platform;
 use physis::model::NewShapeValue;
+use physis::{AABB, Platform};
 use std::os::raw::c_char;
 use std::ptr::null_mut;
 use std::ptr::slice_from_raw_parts;
@@ -12,7 +12,7 @@ use crate::{ffi_free_string, ffi_to_c_string, ffi_to_vec, physis_Buffer};
 use physis::model::vertex_declarations::VertexElement;
 use physis::model::vertex_declarations::VertexType;
 use physis::model::vertex_declarations::get_vertex_type_size;
-use physis::model::{BoundingBox, MDL, SubMesh, Vertex};
+use physis::model::{MDL, SubMesh, Vertex};
 use physis::{ReadableFile, WritableFile};
 
 #[repr(C)]
@@ -61,7 +61,7 @@ pub struct physis_MDL {
     affected_bone_names: *mut *const c_char,
     num_material_names: u32,
     material_names: *mut *const c_char,
-    bounding_box: BoundingBox,
+    bounding_box: AABB,
     model_clip_out_of_distance: f32,
 }
 
@@ -75,7 +75,7 @@ impl Default for physis_MDL {
             affected_bone_names: null_mut(),
             num_material_names: 0,
             material_names: null_mut(),
-            bounding_box: BoundingBox::default(),
+            bounding_box: AABB::default(),
             model_clip_out_of_distance: 0.0,
         }
     }
