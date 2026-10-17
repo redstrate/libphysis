@@ -4,7 +4,7 @@ C bindings for [Physis](https://github.com/redstrate/Physis), a library for read
 
 ## Usage
 
-Run `cargo build`, and it will generate the bindings under `target/public`. There should also be a C-compatible shared & static library to link to. 
+Run `cargo build`, and it will generate the bindings under `target/public`. There should also be a static library to link to. 
 
 ## Contributing & Support
 
