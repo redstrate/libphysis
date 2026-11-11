@@ -1,6 +1,6 @@
 [package]
 name = "libphysis"
-version = "0.7.1"
+version = "0.7.2"
 authors = ["Joshua Goins <josh@redstrate.com>"]
 edition = "2024"
 description = "C bindings for physis"
@@ -18,4 +18,4 @@ crate-type = ["staticlib"]
 cbindgen = { version = "0.29", default-features = false }
 
 [dependencies]
-physis = { version = "0.7.1", default-features = false }
+physis = { version = "0.7.2", default-features = false }
